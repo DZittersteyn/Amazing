@@ -1,0 +1,9 @@
+{% extends "main.html" %}
+
+{%block body%}
+<h1>User selection screen</h1>
+
+{% for user in users %}
+<p>{{ user.name }}</p>
+{% endfor %}
+{% endblock %}
