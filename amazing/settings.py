@@ -81,10 +81,12 @@ TEMPLATE_DIRS = (
 '/home/dirk/Amazing/amazing',
 '/home/dirk/Amazing/amazing/templates',
 '/home/dirk/Amazing/amazing/templates/pos',
+
 )
 
 INSTALLED_APPS = (
 'pos',
+'django.contrib.staticfiles',
 'django.contrib.auth',
 'django.contrib.contenttypes',
 'django.contrib.sessions',

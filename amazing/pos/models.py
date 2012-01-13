@@ -4,6 +4,8 @@ from django.db import models
 from pos.products import Product
 
 class User(models.Model):
+    def __unicode__(self):
+        return self.name
     name = models.CharField(max_length = 255)
     adress = models.CharField(max_length = 255)
     city = models.CharField(max_length = 255)
@@ -13,7 +15,7 @@ class User(models.Model):
     isAdmin = models.BooleanField()
 
 
-class Activity(models.Model):
+class Activity(models.Model): 
     name = models.CharField(max_length = 255)
     start = models.DateTimeField(auto_now_add = True)
     end = models.DateTimeField(null = True)
