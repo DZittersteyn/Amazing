@@ -1,28 +1,74 @@
 <html>
 <head>
-<title>
-</title>
 
+
+
+<!-- Blueprint -->
+<link rel="stylesheet" href="{{STATIC_URL}}blueprint/screen.css" type="text/css" media="screen, projection">
+<link rel="stylesheet" href="{{STATIC_URL}}blueprint/print.css" type="text/css" media="print">
+<!--[if lt IE 8]>
+<link rel="stylesheet" href="{{STATIC_URL}}ie.css" type="text/css" media="screen, projection">
+<![endif]-->
+<!-- End blueprint -->
+
+
+<!-- Begin jQuery -->
 <script type="text/javascript" src="{{STATIC_URL}}js/jquery-1.7.1.min.js"></script>
 <script type="text/javascript" src="{{STATIC_URL}}js/jquery-ui-1.8.17.custom.min.js"></script>
-
+<!-- Theme -->
 <link type="text/css" href="{{STATIC_URL}}jquery/blitzer/jquery-ui-1.8.17.custom.css" rel="stylesheet" />
 
+<!-- vertical tabs --> 
+<link rel="stylesheet" href="{{STATIC_URL}}jquery/verticaltabs.css" type="text/css" media="screen,print,projection">
 <script type="text/javascript">
 	$(function() {
-		$("#tabs").tabs().addClass('ui-tabs-vertical ui-helper-clearfix');
-		$("#tabs li").removeClass('ui-corner-top').addClass('ui-corner-left');
-	$('#tabs-1').tabs().tabs('select',1);
+		$(".tab").click(function(){
+			$('.ui-selected').removeClass('ui-selected');	
+		});
+		$("#usertabs").tabs().addClass('ui-tabs-vertical ui-helper-clearfix');
+		$("#usertabs li.tab").removeClass('ui-corner-top').addClass('ui-corner-left');
 	});
 </script>
 
-    <!-- Framework CSS -->
-    <link rel="stylesheet" href="{{STATIC_URL}}jquery/verticaltabs.css" type="text/css" media="screen,print,projection">
-    <link rel="stylesheet" href="{{STATIC_URL}}blueprint/screen.css" type="text/css" media="screen, projection">
-    <link rel="stylesheet" href="{{STATIC_URL}}blueprint/print.css" type="text/css" media="print">
-    <link rel="stylesheet" href="{{STATIC_URL}}pos.css" type="text/css" media="print">
 
-    <!--[if lt IE 8]><link rel="stylesheet" href="{{STATIC_URL}}ie.css" type="text/css" media="screen, projection"><![endif]-->
+
+<!-- selectable -->
+
+<link rel="stylesheet" href="{{STATIC_URL}}jquery/selectable.css" type="text/css" media="screen,print,projection">
+
+<script type="text/javascript">
+$(function() {
+
+	$( ".selectable" ).selectable();
+	$( ".selection" ).addClass('ui-corner-bottom');
+	$( ".selection" ).addClass('ui-corner-top');
+});
+</script>
+
+<!-- productbuttons -->
+
+<script type="text/javascript">
+$(function(){
+	$('#can').click(function(){
+		
+		$('#debug').html( $('.ui-selected').text());
+
+	});
+	
+});
+
+</script>
+
+
+
+<!-- End jQuery -->
+
+<link rel="stylesheet" href="{{STATIC_URL}}pos.css" type="text/css" media="screen">
+
+
+
+
+
 
 </head>
 
@@ -30,44 +76,52 @@
 
 
 
-<div class="container showgrid">
-<div id="main" class="span-24">
+<div class="container">
 <p id="titlebar" class="span-24"> A.M.A.Z.I.N.G.: Awesome Met Andere Zinnige Interface (Next Generation) </p>
 
 <div class="menu"> <a href="admin">admin</a> <a href="etc">etc</a></div>
 
-<div id="tabscontainer" class="span-15">
-	<div id="tabs">
+<div id="tabscontainer" class="span-12">
+	<div id="usertabs">
 		<ul>
 			{% for filter, list in lists %}
-			<li><a href="#tabs-{{forloop.counter}}">{{filter}}</a></li>
+			<li class="tab"><a class="tab" href="#usertabs-{{forloop.counter}}">{{filter}}</a></li>
 			{% endfor %}
 		</ul>
 
 		{% for filter, list in lists %}
-			<div id="tabs-{{forloop.counter}}">
-			<h2>{{filter}}</h2>
-			{% for item in list %}
-				<p>{{item}}</p>
+			<div id="usertabs-{{forloop.counter}}">
+			<ol id="filteredlist-{{filter}}" class="selectable span-9">
+			{% for user in list %}
+				<li class="normaltext selection ui-widget-content">{{user.name}}</li>
 			{% endfor %}
+			</ol>
+
 			</div>
 		{% endfor %}
 
 	</div>
 </div>
 
-<button class="span-3"> lol </button>
-<button class="span-3"> lol </button>
-<button class="span-3 last"> lol </button>
 
-<button class="span-3"> lol </button>
-<button class="span-3"> lol </button>
-<button class="span-3 last"> lol </button>
+<p id="username" class="normaltext span-12 last"> User: </p>
+<p id="credit" class="normaltext span-12 last">Credit: </p>
 
+
+
+<button id="can" class="normaltext productbutton span-4"> Can </button>
+<button class="normaltext productbutton span-4"> lol </button>
+<button class="normaltext productbutton span-4 last"> lol </button>
+
+<button class="normaltext productbutton span-6"> lol </button>
+<button class="normaltext productbutton span-6 last"> lol </button>
+
+<button class="normaltext productbutton span-12 last"> lol </button>
+
+<div id="debug" class="span-24 last">
 
 </div>
+
 </div>
-
-
 </body>
 </html>

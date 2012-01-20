@@ -13,6 +13,7 @@ class User(models.Model):
     email = models.EmailField()
     barcode = models.CharField(max_length = 10)
     isAdmin = models.BooleanField()
+    credit = models.IntegerField()
 
 
 class Activity(models.Model): 
@@ -25,8 +26,6 @@ class Purchase(models.Model):
     user = models.ForeignKey(User)
     product = models.ForeignKey(Product)
     date = models.DateTimeField(auto_now_add = True)
-
-
 
 
 

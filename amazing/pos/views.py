@@ -15,3 +15,10 @@ def index(request):
 		lists.append(("".join(filter),[user for user in users if user.name.lower().startswith(filter)]))
 
 	return render_to_response("pos/userselect.html", {'lists': lists}, context_instance=RequestContext(request))
+
+def user(request, user_id):
+	userpk = User.objects.filter(pk = user_id)
+
+
+
+
