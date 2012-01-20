@@ -27,7 +27,7 @@ DATABASES = {
 # timezone as the operating system.
 # If running in a Windows environment this must be set to the same as your
 # system time zone.
-TIME_ZONE = 'None'
+TIME_ZONE = 'Europe/Amsterdam'
 
 # Language code for this installation. All choices can be found here:
 # http://www.i18nguy.com/unicode/language-identifiers.html
@@ -74,7 +74,14 @@ MIDDLEWARE_CLASSES = (
 'django.contrib.auth.middleware.AuthenticationMiddleware',
 'django.contrib.messages.middleware.MessageMiddleware',
 )
-
+TEMPLATE_CONTEXT_PROCESSORS = (
+    'django.core.context_processors.debug',
+    'django.core.context_processors.i18n',
+    'django.core.context_processors.media',
+    'django.core.context_processors.static',
+    'django.contrib.auth.context_processors.auth',
+    'django.contrib.messages.context_processors.messages',
+)
 ROOT_URLCONF = 'amazing.urls'
 
 TEMPLATE_DIRS = (
@@ -83,6 +90,17 @@ TEMPLATE_DIRS = (
 '/home/dirk/Amazing/amazing/templates/pos',
 
 )
+
+
+STATIC_ROOT = "/home/dirk/Amazing/amazing/static/"
+
+STATIC_URL = "/static/"
+
+STATICFILES_DIRS = (
+	'/home/dirk/Amazing/amazing/static_css',
+	'/home/dirk/Amazing/amazing/static_js',
+)
+
 
 INSTALLED_APPS = (
 'pos',
