@@ -1,7 +1,9 @@
 import datetime
+import pickle
 
 from django.db import models
 from pos.products import Product
+
 
 class User(models.Model):
     def __unicode__(self):

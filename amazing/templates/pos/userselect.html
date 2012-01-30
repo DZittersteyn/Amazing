@@ -39,9 +39,18 @@
 <script type="text/javascript">
 $(function() {
 
+
 	$( ".selectable" ).selectable();
 	$( ".selection" ).addClass('ui-corner-bottom');
 	$( ".selection" ).addClass('ui-corner-top');
+
+	$(".selectable").bind("selectableselected", function() {
+		var resp = $.getJSON("user/" + $('.ui-selected span.hidden').text() + ".json", function(json) {
+			$('#debug').html("json gotten!");
+		});
+
+		resp.error(function(){$('#debug').html(resp.responseText);});
+	});
 });
 </script>
 
@@ -49,10 +58,10 @@ $(function() {
 
 <script type="text/javascript">
 $(function(){
+
 	$('#can').click(function(){
 		
-		$('#debug').html( $('.ui-selected').text());
-
+		$('#debug').html( $('.ui-selected span.hidden').text());
 	});
 	
 });
@@ -76,7 +85,7 @@ $(function(){
 
 
 
-<div class="container">
+<div class="container showgrid">
 <p id="titlebar" class="span-24"> A.M.A.Z.I.N.G.: Awesome Met Andere Zinnige Interface (Next Generation) </p>
 
 <div class="menu"> <a href="admin">admin</a> <a href="etc">etc</a></div>
@@ -93,7 +102,7 @@ $(function(){
 			<div id="usertabs-{{forloop.counter}}">
 			<ol id="filteredlist-{{filter}}" class="selectable span-9">
 			{% for user in list %}
-				<li class="normaltext selection ui-widget-content">{{user.name}}</li>
+				<li class="normaltext selection ui-widget-content"><span class="hidden">{{user.pk}}</span>{{user.name}}</li>
 			{% endfor %}
 			</ol>
 
@@ -104,8 +113,8 @@ $(function(){
 </div>
 
 
-<p id="username" class="normaltext span-12 last"> User: </p>
-<p id="credit" class="normaltext span-12 last">Credit: </p>
+<p class="normaltext span-2"> User: </p><p id="username" class="normaltext textbox span-10 last"></p>
+<p class="normaltext span-2">Credit: </p><p id="credit" class="normaltext textbox span-10 last"></p>
 
 
 
