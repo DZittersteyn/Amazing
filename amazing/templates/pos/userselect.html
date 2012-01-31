@@ -21,12 +21,41 @@
 <!-- vertical tabs --> 
 <link rel="stylesheet" href="{{STATIC_URL}}jquery/verticaltabs.css" type="text/css" media="screen,print,projection">
 <script type="text/javascript">
-	$(function() {
+
+	function initTabs(){
+		$("#usertabs").tabs().addClass('ui-tabs-vertical ui-helper-clearfix');
+		$("#usertabs li.tab").removeClass('ui-corner-top').addClass('ui-corner-left');
+
 		$(".tab").click(function(){
 			$('.ui-selected').removeClass('ui-selected');	
 		});
-		$("#usertabs").tabs().addClass('ui-tabs-vertical ui-helper-clearfix');
-		$("#usertabs li.tab").removeClass('ui-corner-top').addClass('ui-corner-left');
+	}
+
+	function initSelectables(){
+		$( ".selectable" ).selectable();
+		$( ".selection" ).addClass('ui-corner-bottom');
+		$( ".selection" ).addClass('ui-corner-top');
+
+		$(".selectable").bind("selectableselected", function() {
+			var resp = $.getJSON("user/" + $('.ui-selected span.hidden').text() + ".json", function(json) {
+				$('#username').html(json[0].fields.name);
+				$('#credit').html(json[0].fields.credit);
+			});
+			resp.success(function(){$('#debug').html(resp.responseText)})
+			resp.error(function(){$('#debug').html('error: ' + resp.responseText);});
+		});
+	}
+
+	$(function() {
+
+		
+		$("#tabscontainer").load("userlist.html", function(){
+			initTabs(); 
+			initSelectables();
+		});
+
+		
+
 	});
 </script>
 
@@ -36,22 +65,11 @@
 
 <link rel="stylesheet" href="{{STATIC_URL}}jquery/selectable.css" type="text/css" media="screen,print,projection">
 
+
+
+
 <script type="text/javascript">
-$(function() {
 
-
-	$( ".selectable" ).selectable();
-	$( ".selection" ).addClass('ui-corner-bottom');
-	$( ".selection" ).addClass('ui-corner-top');
-
-	$(".selectable").bind("selectableselected", function() {
-		var resp = $.getJSON("user/" + $('.ui-selected span.hidden').text() + ".json", function(json) {
-			$('#debug').html("json gotten!");
-		});
-
-		resp.error(function(){$('#debug').html(resp.responseText);});
-	});
-});
 </script>
 
 <!-- productbuttons -->
@@ -77,59 +95,41 @@ $(function(){
 
 
 
-
-
 </head>
 
 <body>
 
 
 
-<div class="container showgrid">
-<p id="titlebar" class="span-24"> A.M.A.Z.I.N.G.: Awesome Met Andere Zinnige Interface (Next Generation) </p>
+<div class="container">
+	<p id="titlebar" class="span-24"> A.M.A.Z.I.N.G.: Awesome Met Andere Zinnige Interface (Next Generation) </p>
 
-<div class="menu"> <a href="admin">admin</a> <a href="etc">etc</a></div>
+	<div class="menu"> <a href="admin">admin</a> <a href="etc">etc</a></div>
 
-<div id="tabscontainer" class="span-12">
-	<div id="usertabs">
-		<ul>
-			{% for filter, list in lists %}
-			<li class="tab"><a class="tab" href="#usertabs-{{forloop.counter}}">{{filter}}</a></li>
-			{% endfor %}
-		</ul>
-
-		{% for filter, list in lists %}
-			<div id="usertabs-{{forloop.counter}}">
-			<ol id="filteredlist-{{filter}}" class="selectable span-9">
-			{% for user in list %}
-				<li class="normaltext selection ui-widget-content"><span class="hidden">{{user.pk}}</span>{{user.name}}</li>
-			{% endfor %}
-			</ol>
-
-			</div>
-		{% endfor %}
+	<div id="tabscontainer" class="span-12">
 
 	</div>
-</div>
+
+	<div class="span-12 last">
+
+	<p class="normaltext span-2"> User: </p><p id="username" class="normaltext textbox span-10 last"></p>
+	<p class="normaltext span-2">Credit: </p><p id="credit" class="normaltext textbox span-10 last"></p>
 
 
-<p class="normaltext span-2"> User: </p><p id="username" class="normaltext textbox span-10 last"></p>
-<p class="normaltext span-2">Credit: </p><p id="credit" class="normaltext textbox span-10 last"></p>
 
+	<button id="can" class="normaltext productbutton span-4"> Can </button>
+	<button class="normaltext productbutton span-4"> lol </button>
+	<button class="normaltext productbutton span-4 last"> lol </button>
 
+	<button class="normaltext productbutton span-6"> lol </button>
+	<button class="normaltext productbutton span-6 last"> lol </button>
 
-<button id="can" class="normaltext productbutton span-4"> Can </button>
-<button class="normaltext productbutton span-4"> lol </button>
-<button class="normaltext productbutton span-4 last"> lol </button>
+	<button class="normaltext productbutton span-12 last"> lol </button>
+	</div>
+	<div id="debug" class="span-24 last">
 
-<button class="normaltext productbutton span-6"> lol </button>
-<button class="normaltext productbutton span-6 last"> lol </button>
+	</div>
 
-<button class="normaltext productbutton span-12 last"> lol </button>
-
-<div id="debug" class="span-24 last">
-
-</div>
 
 </div>
 </body>

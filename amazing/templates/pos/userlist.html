@@ -1,0 +1,18 @@
+<div id="usertabs">
+	<ul>
+		{% for filter, list in lists %}
+		<li class="tab"><a href="#usertabs-{{forloop.counter}}">{{filter}}</a></li>
+		{% endfor %}
+	</ul>
+
+	{% for filter, list in lists %}
+	<div id="usertabs-{{forloop.counter}}">
+		<ol id="filteredlist-{{filter}}" class="selectable span-9">
+			{% for user in list %}
+				<li class="normaltext selection ui-widget-content"><span class="hidden">{{user.pk}}</span>{{user.name}}</li>
+			{% endfor %}
+		</ol>
+
+	</div>
+	{% endfor %}
+</div>
