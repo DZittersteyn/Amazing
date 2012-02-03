@@ -29,19 +29,18 @@ def userlist(request):
 
 def user(request, user_id):
 	user = User.objects.filter(pk=user_id)
-	print user
-
+	if user == None:
+		return HttpResponse(status=404)
+		
 	JSONSerializer = serializers.get_serializer("json")
 	json_serializer = JSONSerializer()
 	json_serializer.serialize(user)
-	print json_serializer
-	print type(json_serializer.getvalue())
 	data = json_serializer.getvalue()
 
 	if request.is_ajax():
-		return HttpResponse(data, mimetype='application/json');
+		return HttpResponse(data, mimetype='application/json')
 	else:
-		return HttpResponse(status=400);
+		return HttpResponse(status=400)
 
 
 

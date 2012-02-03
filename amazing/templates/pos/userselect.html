@@ -18,17 +18,20 @@
 <!-- Theme -->
 <link type="text/css" href="{{STATIC_URL}}jquery/blitzer/jquery-ui-1.8.17.custom.css" rel="stylesheet" />
 
-<!-- vertical tabs --> 
+<!-- Init the user selection screen --> 
 <link rel="stylesheet" href="{{STATIC_URL}}jquery/verticaltabs.css" type="text/css" media="screen,print,projection">
 <script type="text/javascript">
+
+	function clearSelected(){
+		$('#username').html("");
+		$('#credit').html("");
+		$('.ui-selectee').removeClass('ui-selected');
+	}
 
 	function initTabs(){
 		$("#usertabs").tabs().addClass('ui-tabs-vertical ui-helper-clearfix');
 		$("#usertabs li.tab").removeClass('ui-corner-top').addClass('ui-corner-left');
 
-		$(".tab").click(function(){
-			$('.ui-selected').removeClass('ui-selected');	
-		});
 	}
 
 	function initSelectables(){
@@ -37,35 +40,41 @@
 		$( ".selection" ).addClass('ui-corner-top');
 
 		$(".selectable").bind("selectableselected", function() {
-			var resp = $.getJSON("user/" + $('.ui-selected span.hidden').text() + ".json", function(json) {
+			var resp = $.getJSON("user/" + $('.ui-selected span.hidden').first().text() + ".json", function(json) {
 				$('#username').html(json[0].fields.name);
 				$('#credit').html(json[0].fields.credit);
 			});
-			resp.success(function(){$('#debug').html(resp.responseText)})
-			resp.error(function(){$('#debug').html('error: ' + resp.responseText);});
+		});
+		
+		$("#usertabs").tabs().bind("tabsselect",function(){
+			clearSelected();
 		});
 	}
 
-	$(function() {
+	function buttonClick(id){
+		$("#debug").html(id);
+	}
+
+	$(function() { /* Init tabs, link functions to buttons */
 
 		
 		$("#tabscontainer").load("userlist.html", function(){
-			initTabs(); 
 			initSelectables();
+			initTabs(); 
 		});
 
+		$(".productbutton").each(function(index){
+			$(this).bind('click',buttonClick($(this).attr('id')));
+		});
 		
 
 	});
+
 </script>
 
 
 
-<!-- selectable -->
-
 <link rel="stylesheet" href="{{STATIC_URL}}jquery/selectable.css" type="text/css" media="screen,print,projection">
-
-
 
 
 <script type="text/javascript">
@@ -73,18 +82,6 @@
 </script>
 
 <!-- productbuttons -->
-
-<script type="text/javascript">
-$(function(){
-
-	$('#can').click(function(){
-		
-		$('#debug').html( $('.ui-selected span.hidden').text());
-	});
-	
-});
-
-</script>
 
 
 
@@ -100,9 +97,8 @@ $(function(){
 <body>
 
 
-
 <div class="container">
-	<p id="titlebar" class="span-24"> A.M.A.Z.I.N.G.: Awesome Met Andere Zinnige Interface (Next Generation) </p>
+	<p id="titlebar" class="span-24"> A.M.A.Z.I.N.G.: Awesome Met Alternatieve, Zakelijke Interface (Next Generation) </p>
 
 	<div class="menu"> <a href="admin">admin</a> <a href="etc">etc</a></div>
 
@@ -117,14 +113,16 @@ $(function(){
 
 
 
-	<button id="can" class="normaltext productbutton span-4"> Can </button>
-	<button class="normaltext productbutton span-4"> lol </button>
-	<button class="normaltext productbutton span-4 last"> lol </button>
-
-	<button class="normaltext productbutton span-6"> lol </button>
-	<button class="normaltext productbutton span-6 last"> lol </button>
-
-	<button class="normaltext productbutton span-12 last"> lol </button>
+	<button id="largecandy" class="normaltext productbutton span-6"> Groot Snoep <br /> (&le; 2 stuks) </button>
+	<button id="smallcandy" class="normaltext productbutton span-6 last"> Klein Snoep <br /> (&gt; 2 stuks) </button>
+	<p class="normaltext">Jouke is een lul</p>
+	<button id="can" class="normaltext productbutton span-4"> Blikje of <br />PET-flesje </button>
+	<button id="soup" class="normaltext productbutton span-4"> Soep </button>
+	<button id="beer" class="normaltext productbutton span-4 last"> Bier </button>
+	<p class="normaltext">Broodje: </p>
+	<button id="normal" class="normaltext productbutton span-4"> Beleg </button>
+	<button id="sausage" class="normaltext productbutton span-4"> Rookworst </button>
+	<button id="bapao" class="normaltext productbutton span-4 last"> Bapao </button>
 	</div>
 	<div id="debug" class="span-24 last">
 
@@ -133,4 +131,5 @@ $(function(){
 
 </div>
 </body>
+
 </html>
