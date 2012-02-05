@@ -4,7 +4,7 @@ from django.template import RequestContext
 from django.db.models.query import ValuesListQuerySet
 from django.http import HttpResponse
 from django.core import serializers
-
+from django.views.decorators.csrf import csrf_exempt
 
 def index(request):
 	return render_to_response("pos/userselect.html", context_instance=RequestContext(request))
@@ -26,19 +26,25 @@ def userlist(request):
 	return render_to_response("pos/userlist.html", {'lists': lists}, context_instance=RequestContext(request))
 
 
-
+@csrf_exempt
 def user(request, user_id):
-	user = User.objects.filter(pk=user_id)
-	if user == None:
-		return HttpResponse(status=404)
-		
-	JSONSerializer = serializers.get_serializer("json")
-	json_serializer = JSONSerializer()
-	json_serializer.serialize(user)
-	data = json_serializer.getvalue()
-
 	if request.is_ajax():
-		return HttpResponse(data, mimetype='application/json')
+		user = User.objects.get(pk=user_id)
+		if user == None:
+			return HttpResponse(status=404)
+			
+		JSONSerializer = serializers.get_serializer("json")
+		json_serializer = JSONSerializer()
+		json_serializer.serialize([user])
+		data = json_serializer.getvalue()
+
+		if request.method == 'GET':
+			return HttpResponse(data, mimetype='application/json')
+		elif request.method == 'POST':
+			if user.buy(request.POST['productID']):
+				return HttpResponse(True)
+			else:
+				return HttpResponse(False)
 	else:
 		return HttpResponse(status=400)
 

@@ -22,6 +22,23 @@
 <link rel="stylesheet" href="{{STATIC_URL}}jquery/verticaltabs.css" type="text/css" media="screen,print,projection">
 <script type="text/javascript">
 
+	function buttonClick(productID){
+		$.post('user/' + getSelectedUserID(), {'productID': productID});
+	}
+
+	function getSelectedUserID(){
+		return $('.ui-selected span.hidden').first().text();
+	}
+
+	function setUser(id){
+		var jqxhr = $.getJSON("user/" + id );
+		jqxhr.success(function(user){
+			$('#username').html(user[0].fields.name);
+			$('#credit').html(user[0].fields.credit);
+		});
+
+	}
+
 	function clearSelected(){
 		$('#username').html("");
 		$('#credit').html("");
@@ -40,19 +57,12 @@
 		$( ".selection" ).addClass('ui-corner-top');
 
 		$(".selectable").bind("selectableselected", function() {
-			var resp = $.getJSON("user/" + $('.ui-selected span.hidden').first().text() + ".json", function(json) {
-				$('#username').html(json[0].fields.name);
-				$('#credit').html(json[0].fields.credit);
-			});
+			setUser(getSelectedUserID());			
 		});
 		
 		$("#usertabs").tabs().bind("tabsselect",function(){
 			clearSelected();
 		});
-	}
-
-	function buttonClick(id){
-		$("#debug").html(id);
 	}
 
 	$(function() { /* Init tabs, link functions to buttons */
@@ -61,11 +71,13 @@
 		$("#tabscontainer").load("userlist.html", function(){
 			initSelectables();
 			initTabs(); 
+			$(".productbutton").each(function(index){
+				$(this).bind('click', function(){
+					buttonClick($(this).attr('id'));
+				});
+			});
 		});
 
-		$(".productbutton").each(function(index){
-			$(this).bind('click',buttonClick($(this).attr('id')));
-		});
 		
 
 	});
@@ -115,7 +127,7 @@
 
 	<button id="largecandy" class="normaltext productbutton span-6"> Groot Snoep <br /> (&le; 2 stuks) </button>
 	<button id="smallcandy" class="normaltext productbutton span-6 last"> Klein Snoep <br /> (&gt; 2 stuks) </button>
-	<p class="normaltext">Jouke is een lul</p>
+	<p class="normaltext">Drinken:</p>
 	<button id="can" class="normaltext productbutton span-4"> Blikje of <br />PET-flesje </button>
 	<button id="soup" class="normaltext productbutton span-4"> Soep </button>
 	<button id="beer" class="normaltext productbutton span-4 last"> Bier </button>
