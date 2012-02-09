@@ -11,19 +11,32 @@
 <![endif]-->
 <!-- End blueprint -->
 
-
 <!-- Begin jQuery -->
-<script type="text/javascript" src="{{STATIC_URL}}js/jquery-1.7.1.min.js"></script>
-<script type="text/javascript" src="{{STATIC_URL}}js/jquery-ui-1.8.17.custom.min.js"></script>
+<script type="text/javascript" src="{{STATIC_URL}}jquery/jquery-1.7.1.min.js"></script>
+<script type="text/javascript" src="{{STATIC_URL}}jquery/jquery-ui-1.8.17.custom.min.js"></script>
 <!-- Theme -->
 <link type="text/css" href="{{STATIC_URL}}jquery/blitzer/jquery-ui-1.8.17.custom.css" rel="stylesheet" />
+
+<!-- On-screen Keyboard -->
+<link href="{{STATIC_URL}}keyboard/keyboard.css" rel="stylesheet">
+<script src="{{STATIC_URL}}keyboard/jquery.keyboard.js"></script>
+<!-- End On-screen Keyboard -->
 
 <!-- Init the user selection screen --> 
 <link rel="stylesheet" href="{{STATIC_URL}}jquery/verticaltabs.css" type="text/css" media="screen,print,projection">
 <script type="text/javascript">
 
 	function buttonClick(productID){
-		$.post('user/' + getSelectedUserID(), {'productID': productID});
+		if (getSelectedUserID() != ""){
+			$.post('user/' + getSelectedUserID(), {'type':'product', 'productID': productID})
+			.success()
+			.error(function(){
+				$('#noCredit').dialog('open');
+			})
+			.complete(function(){
+				setUser(getSelectedUserID());
+			});
+		}
 	}
 
 	function getSelectedUserID(){
@@ -31,8 +44,7 @@
 	}
 
 	function setUser(id){
-		var jqxhr = $.getJSON("user/" + id );
-		jqxhr.success(function(user){
+		$.getJSON("user/" + id, function(user){
 			$('#username').html(user[0].fields.name);
 			$('#credit').html(user[0].fields.credit);
 		});
@@ -76,6 +88,11 @@
 					buttonClick($(this).attr('id'));
 				});
 			});
+			$("#LINE").bind('click', function(){
+				if(getSelectedUserID() != ""){
+					$('#buyLine').dialog('open');
+				}
+			})
 		});
 
 		
@@ -86,11 +103,161 @@
 
 
 
+
 <link rel="stylesheet" href="{{STATIC_URL}}jquery/selectable.css" type="text/css" media="screen,print,projection">
 
 
 <script type="text/javascript">
+$(function(){
+	$('#loading').dialog({
+		modal: true,
+		autoOpen: false,
+	})
+	.ajaxStart(function(){
+		$(this).dialog('open');
+	})
+	.ajaxStop(function(){
+		$(this).dialog('close');
+	});
+});
+$(function(){
+	$(".osk_norm").keyboard({
+		layout: "custom",
+		autoAccept: true,
+		stickyShift: false,
+		customLayout : {
+			'default': [
+				'` 1 2 3 4 5 6 7 8 9 0 - = {bksp}',
+				'q w e r t y u i o p [ ] \\',
+				'a s d f g h j k l ; \' {enter}',
+				'{shift} z x c v b n m , . / {shift}',
+				'{cancel} {space} {accept}'
+			],
+			'shift': [
+				'~ ! @ # $ % ^ & * ( ) _ + {bksp}',
+				'{tab} Q W E R T Y U I O P { } |',
+				'A S D F G H J K L : " {enter}',
+				'{shift} Z X C V B N M < > ? {shift}',
+				'{cancel} {space} {accept}'
+			]
+		},
+	});
 
+
+	$(".osk_mail").keyboard({
+		layout: "custom",
+		autoAccept: true,
+		stickyShift: false,
+		customLayout : {
+			'default': [
+				' 1 2 3 4 5 6 7 8 9 0 -  {bksp}',
+				'q w e r t y u i o p {sp:2}',
+				'a s d f g h j k l {sp:2}',
+				'{sp:2} z x c v b n m {sp:1} @ . {sp:2}',
+				'{cancel} {space} {accept}'
+			],
+			'shift': []
+		},
+	});
+
+	$(".osk_bank").keyboard({
+		layout: "custom",
+		autoAccept: true,
+		stickyShift: false,
+		customLayout : {
+			'default': [
+				'{sp:2} 1 2 3 {bksp}',
+				' 4 5 6 ',
+				' 7 8 9 ',
+				' {sp:1} 0 {sp:1}',
+				' {accept}'
+			],
+			'shift': []
+		},
+	});
+})
+
+$(function(){
+
+	$("#newUser").dialog({
+		closeOnEscape: false,
+		modal: true,
+		autoOpen: true,
+		minWidth: 730,
+		minHeight: 300,
+	});
+});
+
+$(function(){
+	$('#numLines').slider({
+		range:"min",
+		min: 0,
+		value: 1,
+		max: 10,
+		slide: function(event, ui){
+			$("#txtNumLines").html(ui.value);
+			$("#price").html(ui.value * 5);
+			if(ui.value != 1){
+				$("#denom").html("s");
+			}else{
+				$("#denom").html("");
+			}
+			$("#baas").html("&nbsp;");
+		
+			if(ui.value == 10){
+				$("#baas").html("ALS EEN BAAS");
+			}
+			if(ui.value == 0){
+				$("#baas").html("Nope.");
+			}
+		},
+	});
+
+
+	$('#buyLine').dialog({
+		modal: true,
+		autoOpen: false,
+		minWidth: 400,
+		minHeight: 120,
+		buttons: {
+			Contant: function(){
+				$.post('user/' + getSelectedUserID(), {'type':'credit',
+												 'credittype':'CASH',
+												    'amount' : $("#numLines").slider('value')
+												})
+				.complete(function(){
+					setUser(getSelectedUserID());
+					$('#buyLine').dialog('close');
+				});
+			},
+			Machtiging: function(){
+				$.post('user/' + getSelectedUserID(), {'type':'credit',
+												 'credittype':'DIGITAL', 
+												     'amount': $("#numLines").slider('value') 
+												 })
+				.complete(function(){
+					setUser(getSelectedUserID());
+					$('#buyLine').dialog('close');
+				});
+			},
+			Annuleer: function(){
+				$(this).dialog('close');
+			}
+		}
+	})
+})
+
+$(function(){
+	$('#noCredit').dialog({
+		modal: true,
+		autoOpen: false,
+		buttons: {
+			Ok: function(){
+				$(this).dialog('close');
+			}
+		}
+	})
+});
 </script>
 
 <!-- productbuttons -->
@@ -109,8 +276,48 @@
 <body>
 
 
+
+<div id="noCredit" title="Je hebt niet voldoende kruisjes">
+	<p> Klik op de knop "Lijntje Kopen" om hier wat aan te doen. </p>
+</div>
+
+<div id="loading" title="Loading">
+ <img class="center pad" src="{{STATIC_URL}}2.gif" />
+</div>
+
+<div class='margin' id="buyLine" title="Lijntje kopen">
+	<div id='numLines'></div> 
+	<p class='normaltext'>Je wil <span id='txtNumLines'>1</span><span> Lijntje<span id="denom"></span> kopen, &aacute; &euro;</span><span id="price">5</span></p>
+	<p class='normaltext' id="baas">&nbsp;</p>
+
+</div>
+
+<div id="newUser" title="Nieuwe gebruiker">
+	<span class="span-5 normaltext">Naam: </span>
+	<input class="osk_norm normaltext" type="text" name="name" />
+	<span class="span-5 normaltext">Adres: </span>
+	<input class="osk_norm normaltext" type="text" name="address" />
+	<span class="span-5 normaltext">Woonplaats: </span>
+	<input class="osk_norm normaltext" type="text" name="city" />
+	<span class="span-5 normaltext">Bankrekening: </span>
+	<input class="osk_bank normaltext" type="text" name="bank_account" />
+	<span class="span-5 normaltext">E-Mail: </span>
+	<input class="osk_mail normaltext" type="text" name="email" />
+	<span class="span-5 normaltext">Barcode: </span>
+	<input class="input ui-corner-all normaltext" type="text" name="barcode" />
+</div>
+
+<div id="editUser" title="Gebruiker aanpassen">
+
+</div>
+
+
+
+<script type="text/javascript">
+
+</script>
 <div class="container">
-	<p id="titlebar" class="span-24"> A.M.A.Z.I.N.G.: Awesome Met Alternatieve, Zakelijke Interface (Next Generation) </p>
+	<p id="titlebar" class="span-24"> A.M.A.Z.I.N.G.: Maar Anders. Zelfde Interface, Nieuwe Generator. </p>
 
 	<div class="menu"> <a href="admin">admin</a> <a href="etc">etc</a></div>
 
@@ -120,21 +327,23 @@
 
 	<div class="span-12 last">
 
-	<p class="normaltext span-2"> User: </p><p id="username" class="normaltext textbox span-10 last"></p>
-	<p class="normaltext span-2">Credit: </p><p id="credit" class="normaltext textbox span-10 last"></p>
+	<p class="normaltext textbox span-2"> User: </p><p id="username" class="normaltext textbox span-10 last"></p>
+	<p class="normaltext textbox span-2">Credit: </p><p id="credit" class="normaltext textbox span-10 last"></p>
 
 
 
-	<button id="largecandy" class="normaltext productbutton span-6"> Groot Snoep <br /> (&le; 2 stuks) </button>
-	<button id="smallcandy" class="normaltext productbutton span-6 last"> Klein Snoep <br /> (&gt; 2 stuks) </button>
-	<p class="normaltext">Drinken:</p>
-	<button id="can" class="normaltext productbutton span-4"> Blikje of <br />PET-flesje </button>
-	<button id="soup" class="normaltext productbutton span-4"> Soep </button>
-	<button id="beer" class="normaltext productbutton span-4 last"> Bier </button>
-	<p class="normaltext">Broodje: </p>
-	<button id="normal" class="normaltext productbutton span-4"> Beleg </button>
-	<button id="sausage" class="normaltext productbutton span-4"> Rookworst </button>
-	<button id="bapao" class="normaltext productbutton span-4 last"> Bapao </button>
+	<button id="CANDYBIG" class="normaltext productbutton span-6"> Groot Snoep <br /> (&le; 2 stuks) </button>
+	<button id="CANDYSMALL" class="normaltext productbutton span-6 last"> Klein Snoep <br /> (&gt; 2 stuks) </button>
+
+	<button id="BEER" class="normaltext productbutton span-4"> Bier </button>
+	<button id="CAN" class="normaltext productbutton span-4"> Blikje of <br />PET-flesje </button>
+	<button id="SOUP" class="normaltext productbutton span-4 last"> Soep </button>
+
+	<button id="BREAD" class="normaltext productbutton span-4"> Beleg </button>
+	<button id="SAUSAGE" class="normaltext productbutton span-4"> Rookworst </button>
+	<button id="BAPAO" class="normaltext productbutton span-4 last"> Bapao </button>
+
+	<button id="LINE" class="normaltext linebutton span-12 last"> Lijntje Kopen </button>
 	</div>
 	<div id="debug" class="span-24 last">
 

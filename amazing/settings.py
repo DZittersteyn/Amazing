@@ -99,6 +99,7 @@ STATIC_URL = "/static/"
 STATICFILES_DIRS = (
 	'/home/dirk/Amazing/amazing/static_css',
 	'/home/dirk/Amazing/amazing/static_js',
+	'/home/dirk/Amazing/amazing/static_img',
 )
 
 

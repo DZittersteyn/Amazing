@@ -32,19 +32,23 @@ def user(request, user_id):
 		user = User.objects.get(pk=user_id)
 		if user == None:
 			return HttpResponse(status=404)
-			
-		JSONSerializer = serializers.get_serializer("json")
-		json_serializer = JSONSerializer()
-		json_serializer.serialize([user])
-		data = json_serializer.getvalue()
-
 		if request.method == 'GET':
+			JSONSerializer = serializers.get_serializer("json")
+			json_serializer = JSONSerializer()
+			json_serializer.serialize([user])
+			data = json_serializer.getvalue()
 			return HttpResponse(data, mimetype='application/json')
 		elif request.method == 'POST':
-			if user.buy(request.POST['productID']):
-				return HttpResponse(True)
-			else:
-				return HttpResponse(False)
+			if request.POST['type'] == 'credit':
+				if user.buy_credit(request.POST['credittype'], int(request.POST['amount']) ):
+					return HttpResponse(status=200)
+				else:
+					return HttpResponse(status=409, content='Incorrect credit type')
+			elif request.POST['type'] == 'product':
+				if user.buy_item(request.POST['productID']):
+					return HttpResponse(status=200)
+				else:
+					return HttpResponse(status=409, content='Insufficient credit')
 	else:
 		return HttpResponse(status=400)
 
