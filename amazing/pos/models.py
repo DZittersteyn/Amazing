@@ -39,7 +39,7 @@ class User(models.Model):
         else:
             return False
     name = models.CharField(max_length = 255)
-    adress = models.CharField(max_length = 255)
+    address = models.CharField(max_length = 255)
     city = models.CharField(max_length = 255)
     bank_account = models.CharField(max_length = 9)
     email = models.EmailField()

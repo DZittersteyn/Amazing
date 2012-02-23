@@ -3,6 +3,6 @@ from django.contrib import admin
 
 class UserAdmin(admin.ModelAdmin):
     search_fields = ['name']
-    list_display = ('name', 'adress', 'city', 'bank_account', 'email', 'barcode', 'isAdmin')
+    list_display = ('name', 'address', 'city', 'bank_account', 'email', 'barcode', 'isAdmin')
 
 admin.site.register(User, UserAdmin)
