@@ -2,15 +2,30 @@ function get_selected_user_id(){
 		return $('.ui-selected span.hidden').first().text();
 }
 
+function set_user_spec_buttons(enable){
+	if(enable){
+		$('#buyline').button('enable');
+		$('#undo').button('enable');
+		$('#edituser').button('enable');
+	}else{
+		$('#buyline').button('disable');
+		$('#undo').button('disable');
+		$('#edituser').button('disable');
+		
+	}
+}
 
 function clear_selected(){
 	$('#username').html("");
 	$('#credit').html("");
+	set_user_spec_buttons(false);
 	$('.ui-selectee').removeClass('ui-selected');
+	$('#purchases').html('');
 }
 
 function init_tabs(){
 	$("#usertabs").tabs().addClass('ui-tabs-vertical ui-helper-clearfix');
+
 	$("#usertabs li.tab").removeClass('ui-corner-top').addClass('ui-corner-left');
 
 }
@@ -24,6 +39,10 @@ function init_selectables(){
 		set_gui_user(get_selected_user_id());			
 	});
 	
+	$('.selectable').bind('selectableunselected', function(){
+		clear_selected();
+	});
+
 	$("#usertabs").tabs().bind("tabsselect",function(){
 		clear_selected();
 	});
@@ -34,6 +53,9 @@ function set_gui_user(id){
 	$.getJSON("user/" + id, function(user){
 		$('#username').html(user[0].fields.name);
 		$('#credit').html(user[0].fields.credit);
+	}).success(function(){
+		set_user_spec_buttons(true);
+		$('#purchases').load("user/" + get_selected_user_id() + "/purchases");
 	});
 
 }
@@ -48,7 +70,7 @@ function init_loading_dialog(){
 	})
 	.ajaxStop(function(){
 		$(this).dialog('close');
-	});
+	}).removeClass('hidden');
 }
 
 function init_on_screen_keyboards(){
@@ -121,7 +143,7 @@ function init_nocredit_dialog(){
 				$(this).dialog('close');
 			}
 		}
-	})
+	}).removeClass('hidden');
 }
 
 function init_buyline_dialog(){
@@ -137,7 +159,7 @@ function init_buyline_dialog(){
 												    'amount' : $("#numLines").slider('value')
 												})
 				.complete(function(){
-					setUser(get_selected_user_id());
+					set_gui_user(get_selected_user_id());
 					$('#dialog_buyline').dialog('close');
 				});
 			},
@@ -147,7 +169,7 @@ function init_buyline_dialog(){
 												     'amount': $("#numLines").slider('value') 
 												 })
 				.complete(function(){
-					setUser(get_selected_user_id());
+					set_gui_user(get_selected_user_id());
 					$('#dialog_buyline').dialog('close');
 				});
 			},
@@ -183,48 +205,53 @@ function init_buyline_dialog(){
 	});
 }
 
-
-
-
-function init_user_dialog(){
-	$('#newUser').dialog({
-		modal: true,
-		autoOpen: false,
-		minWidth: 750,
-		minHeight: 310,
-		buttons: {	
-
-		},
-	});
+function init_user_buttons(){
+	$("#edituser").button()
+		.button('disable')
+		.click(function(){edit_user(get_selected_user_id())})
+		.addClass('doubleheightbutton');
+	$('#add').button()
+		.click(function(){new_user()})
+		.addClass('doubleheightbutton');
+	$('#undo').button()
+		.button('disable')
+		.addClass('doubleheightbutton');
+	init_on_screen_keyboards();
 }
 
-function setup(){
-	init_loading_dialog();
-
+function init_product_buttons(){
 	$(".productbutton").button();
-	$("#buyline").button();
-	$("#edituser").button()
-		.click(function(){edit_user(get_selected_user_id())})
-	$('#add').button()
-		.click(function(){new_user()});
+	$("#buyline").button()
+		.button('disable')
+		.addClass('doubleheightbutton');
 
+	$(".productbutton").each(function(index){
+		$(this).bind('click', function(){
+			button_click($(this).attr('id'));
+		});
+	});
+	$("#buyline").bind('click', function(){
+		if(get_selected_user_id() != ""){
+			$('#dialog_buyline').dialog('open').removeClass('hidden');
+		}
+	})
+}
+
+function init_userlist(){
 	$("#tabscontainer").load("userlist.html", function(){
 		init_selectables();
 		init_tabs(); 
-		$(".productbutton").each(function(index){
-			$(this).bind('click', function(){
-				button_click($(this).attr('id'));
-			});
-		});
-		$("#buyline").bind('click', function(){
-			if(get_selected_user_id() != ""){
-				$('#dialog_buyline').dialog('open');
-			}
-		})
-	});
+		
+	});	
+}
 
-	init_user_dialog();
-	init_on_screen_keyboards();
+
+function setup(){
+	init_loading_dialog();
+	init_product_buttons();
+	init_user_buttons();
+	init_userlist()
+
 	init_buyline_dialog();
 	init_nocredit_dialog();
 	

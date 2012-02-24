@@ -18,8 +18,7 @@ function is_valid_email_address(email) {
 
 function is_valid_bank_account(bank_account){
 
-
-
+	/*TODO: digit check. */
 	var pattern = new RegExp(/^[0-9]+$/i);
 	return pattern.test(bank_account);	
 }
@@ -40,31 +39,31 @@ function reset_field(field){
 }
 
 function reset_fields(){
-	reset_field('#name');
-	reset_field('#email');
-	reset_field('#bank_account');
-	reset_field('#address');
-	reset_field('#city');
+	reset_field('#edit_name');
+	reset_field('#edit_email');
+	reset_field('#edit_bank_account');
+	reset_field('#edit_address');
+	reset_field('#edit_city');
 }
 
 function check_fields(){
 	var valid = true;
-	valid = set_field_valid($('#email').val() == "" || is_valid_email_address($('#email').val()), '#email') 
+	valid = set_field_valid($('#edit_email').val() == "" || is_valid_email_address($('#edit_email').val()), '#edit_email') 
 				&& valid;
 
-	valid = set_field_valid(is_valid_bank_account($('#bank_account').val()), '#bank_account') 
+	valid = set_field_valid(is_valid_bank_account($('#edit_bank_account').val()), '#edit_bank_account') 
 				&& valid;
 
-	valid = set_field_valid($('#name').val() != "", '#name') 
+	valid = set_field_valid($('#edit_name').val() != "", '#edit_name') 
 				&& valid;
 
-	valid = set_field_valid($('#address').val() != "", '#address') 
+	valid = set_field_valid($('#edit_address').val() != "", '#edit_address') 
 				&& valid;
 
-	valid =set_field_valid($('#barcode').val() != "", '#barcode') 
+	valid =set_field_valid($('#edit_barcode').val() != "", '#edit_barcode') 
 				&& valid;
 
-	valid = set_field_valid($('#city').val() != "", '#city') 
+	valid = set_field_valid($('#edit_city').val() != "", '#edit_city') 
 				&& valid;
 
 	return valid;
@@ -72,62 +71,93 @@ function check_fields(){
 }
 
 function new_user(){
-	$('#name').val("");
-	$('#address').val("");
-	$('#city').val("");
-	$('#bank_account').val("");
-	$('#email').val("");
-	$('#barcode').val("");
+	$('#edit_name').val("");
+	$('#edit_address').val("");
+	$('#edit_city').val("");
+	$('#edit_bank_account').val("");
+	$('#edit_email').val("");
+	$('#edit_barcode').val("");
+	$('#newUser').dialog({
+							modal:true,
+							autoOpen: false,
+						});
+	$('#newUser').dialog('option', 'minWidth', 740);
 	$('#newUser').dialog('option', 'title', 'Nieuwe gebruiker')
-	$('#newUser').dialog('option', 'buttons', [{
-										text: "Maak aan",
-										click: function(){
-											if(check_fields()){
-												$.post('user/', {
-													'name', 
-
-												}).success(function(){
-													$('#newUser').dialog('close');
-												}
-											}
-
-										},
-									},
-									{
-										text: "Annuleer",
-										click: function(){
-											$(this).dialog('close');
-										},
-									}]);
-	$('#newUser').dialog('open');
+	$('#newUser').dialog('option', 'buttons',  [{
+													text: "Maak aan",
+													click: function(){
+														if(check_fields()){
+															$.post('user/', {
+																'mode': 'new',
+																'name': $('#edit_name').val(),
+																'address': $('#edit_address').val(),
+																'city': $('#edit_city').val(),
+																'bank_account': $('#edit_bank_account').val(),
+																'email': $('#edit_email').val(),
+																'barcode': $('#edit_barcode').val(),																
+															}).success(function(data){
+																console.log(data);
+																init_userlist();
+																set_gui_user(data);
+																$('#newUser').dialog('close');
+															});
+														}
+													},
+												},
+												{
+													text: "Annuleer",
+													click: function(){
+														$(this).dialog('close');
+													},
+												}]);
+	$('#newUser').dialog('open').removeClass('hidden');
 }
 
 
 function edit_user(id){
 
 	$.getJSON("user/" + id, function(user){
-		$('#name').val(user[0].fields.name);
-		$('#address').val(user[0].fields.address);
-		$('#city').val(user[0].fields.city);
-		$('#bank_account').val(user[0].fields.bank_account);
-		$('#email').val(user[0].fields.email);
-		$('#barcode').val(user[0].fields.barcode);
+		$('#edit_pk').val(user[0].pk);
+		$('#edit_name').val(user[0].fields.name);
+		$('#edit_address').val(user[0].fields.address);
+		$('#edit_city').val(user[0].fields.city);
+		$('#edit_bank_account').val(user[0].fields.bank_account);
+		$('#edit_email').val(user[0].fields.email);
+		$('#edit_barcode').val(user[0].fields.barcode);
+		$('#newUser').dialog({
+							modal:true,
+							autoOpen: false,
+						});
+		$('#newUser').dialog('option', 'minWidth', 740);
 		$('#newUser').dialog('option', 'title', 'Wijzig gebruiker')
-		$('#newUser').dialog('option', 'buttons' [{
-									text: "Sla op",
-									click: function(){
-										
-
-
-										$(this).dialog('close');
-									},
-								},
-								{
-									text: "Annuleer",
-									click: function(){
-										$(this).dialog('close');
-									},
-								}]);
-		$('#newUser').dialog('open');
+		$('#newUser').dialog('option', 'buttons', [{
+													text: "Sla op",
+													click: function(){
+														if(check_fields()){
+															$.post('user/', {
+																'mode': 'edit',
+																'pk': $('#edit_pk').val(),
+																'name': $('#edit_name').val(),
+																'address': $('#edit_address').val(),
+																'city': $('#edit_city').val(),
+																'bank_account': $('#edit_bank_account').val(),
+																'email': $('#edit_email').val(),
+																'barcode': $('#edit_barcode').val(),																
+															}).success(function(){
+																init_userlist();
+																set_gui_user($('#edit_pk').val());
+																$('#newUser').dialog('close');
+															});
+														}
+													},
+												},
+												{
+													text: "Annuleer",
+													click: function(){
+														$(this).dialog('close');
+													},
+												}]);
+		
+		$('#newUser').dialog('open').removeClass('hidden');
 	});
 }

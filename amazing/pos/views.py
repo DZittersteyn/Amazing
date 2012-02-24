@@ -1,5 +1,5 @@
 from django.shortcuts import render_to_response, get_object_or_404
-from pos.models import User
+from pos.models import *
 from django.template import RequestContext
 from django.db.models.query import ValuesListQuerySet
 from django.http import HttpResponse
@@ -9,6 +9,11 @@ from django.views.decorators.csrf import csrf_exempt
 def index(request):
 	return render_to_response("pos/userselect.html", context_instance=RequestContext(request))
 
+def purchaselist(request, user_id):
+	print(Purchase.objects.filter(user=user_id).order_by('-date').query)
+	purchases = Purchase.objects.filter(user=user_id).order_by('-date')
+
+	return render_to_response("userdetails.html", {'purchases': purchases, 'map': PRODUCTS}, context_instance=RequestContext(request))
 
 
 def userlist(request):
@@ -25,6 +30,36 @@ def userlist(request):
 	
 	return render_to_response("pos/userlist.html", {'lists': lists}, context_instance=RequestContext(request))
 
+@csrf_exempt
+def user_edit(request):
+	if request.is_ajax():
+		if request.method == 'POST':
+			if request.POST['mode'] == 'new':
+				u=User(
+					name=request.POST['name'],
+					address=request.POST['address'],
+					city=request.POST['city'],
+					bank_account=request.POST['bank_account'],
+					email=request.POST['email'],
+					barcode=request.POST['barcode'],
+					credit=0,
+					)
+				u.save()
+				return HttpResponse(status=200, content=u.pk)
+			elif request.POST['mode'] == 'edit':
+				u = User.objects.get(pk=request.POST['pk'])
+				u.name=request.POST['name']
+				u.address=request.POST['address']
+				u.city=request.POST['city']
+				u.bank_account=request.POST['bank_account']
+				u.email=request.POST['email']
+				u.barcode=request.POST['barcode']
+				u.save()
+				return HttpResponse(status=200)		
+		else:
+			return HttpResponse(status=409, content='GET not supported, use user/id')
+	else:
+		return HttpResponse(status=400, content='non-ajax request not supported')
 
 @csrf_exempt
 def user(request, user_id):
@@ -50,7 +85,7 @@ def user(request, user_id):
 				else:
 					return HttpResponse(status=409, content='Insufficient credit')
 	else:
-		return HttpResponse(status=400)
+		return HttpResponse(status=400, content='non-ajax request not supported')
 
 
 

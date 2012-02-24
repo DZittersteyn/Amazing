@@ -1,0 +1,10 @@
+<table id='table_purchases'>
+{% for purchase in purchases %}
+<tr>
+	<td> {{purchase.date}}</td> 
+	<td> {{purchase.desc}}</td>
+	<td> {{purchase.valid|yesno:",undone,null"}}</td>
+
+</tr>
+{% endfor %}
+</table>

@@ -28,6 +28,7 @@
 <script src='{{STATIC_URL}}keyboard/jquery.keyboard.js'></script>
 <!-- End On-screen Keyboard -->
 
+
 <!-- Init the user selection screen --> 
 <link rel='stylesheet' href='{{STATIC_URL}}jquery/verticaltabs.css' type='text/css' media='screen,print,projection'>
 
@@ -44,9 +45,6 @@
 <link rel='stylesheet' href='{{STATIC_URL}}jquery/selectable.css' type='text/css' media='screen,print,projection'>
 
 
-<!-- productbuttons -->
-
-
 
 <!-- End jQuery -->
 
@@ -61,15 +59,15 @@
 
 
 
-<div id='noCredit' title='Je hebt niet voldoende kruisjes'>
+<div id='noCredit' class='hidden' title='Je hebt niet voldoende kruisjes'>
 	<p> Klik op de knop 'Lijntje Kopen' om hier wat aan te doen. </p>
 </div>
 
-<div id='loading' title='Loading'>
+<div id='loading' class='hidden' title='Loading'>
  <img class='center pad' src='{{STATIC_URL}}2.gif' />
 </div>
 
-<div class='margin' id='dialog_buyline' title='Lijntje kopen'>
+<div class='margin hidden' id='dialog_buyline' title='Lijntje kopen'>
 	<div id='numLines'></div> 
 	<p class='normaltext'>Je wil <span id='txtNumLines'>1</span><span> Lijntje<span id='denom'></span> kopen, &aacute; &euro;</span><span id='price'>5</span></p>
 	<p class='normaltext' id='baas'>&nbsp;</p>
@@ -77,43 +75,43 @@
 </div>
 
 <div id='newUser' title='Nieuwe gebruiker' class='hidden'>
+	<span id='edit_pk' class='hidden'></span>
+
 	<span class='span-5 normaltext'>Naam: </span>
-	<input id='name' class='osk_norm normaltext' type='text' name='name' />
+	<input id='edit_name' class='osk_norm normaltext' type='text' name='name' />
 	<span class='span-5 normaltext'>Adres: </span>
-	<input id='address' class='osk_norm normaltext' type='text' name='address' />
+	<input id='edit_address' class='osk_norm normaltext' type='text' name='address' />
 	<span class='span-5 normaltext'>Woonplaats: </span>
-	<input id='city' class='osk_norm normaltext' type='text' name='city' />
+	<input id='edit_city' class='osk_norm normaltext' type='text' name='city' />
 	<span class='span-5 normaltext'>Bankrekening: </span>
-	<input id='bank_account' class='osk_bank normaltext' type='text' name='bank_account' />
+	<input id='edit_bank_account' class='osk_bank normaltext' type='text' name='bank_account' />
 	<span class='span-5 normaltext'>E-Mail: </span>
-	<input id='email' class='osk_mail normaltext' type='text' name='email' />
+	<input id='edit_email' class='osk_mail normaltext' type='text' name='email' />
 	<span class='span-5 normaltext'>Barcode: </span>
-	<input id='barcode' class='input ui-corner-all normaltext' type='text' name='barcode' />
+	<input id='edit_barcode' class='input ui-corner-all normaltext' type='text' name='barcode' />
 </div>
 
-
-<script type='text/javascript'>
-
-</script>
 <div class='container'>
 	<p id='titlebar' class='span-24'> A.M.A.Z.I.N.G.: Maar Anders. Zelfde Interface, Nieuwe Generator. </p>
-
+	
 	<div class='menu'> <a href='admin'>admin</a> <a href='etc'>etc</a></div>
 
-	<div id='tabscontainer' class='span-12'>
+	<div class="whitebg">
+	<div id='tabscontainer' class='span-11 colborder '>
 
 	</div>
 
 	<div class='span-12 last'>
 
-	<p class='buttontext textbox span-2'> User: </p><p id='username' class='buttontext textbox span-7'></p>
-	<button id='edituser' class='normalbutton buttontextsmall span-2'>edit</button>
-	<button id='add' class='ui-icon ui-state-highlight ui-icon-large ui-icon-plus-large last'>+</button>
+	<p class='buttontext textbox span-2'> User: </p><p id='username' class='buttontext textbox span-10 last'></p>
+	<p class='buttontext textbox span-2'>Credit: </p><p id='credit' class='buttontext textbox span-10 last'></p>
 
-	<p class='buttontext textbox span-2'>Credit: </p><p id='credit' class='buttontext textbox span-7'></p>
-	<button id='buyline' class='normalbutton buttontextsmall span-3 last'>kopen</button>
-
-
+	<button id='buyline' class=' buttontextsmall span-3'>Lijntje kopen</button>
+	<button id='undo' class=' buttontextsmall span-3'>Ongedaan maken</button>
+	<button id='edituser' class=' buttontextsmall span-3'>Wijzig gebruiker</button>
+	<button id='add' class=' buttontextsmall span-3 last'>Nieuwe gebruiker</button>
+	
+	<hr />
 
 	<button id='CANDYBIG' class=' buttontext productbutton  span-6'> Groot Snoep <br /> (&le; 2 stuks) </button>
 	<button id='CANDYSMALL' class='buttontext productbutton span-6 last'> Klein Snoep <br /> (&gt; 2 stuks) </button>
@@ -126,8 +124,11 @@
 	<button id='SAUSAGE' class='buttontext productbutton span-4'> Rookworst </button>
 	<button id='BAPAO' class='buttontext productbutton span-4 last'> Bapao </button>
 
+	<div id='purchases' class='span-12'>
+
 	</div>
-	<div id='debug' class='span-24 last'>
+
+	</div>
 
 	</div>
 

@@ -3,20 +3,22 @@ import datetime
 from django.db import models
 
 PRODUCTS = {
-            'CANDYBIG':   1,
-            'CANDYSMALL': 1,
-            'SOUP':       1,
-            'CAN':        1,
-            'BEER':       1,
-            'SAUSAGE':    1,
-            'BAPAO':      1,
-            'BREAD':      1,
-            'ADMIN':      1,
+            'CANDYBIG':   {'price': 1, 'desc': 'Groot Snoep'},
+            'CANDYSMALL': {'price': 1, 'desc': 'Klein Snoep'},
+            'SOUP':       {'price': 1, 'desc': 'Soep'},
+            'CAN':        {'price': 1, 'desc': 'Blikje'},
+            'BEER':       {'price': 1, 'desc': 'Bier'},
+            'SAUSAGE':    {'price': 1, 'desc': 'Broodje rookworst'},
+            'BAPAO':      {'price': 1, 'desc': 'Bapao'},
+            'BREAD':      {'price': 1, 'desc': 'Broodje beleg'},
+            'ADMIN':      {'price': 1, 'desc': 'Door admin gezet'},
             }
+
+
 CREDITS = {
-            'CASH',
-            'DIGITAL',
-            'ADMIN',
+            'CASH': {'price': -10 , 'desc': 'Cash lijntje'},
+            'DIGITAL': {'price': -10 , 'desc': 'Gemachtigd lijntje'},
+            'ADMIN': {'price': -10 , 'desc': 'Adminlijntje'},
 }
 
 class User(models.Model):
@@ -24,15 +26,16 @@ class User(models.Model):
         return self.name
     def buy_credit(self, type, amount):
         if(type in CREDITS):
-            self.credit += 10 * amount
+            self.credit -= CREDITS[type]['price'] * amount
             self.save()
-            Purchase(user = self, product = type, activity = Activity.get_active()).save()
+            for i in range(amount):
+                Purchase(user = self, product = type, activity = Activity.get_active()).save()
             return True
         else:
             return False
     def buy_item(self, item):
-        if item != None and self.credit >= PRODUCTS[item]:
-            self.credit -= PRODUCTS[item]
+        if item != None and self.credit >= PRODUCTS[item]['price']:
+            self.credit -= PRODUCTS[item]['price']
             self.save()
             Purchase(user = self, product = item, activity = Activity.get_active()).save()
             return True
@@ -79,10 +82,18 @@ class Activity(models.Model):
 class Purchase(models.Model):
     def __unicode__(self):
         return str(self.user) + " bought " + str(self.product) + " on " + str(self.date) + " at activity " + str(self.activity)
+    def desc(self):
+        if self.product in PRODUCTS:
+            return PRODUCTS[self.product]['desc']
+        elif self.product in CREDITS:
+            return CREDITS[self.product]['desc']
+        else:
+            return "UNKNOWN!"
     activity = models.ForeignKey(Activity)
     user = models.ForeignKey(User)
     product = models.CharField(max_length = 255)
     date = models.DateTimeField(auto_now_add = True)
+    valid = models.BooleanField(default=True)
 
 
 
