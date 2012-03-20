@@ -7,10 +7,27 @@ function set_user_spec_buttons(enable){
 		$('#buyline').button('enable');
 		$('#undo').button('enable');
 		$('#edituser').button('enable');
+		$('#CANDYBIG').button('enable');
+		$('#CANDYSMALL').button('enable');
+		$('#BEER').button('enable');
+		$('#CAN').button('enable');
+		$('#SOUP').button('enable');
+		$('#BREAD').button('enable');
+		$('#SAUSAGE').button('enable'); 
+		$('#BAPAO').button('enable');
+
 	}else{
 		$('#buyline').button('disable');
 		$('#undo').button('disable');
-		$('#edituser').button('disable');
+		$('#edituser').button('dissable');
+		$('#CANDYBIG').button('disable');
+		$('#CANDYSMALL').button('disable');
+		$('#BEER').button('disable');
+		$('#CAN').button('disable');
+		$('#SOUP').button('disable');
+		$('#BREAD').button('disable');
+		$('#SAUSAGE').button('disable'); 
+		$('#BAPAO').button('disable');
 		
 	}
 }
@@ -123,10 +140,10 @@ function init_on_screen_keyboards(){
 		customLayout : {
 			'default': [
 				'{sp:2} 1 2 3 {bksp}',
-				' 4 5 6 ',
-				' 7 8 9 ',
-				' {sp:1} 0 {sp:1}',
-				' {accept}'
+				      ' 4 5 6 ',
+				'{sp:2} 7 8 9 {accept}',
+				'  {sp:1} 0 {sp:1}',
+				
 			],
 			'shift': []
 		},
@@ -220,7 +237,7 @@ function init_user_buttons(){
 }
 
 function init_product_buttons(){
-	$(".productbutton").button();
+	$(".productbutton").button().button('disable');
 	$("#buyline").button()
 		.button('disable')
 		.addClass('doubleheightbutton');
@@ -245,13 +262,21 @@ function init_userlist(){
 	});	
 }
 
+function init_timer(){
+/* TODO: Enable me!
+$.idleTimer(10 * 1000);
+$(document).bind("idle.idleTimer", function(){
+	reset();
+});
+*/
+}
 
 function setup(){
 	init_loading_dialog();
 	init_product_buttons();
 	init_user_buttons();
-	init_userlist()
-
+	init_userlist();
+	init_timer();
 	init_buyline_dialog();
 	init_nocredit_dialog();
 	

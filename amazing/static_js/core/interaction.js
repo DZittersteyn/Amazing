@@ -1,7 +1,18 @@
 function button_click(productID){
 	if (get_selected_user_id() != ""){
 		$.post('user/' + get_selected_user_id(), {'type':'product', 'productID': productID})
-		.success()
+		.success(function(){
+			/* TODO: enable me :D
+			$.idleTimer(3 * 1000);
+			$(document).bind("idle.idleTimer", function(){
+				$.idleTimer(10*1000);
+				$(document).bind("idle.idleTimer", function(){
+					reset();
+				});				
+
+			});
+			*/
+		})
 		.error(function(){
 			$('#noCredit').dialog('open');
 		})

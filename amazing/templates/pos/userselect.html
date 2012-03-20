@@ -22,12 +22,16 @@
 <!-- Core functions -->
 <script type='text/javascript' src='{{STATIC_URL}}core/interaction.js'></script>
 <script type='text/javascript' src='{{STATIC_URL}}core/init.js'></script>
+<script type='text/javascript' src='{{STATIC_URL}}core/reset.js'></script>
 
 <!-- On-screen Keyboard -->
 <link href='{{STATIC_URL}}keyboard/keyboard.css' rel='stylesheet'>
 <script src='{{STATIC_URL}}keyboard/jquery.keyboard.js'></script>
 <!-- End On-screen Keyboard -->
 
+<!-- Idle timer -->
+<script src='{{STATIC_URL}}idletimer/jquery.idle-timer.js'></script>
+<!-- End Idle timer -->
 
 <!-- Init the user selection screen --> 
 <link rel='stylesheet' href='{{STATIC_URL}}jquery/verticaltabs.css' type='text/css' media='screen,print,projection'>
@@ -69,7 +73,11 @@
 
 <div class='margin hidden' id='dialog_buyline' title='Lijntje kopen'>
 	<div id='numLines'></div> 
-	<p class='normaltext'>Je wil <span id='txtNumLines'>1</span><span> Lijntje<span id='denom'></span> kopen, &aacute; &euro;</span><span id='price'>5</span></p>
+		<p class='normaltext'>
+			Je wil <span id='txtNumLines'>1</span>
+			<span> Lijntje<span id='denom'></span> kopen, &aacute; &euro;</span>
+			<span id='price'>5</span>
+		</p>
 	<p class='normaltext' id='baas'>&nbsp;</p>
 
 </div>
@@ -91,49 +99,49 @@
 	<input id='edit_barcode' class='input ui-corner-all normaltext' type='text' name='barcode' />
 </div>
 
-<div class='container'>
-	<p id='titlebar' class='span-24'> A.M.A.Z.I.N.G.: Maar Anders. Zelfde Interface, Nieuwe Generator. </p>
-	
-	<div class='menu'> <a href='admin'>admin</a> <a href='etc'>etc</a></div>
+	<p id='titlebar' class='container'> A.M.A.Z.I.N.G.: Maar Anders. Zelfde Interface, Nieuwe Generator. </p>
 
-	<div class="whitebg">
-	<div id='tabscontainer' class='span-11 colborder '>
 
-	</div>
+<div class='container contents'>
 
-	<div class='span-12 last'>
-
-	<p class='buttontext textbox span-2'> User: </p><p id='username' class='buttontext textbox span-10 last'></p>
-	<p class='buttontext textbox span-2'>Credit: </p><p id='credit' class='buttontext textbox span-10 last'></p>
-
-	<button id='buyline' class=' buttontextsmall span-3'>Lijntje kopen</button>
-	<button id='undo' class=' buttontextsmall span-3'>Ongedaan maken</button>
-	<button id='edituser' class=' buttontextsmall span-3'>Wijzig gebruiker</button>
-	<button id='add' class=' buttontextsmall span-3 last'>Nieuwe gebruiker</button>
-	
-	<hr />
-
-	<button id='CANDYBIG' class=' buttontext productbutton  span-6'> Groot Snoep <br /> (&le; 2 stuks) </button>
-	<button id='CANDYSMALL' class='buttontext productbutton span-6 last'> Klein Snoep <br /> (&gt; 2 stuks) </button>
-
-	<button id='BEER' class='buttontext productbutton span-4'> Bier </button>
-	<button id='CAN' class='buttontext productbutton span-4'> Blikje of <br />PET-flesje </button>
-	<button id='SOUP' class='buttontext productbutton span-4 last'> Soep </button>
-
-	<button id='BREAD' class='buttontext productbutton span-4'> Beleg </button>
-	<button id='SAUSAGE' class='buttontext productbutton span-4'> Rookworst </button>
-	<button id='BAPAO' class='buttontext productbutton span-4 last'> Bapao </button>
-
-	<div id='purchases' class='span-12'>
+	<div id='tabscontainer' class='span-12  '>
 
 	</div>
 
-	</div>
+	<div id='buttoncontainer' class='span-12 last'>
+
+		<p class='buttontext textbox span-2'> User: </p><p id='username' class='buttontext textbox span-10 last'></p>
+		<p class='buttontext textbox span-2'>Credit: </p><p id='credit' class='buttontext textbox span-10 last'></p>
+
+		<button id='buyline' class=' buttontextsmall span-3'>Lijntje kopen</button>
+		<button id='undo' class=' buttontextsmall span-3'>Ongedaan maken</button>
+		<button id='edituser' class=' buttontextsmall span-3'>Wijzig gebruiker</button>
+		<button id='add' class=' buttontextsmall span-3 last'>Nieuwe gebruiker</button>
+		
+		<hr />
+
+		<button id='CANDYBIG' class=' buttontext productbutton  span-6'> Groot Snoep <br /> (&le; 2 stuks) </button>
+		<button id='CANDYSMALL' class='buttontext productbutton span-6 last'> Klein Snoep <br /> (&gt; 2 stuks) </button>
+
+		<button id='BEER' class='buttontext productbutton span-4'> Bier </button>
+		<button id='CAN' class='buttontext productbutton span-4'> Blikje of <br />PET-flesje </button>
+		<button id='SOUP' class='buttontext productbutton span-4 last'> Soep </button>
+
+		<button id='BREAD' class='buttontext productbutton span-4'> Beleg </button>
+		<button id='SAUSAGE' class='buttontext productbutton span-4'> Rookworst </button>
+		<button id='BAPAO' class='buttontext productbutton span-4 last'> Bapao </button>
+
+		<div id='purchases' class='span-12'>
+
+		</div>
 
 	</div>
 
 
 </div>
+	<div class='menu'>
+		<a href='admin'>admin</a> <a href='etc'>etc</a>
+	</div>
 </body>
 
 </html>
