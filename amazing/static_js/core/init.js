@@ -82,12 +82,12 @@ function init_loading_dialog(){
 		modal: true,
 		autoOpen: false,
 	})
-	.ajaxStart(function(){
+	/*.ajaxStart(function(){
 		$(this).dialog('open');
 	})
 	.ajaxStop(function(){
 		$(this).dialog('close');
-	}).removeClass('hidden');
+	}).removeClass('hidden')*/;
 }
 
 function init_on_screen_keyboards(){
@@ -151,75 +151,8 @@ function init_on_screen_keyboards(){
 }
 
 
-function init_nocredit_dialog(){
-	$('#noCredit').dialog({
-		modal: true,
-		autoOpen: false,
-		buttons: {
-			Ok: function(){
-				$(this).dialog('close');
-			}
-		}
-	}).removeClass('hidden');
-}
-
 function init_buyline_dialog(){
-	$('#dialog_buyline').dialog({
-		modal: true,
-		autoOpen: false,
-		minWidth: 400,
-		minHeight: 120,
-		buttons: {
-			Contant: function(){
-				$.post('user/' + get_selected_user_id(), {'type':'credit',
-												 'credittype':'CASH',
-												    'amount' : $("#numLines").slider('value')
-												})
-				.complete(function(){
-					set_gui_user(get_selected_user_id());
-					$('#dialog_buyline').dialog('close');
-				});
-			},
-			Machtiging: function(){
-				$.post('user/' + get_selected_user_id(), {'type':'credit',
-												 'credittype':'DIGITAL', 
-												     'amount': $("#numLines").slider('value') 
-												 })
-				.complete(function(){
-					set_gui_user(get_selected_user_id());
-					$('#dialog_buyline').dialog('close');
-				});
-			},
-			Annuleer: function(){
-				$(this).dialog('close');
-			}
-		}
-	});
-
-
-	$('#numLines').slider({
-		range:"min",
-		min: 0,
-		value: 1,
-		max: 10,
-		slide: function(event, ui){
-			$("#txtNumLines").html(ui.value);
-			$("#price").html(ui.value * 5);
-			if(ui.value != 1){
-				$("#denom").html("s");
-			}else{
-				$("#denom").html("");
-			}
-			$("#baas").html("&nbsp;");
-		
-			if(ui.value == 10){
-				$("#baas").html("ALS EEN BAAS");
-			}
-			if(ui.value == 0){
-				$("#baas").html("Nope.");
-			}
-		},
-	});
+	
 }
 
 function init_user_buttons(){
@@ -233,25 +166,25 @@ function init_user_buttons(){
 	$('#undo').button()
 		.button('disable')
 		.addClass('doubleheightbutton');
-	init_on_screen_keyboards();
+	$("#buyline").button()
+		.button('disable')
+		.addClass('doubleheightbutton')
+		.click(function(){
+			if(get_selected_user_id() != ""){
+				loadBuyLineDialog();
+			}
+		});
+
 }
 
 function init_product_buttons(){
 	$(".productbutton").button().button('disable');
-	$("#buyline").button()
-		.button('disable')
-		.addClass('doubleheightbutton');
 
 	$(".productbutton").each(function(index){
 		$(this).bind('click', function(){
 			button_click($(this).attr('id'));
 		});
 	});
-	$("#buyline").bind('click', function(){
-		if(get_selected_user_id() != ""){
-			$('#dialog_buyline').dialog('open').removeClass('hidden');
-		}
-	})
 }
 
 function init_userlist(){
@@ -278,6 +211,5 @@ function setup(){
 	init_userlist();
 	init_timer();
 	init_buyline_dialog();
-	init_nocredit_dialog();
 	
 }

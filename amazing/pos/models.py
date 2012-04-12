@@ -48,6 +48,8 @@ class User(models.Model):
     email = models.EmailField()
     barcode = models.CharField(max_length = 10)
     isAdmin = models.BooleanField()
+    passcode = models.CharField(max_length = 255) # Logging in from the actual POS requires an optional passcode
+    password = models.CharField(max_length = 255) # Logging in from a remote location requires this password
     credit = models.IntegerField()
 
 

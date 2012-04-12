@@ -9,11 +9,20 @@ from django.views.decorators.csrf import csrf_exempt
 def index(request):
 	return render_to_response("pos/userselect.html", context_instance=RequestContext(request))
 
+def noCredit(request):
+	return render_to_response("pos/noCredit.html", context_instance=RequestContext(request))
+
+def buyLine(request):
+	return render_to_response("pos/buyLine.html", context_instance=RequestContext(request))
+
 def purchaselist(request, user_id):
 	print(Purchase.objects.filter(user=user_id).order_by('-date').query)
 	purchases = Purchase.objects.filter(user=user_id).order_by('-date')
 
 	return render_to_response("userdetails.html", {'purchases': purchases, 'map': PRODUCTS}, context_instance=RequestContext(request))
+
+def newUser(request):
+	return render_to_response("pos/newUser.html", context_instance=RequestContext(request))
 
 
 def userlist(request):
@@ -30,7 +39,6 @@ def userlist(request):
 	
 	return render_to_response("pos/userlist.html", {'lists': lists}, context_instance=RequestContext(request))
 
-@csrf_exempt
 def user_edit(request):
 	if request.is_ajax():
 		if request.method == 'POST':
@@ -61,7 +69,6 @@ def user_edit(request):
 	else:
 		return HttpResponse(status=400, content='non-ajax request not supported')
 
-@csrf_exempt
 def user(request, user_id):
 	if request.is_ajax():
 		user = User.objects.get(pk=user_id)

@@ -20,6 +20,7 @@
 <link type='text/css' href='{{STATIC_URL}}jquery/blitzer/jquery-ui-1.8.17.custom.css' rel='stylesheet' />
 
 <!-- Core functions -->
+<script type='text/javascript' src='{{STATIC_URL}}core/loadElement.js'></script>
 <script type='text/javascript' src='{{STATIC_URL}}core/interaction.js'></script>
 <script type='text/javascript' src='{{STATIC_URL}}core/init.js'></script>
 <script type='text/javascript' src='{{STATIC_URL}}core/reset.js'></script>
@@ -43,18 +44,11 @@
 	});
 </script>
 
-
-
-
 <link rel='stylesheet' href='{{STATIC_URL}}jquery/selectable.css' type='text/css' media='screen,print,projection'>
-
-
 
 <!-- End jQuery -->
 
 <link rel='stylesheet' href='{{STATIC_URL}}pos.css' type='text/css' media='screen'>
-
-
 
 
 </head>
@@ -62,44 +56,7 @@
 <body>
 
 
-
-<div id='noCredit' class='hidden' title='Je hebt niet voldoende kruisjes'>
-	<p> Klik op de knop 'Lijntje Kopen' om hier wat aan te doen. </p>
-</div>
-
-<div id='loading' class='hidden' title='Loading'>
- <img class='center pad' src='{{STATIC_URL}}2.gif' />
-</div>
-
-<div class='margin hidden' id='dialog_buyline' title='Lijntje kopen'>
-	<div id='numLines'></div> 
-		<p class='normaltext'>
-			Je wil <span id='txtNumLines'>1</span>
-			<span> Lijntje<span id='denom'></span> kopen, &aacute; &euro;</span>
-			<span id='price'>5</span>
-		</p>
-	<p class='normaltext' id='baas'>&nbsp;</p>
-
-</div>
-
-<div id='newUser' title='Nieuwe gebruiker' class='hidden'>
-	<span id='edit_pk' class='hidden'></span>
-
-	<span class='span-5 normaltext'>Naam: </span>
-	<input id='edit_name' class='osk_norm normaltext' type='text' name='name' />
-	<span class='span-5 normaltext'>Adres: </span>
-	<input id='edit_address' class='osk_norm normaltext' type='text' name='address' />
-	<span class='span-5 normaltext'>Woonplaats: </span>
-	<input id='edit_city' class='osk_norm normaltext' type='text' name='city' />
-	<span class='span-5 normaltext'>Bankrekening: </span>
-	<input id='edit_bank_account' class='osk_bank normaltext' type='text' name='bank_account' />
-	<span class='span-5 normaltext'>E-Mail: </span>
-	<input id='edit_email' class='osk_mail normaltext' type='text' name='email' />
-	<span class='span-5 normaltext'>Barcode: </span>
-	<input id='edit_barcode' class='input ui-corner-all normaltext' type='text' name='barcode' />
-</div>
-
-	<p id='titlebar' class='container'> A.M.A.Z.I.N.G.: Maar Anders. Zelfde Interface, Nieuwe Generator. </p>
+<p id='titlebar' class='container'> A.M.A.Z.I.N.G.: Maar Anders. Zelfde Interface, Nieuwe Generator. </p>
 
 
 <div class='container contents'>
