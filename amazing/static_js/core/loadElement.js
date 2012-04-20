@@ -28,12 +28,13 @@ function loadNewUserDialog(){
 									'city': $('#edit_city').val(),
 									'bank_account': $('#edit_bank_account').val(),
 									'email': $('#edit_email').val(),
-									'barcode': $('#edit_barcode').val(),																
+									'barcode': $('#edit_barcode').val(),
+									'has_passcode': $('#has_pin').attr('checked')?true:false,
+									'passcode': $('#edit_pin').val(),																									
 								}).success(function(data){
-									console.log(data);
-									init_userlist();
-									set_gui_user(data);
+									//init_userlist();
 									unloadNewUserDialog();
+									set_gui_user(data);
 								});
 							}
 						},
@@ -55,63 +56,120 @@ function unloadNewUserDialog(){
 }
 
 function loadEditUserDialog(id){
-	$.get('newUser.html',function (data){
-		$('body').append(data);
-	})
-	.success(function(){
-		$.getJSON("user/" + id, function(user){
-			$('#edit_pk').val(user[0].pk);
-			$('#edit_name').val(user[0].fields.name);
-			$('#edit_address').val(user[0].fields.address);
-			$('#edit_city').val(user[0].fields.city);
-			$('#edit_bank_account').val(user[0].fields.bank_account);
-			$('#edit_email').val(user[0].fields.email);
-			$('#edit_barcode').val(user[0].fields.barcode);
-			$('#newUser').dialog({			
-				close: function(){
-					unloadEditUserDialog();
-				},
-				modal:true,
-				autoOpen: false,
-			    minWidth: 740,
-			    title: 'Wijzig gebruiker',
-			    buttons: [{
-					text: "Sla op",
-					click: function(){
-						if(check_fields()){
-							$.post('user/', {
-								'mode': 'edit',
-								'pk': $('#edit_pk').val(),
-								'name': $('#edit_name').val(),
-								'address': $('#edit_address').val(),
-								'city': $('#edit_city').val(),
-								'bank_account': $('#edit_bank_account').val(),
-								'email': $('#edit_email').val(),
-								'barcode': $('#edit_barcode').val(),																
-							}).success(function(){
-								init_userlist();
-								set_gui_user($('#edit_pk').val());
-								$('#newUser').dialog('close');
-							});
-						}
-					},
-				},
-				{
-					text: "Annuleer",
-					click: function(){
-						$(this).dialog('close');
-					},
-				}]
-			});
+	if(id){
+		$.get('newUser.html',function (data){
+			$('body').append(data);
+		})
+		.success(function(){
+			$.getJSON("user/" + id, function(user){
+				console.log(user[0].pk);
+				$('#edit_pk').val(user[0].pk);
+				$('#edit_name').val(user[0].fields.name);
+				$('#edit_address').val(user[0].fields.address);
+				$('#edit_city').val(user[0].fields.city);
+				$('#edit_bank_account').val(user[0].fields.bank_account);
+				$('#edit_email').val(user[0].fields.email);
+				$('#edit_barcode').val(user[0].fields.barcode);
+				$('#edit_pin').val(user[0].fields.passcode);
+				if(!user[0].fields.has_passcode){
+					$('#edit_pin').attr("hidden",true);
+				}
+				$('#has_pin').attr("checked", user[0].fields.has_passcode);
 
-			init_on_screen_keyboards();
-			$('#newUser').dialog('open').removeClass('hidden');
+				$('#has_pin').change(function(obj){
+					console.log("flip");
+					if($('#has_pin').attr("checked") == "checked"){
+						$('#edit_pin').attr("hidden",false);
+					}else{
+						$('#edit_pin').attr("hidden",true);
+					}
+				})
+
+				$('#newUser').dialog({			
+					close: function(){
+						unloadEditUserDialog();
+					},
+					modal:true,
+					autoOpen: false,
+				    minWidth: 740,
+				    title: 'Wijzig gebruiker',
+				    buttons: [{
+						text: "Sla op",
+						click: function(){
+							if(check_fields()){
+								$.post('user/', {
+									'mode': 'edit',
+									'pk': $('#edit_pk').val(),
+									'name': $('#edit_name').val(),
+									'address': $('#edit_address').val(),
+									'city': $('#edit_city').val(),
+									'bank_account': $('#edit_bank_account').val(),
+									'email': $('#edit_email').val(),
+									'barcode': $('#edit_barcode').val(),	
+									'has_passcode': $('#has_pin').attr('checked')?"True":"False",
+									'passcode': $('#edit_pin').val(),															
+								}).success(function(data){
+									//init_userlist();
+									unloadEditUserDialog();
+									set_gui_user(data);
+								});
+							}
+						},
+					},
+					{
+						text: "Annuleer",
+						click: function(){
+							unloadEditUserDialog();
+						},
+					}]
+				});
+
+				init_on_screen_keyboards();
+				$('#newUser').dialog('open').removeClass('hidden');
+			});
 		});
-	});
+	}
 }
 
 function unloadEditUserDialog(){
 	$('#newUser').remove();
+}
+
+
+function loadUndoDialog(id){
+	if(id){
+		$.get('undoDialog_'+id+'.html',function (data){
+			$('body').append(data);
+		})
+		.success(function(){
+
+			//$('#undoDialogPurchaseList').selectable();
+			$('.checkboxwlabel').button();
+			$('#undoDialog').dialog({			
+				close: function(){
+					unloadUndoDialog();
+				},
+				modal:true,
+				autoOpen: false,
+			    width: 410,
+			    height:500,
+			    title: 'Transactieoverzicht',
+			    buttons: [{
+					text: "Sluiten",
+					click: function(){
+						unloadUndoDialog();
+					},
+				},],
+			});
+			
+			$('#undoDialog').dialog('open').removeClass('hidden');
+
+		});
+	}
+}
+
+function unloadUndoDialog(){
+	$('#undoDialog').remove();
 }
 
 

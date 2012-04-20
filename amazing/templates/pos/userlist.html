@@ -1,25 +1,14 @@
 <div id="usertabs">
 	<ul>
 		<li class="tab"><a href="#usertabs-0"><img src="{{STATIC_URL}}home.png" /></a></li>
-		{% for filter, list in lists %}
-		<li class="tab"><a href="#usertabs-{{forloop.counter}}">{{filter}}</a></li>
+		{% for filter in filters %}
+		<li class="tab"><a href="filtereduserlist-{{filter}}.html">{{filter}}</a></li>
 		{% endfor %}
 	</ul>
 
 	<div id="usertabs-0">
 			<p>lol</p>
-
 	</div>
-	{% for filter, list in lists %}
-	<div id="usertabs-{{forloop.counter}}">
-		<ol id="filteredlist-{{filter}}" class="selectable">
-			{% for user in list %}
-				<li class="normaltext selection ui-widget-content"><span class="hidden">{{user.pk}}</span>{{user.name}}</li>
-			{% endfor %}
-		</ol>
-
-	</div>
-	{% endfor %}
 
 
 

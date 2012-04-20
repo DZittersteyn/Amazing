@@ -4,10 +4,13 @@ from django.template import RequestContext
 from django.db.models.query import ValuesListQuerySet
 from django.http import HttpResponse
 from django.core import serializers
-from django.views.decorators.csrf import csrf_exempt
+from django.core.context_processors import csrf
+
 
 def index(request):
-	return render_to_response("pos/userselect.html", context_instance=RequestContext(request))
+	c = RequestContext(request)
+	c.update(csrf(request))
+	return render_to_response("pos/userselect.html", c)
 
 def noCredit(request):
 	return render_to_response("pos/noCredit.html", context_instance=RequestContext(request))
@@ -16,28 +19,33 @@ def buyLine(request):
 	return render_to_response("pos/buyLine.html", context_instance=RequestContext(request))
 
 def purchaselist(request, user_id):
-	print(Purchase.objects.filter(user=user_id).order_by('-date').query)
 	purchases = Purchase.objects.filter(user=user_id).order_by('-date')
 
 	return render_to_response("userdetails.html", {'purchases': purchases, 'map': PRODUCTS}, context_instance=RequestContext(request))
 
+def undoDialog(request, user_id):
+	purchases = Purchase.objects.filter(user=user_id).order_by('-date')
+	return render_to_response("undodialog.html", {'purchases': purchases})
+
+
 def newUser(request):
 	return render_to_response("pos/newUser.html", context_instance=RequestContext(request))
 
+def filtereduserlist(request, beginswith):
+	users = []
+	for char in beginswith:
+		users.extend(User.objects.filter(name__startswith=char).order_by('name'))
+
+	return render_to_response("pos/filtereduserlist.html", {'beginswith':beginswith, 'users': users})
 
 def userlist(request):
 	filters = []
-	users = User.objects.all()
 
 	a = ord('a')
 	for l in range(0,25,2):
-		filters.append((chr(l + a), chr(l + a + 1)))
+		filters.append("".join((chr(l + a), chr(l + a + 1))))
 
-	lists = []
-	for filter in filters:
-		lists.append(("".join(filter),[user for user in users if user.name.lower().startswith(filter)]))
-	
-	return render_to_response("pos/userlist.html", {'lists': lists}, context_instance=RequestContext(request))
+	return render_to_response("pos/userlist.html", {'filters': filters}, context_instance=RequestContext(request))
 
 def user_edit(request):
 	if request.is_ajax():
@@ -51,6 +59,8 @@ def user_edit(request):
 					email=request.POST['email'],
 					barcode=request.POST['barcode'],
 					credit=0,
+					has_passcode=request.POST['has_passcode'],
+					passcode=request.POST['passcode']
 					)
 				u.save()
 				return HttpResponse(status=200, content=u.pk)
@@ -62,10 +72,20 @@ def user_edit(request):
 				u.bank_account=request.POST['bank_account']
 				u.email=request.POST['email']
 				u.barcode=request.POST['barcode']
+				print('-----------------------------------')
+				print(request.POST['has_passcode'])
+				print('-----------------------------------')
+				u.has_passcode= True if request.POST['has_passcode'] == "True" else False
+				print(u.has_passcode)
+				u.passcode=request.POST['passcode']
 				u.save()
-				return HttpResponse(status=200)		
+				u = User.objects.get(pk=request.POST['pk'])
+				print(u.has_passcode)
+				return HttpResponse(status=200, content=u.pk)		
+			else:
+				return HttpResponse(status=400, content='mode unsupported')
 		else:
-			return HttpResponse(status=409, content='GET not supported, use user/id')
+			return HttpResponse(status=400, content='GET not supported, use user/id')
 	else:
 		return HttpResponse(status=400, content='non-ajax request not supported')
 

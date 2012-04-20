@@ -1,0 +1,12 @@
+<script type='text/javascript'>
+	init_selectables();
+</script>
+
+<div id="usertabs-{{filter}}">
+	<ol id="filteredlist-{{filter}}" class="selectable">
+		{% for user in users %}
+			<li id='user-{{user.pk}}' class="normaltext selection ui-widget-content">{{user.name}}</li>
+		{% endfor %}
+	</ol>
+
+</div>

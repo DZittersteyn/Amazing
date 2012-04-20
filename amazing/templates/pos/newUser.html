@@ -12,5 +12,14 @@
 	<input id='edit_email' class='osk_mail normaltext' type='text' name='email' />
 	<span class='span-5 normaltext'>Barcode: </span>
 	<input id='edit_barcode' class='input ui-corner-all normaltext' type='text' name='barcode' />
+	<span class='span-5 normaltext'>PIN: Actief? <input id='has_pin' class='input' type='checkbox' name='has_pin' /></span> 
+	<input id='edit_pin' class='osk_bank normaltext' type='password' name='pin_code' />
+
+	<script type='text/javascript'>
+		$('has_pin').change(function(){
+			console.log('test');
+		});
+	</script>
+
 </div>
 
