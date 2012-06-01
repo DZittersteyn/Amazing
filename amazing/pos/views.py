@@ -25,7 +25,7 @@ def purchaselist(request, user_id):
 
 def undoDialog(request, user_id):
 	purchases = Purchase.objects.filter(user=user_id).order_by('-date')
-	return render_to_response("undodialog.html", {'purchases': purchases})
+	return render_to_response("undodialog.html", {'user_id': user_id, 'purchases': purchases})
 
 
 def newUser(request):

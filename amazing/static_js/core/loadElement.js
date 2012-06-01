@@ -138,7 +138,7 @@ function unloadEditUserDialog(){
 
 function loadUndoDialog(id){
 	if(id){
-		$.get('undoDialog_'+id+'.html',function (data){
+		$.get('undodialog_'+id+'.html',function (data){
 			$('body').append(data);
 		})
 		.success(function(){
@@ -151,8 +151,8 @@ function loadUndoDialog(id){
 				},
 				modal:true,
 				autoOpen: false,
-			    width: 410,
-			    height:500,
+			    width: 500,
+			    height:600,
 			    title: 'Transactieoverzicht',
 			    buttons: [{
 					text: "Sluiten",
