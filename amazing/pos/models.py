@@ -24,20 +24,20 @@ CREDITS = {
 class User(models.Model):
     def __unicode__(self):
         return self.name
-    def buy_credit(self, type, amount):
+    def buy_credit(self, type, price, amount):
         if(type in CREDITS):
             self.credit -= CREDITS[type]['price'] * amount
             self.save()
             for i in range(amount):
-                Purchase(user = self, product = type, activity = Activity.get_active()).save()
+                Purchase(user = self, product = type, price = price, activity = Activity.get_active()).save()
             return True
         else:
             return False
-    def buy_item(self, item):
+    def buy_item(self, item, price):
         if item != None and self.credit >= PRODUCTS[item]['price']:
             self.credit -= PRODUCTS[item]['price']
             self.save()
-            Purchase(user = self, product = item, activity = Activity.get_active()).save()
+            Purchase(user = self, product = item, price = price, activity = Activity.get_active()).save()
             return True
         else:
             return False
@@ -84,7 +84,7 @@ class Activity(models.Model):
 
 class Purchase(models.Model):
     def __unicode__(self):
-        return str(self.user) + " bought " + str(self.product) + " on " + str(self.date) + " at activity " + str(self.activity)
+        return str(self.user) + " bought " + str(self.product) + " for " + str(self.price) + " credits on " + str(self.date) + " at activity " + str(self.activity)
     def desc(self):
         if self.product in PRODUCTS:
             return PRODUCTS[self.product]['desc']
@@ -95,6 +95,7 @@ class Purchase(models.Model):
     activity = models.ForeignKey(Activity)
     user = models.ForeignKey(User)
     product = models.CharField(max_length = 255)
+    price = models.IntegerField()
     date = models.DateTimeField(auto_now_add = True)
     valid = models.BooleanField(default=True)
 

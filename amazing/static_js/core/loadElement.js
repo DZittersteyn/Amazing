@@ -135,6 +135,18 @@ function unloadEditUserDialog(){
 	$('#newUser').remove();
 }
 
+function reloadLI(transid,id){
+	$("#purchaseli-"+transid).load("transactionli-" + transid + ".html", function(){
+		$(this).find('.checkboxwlabel').button().click(function(){
+			$.post("transaction/" + transid + ".html",{'valid': $(this).prop("checked")})
+			.complete(function(){
+				console.log("reload");
+				set_gui_user(id);		
+				reloadLI(transid, id);
+			});
+		});
+	});	
+}
 
 function loadUndoDialog(id){
 	if(id){
@@ -142,18 +154,31 @@ function loadUndoDialog(id){
 			$('body').append(data);
 		})
 		.success(function(){
+			$("li").each(function(){
+				pattern = /purchaseli-(\d+)/;
+				match = pattern.exec($(this).attr('id'));
+				if(match){
+					var transid = match[1];
+					reloadLI(transid,id);
 
-			//$('#undoDialogPurchaseList').selectable();
-			$('.checkboxwlabel').button();
+				}
+			});
+
+
+
+
+
+
+
 			$('#undoDialog').dialog({			
 				close: function(){
 					unloadUndoDialog();
 				},
 				modal:true,
 				autoOpen: false,
-			    width: 500,
+			    width: 510,
 			    height:600,
-			    title: 'Transactieoverzicht',
+			    title: 'Transactieoverzicht' + ' ' + $('#undo_user').html() ,
 			    buttons: [{
 					text: "Sluiten",
 					click: function(){

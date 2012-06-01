@@ -171,6 +171,7 @@ function init_user_buttons(){
 		.click(function(){new_user()})
 		.addClass('doubleheightbutton');
 	$('#undo').button()
+		.click(function(){undo(get_selected_user_id())})
 		.button('disable')
 		.addClass('doubleheightbutton');
 	$("#buyline").button()
@@ -258,6 +259,5 @@ function setup(){
 	init_timer();
 	init_buyline_dialog();
 	init_csrf_token();
-	loadUndoDialog(2);
 
 }

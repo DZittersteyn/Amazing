@@ -10,5 +10,8 @@ urlpatterns = patterns('pos.views',
      url(r'noCredit.html$', 'noCredit'),
      url(r'user/$', 'user_edit'),
      url(r'user/(?P<user_id>\d+)$', 'user'),
-     url(r'user/(?P<user_id>\d+)/purchases$','purchaselist')
+     url(r'user/(?P<user_id>\d+)/purchases$','purchaselist'),
+     url(r'purchase-(?P<tr_id>\d+).html$','transaction'),
+     url(r'transaction/(?P<tr_id>\d+).html$','transaction'),     
+     url(r'transactionli-(?P<tr_id>\d+).html$','transaction'),
 )

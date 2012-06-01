@@ -18,6 +18,52 @@ def noCredit(request):
 def buyLine(request):
 	return render_to_response("pos/buyLine.html", context_instance=RequestContext(request))
 
+def transaction(request, tr_id):
+	if request.is_ajax():
+		if request.method == 'POST':
+			transaction = Purchase.objects.get(pk=tr_id)
+			price = 0
+			try:
+				price = PRODUCTS[transaction.product]['price']
+			except KeyError:
+				try:
+					price = CREDITS[transaction.product]['price']
+				except KeyError:
+					return HttpResponse(status=400, content='Unknown product');
+
+			if request.POST['valid'] == 'true':
+				if transaction.valid == 0:
+					if transaction.user.credit >= price :
+						transaction.valid = 1
+						transaction.user.credit -= price
+						transaction.save()
+						transaction.user.save()
+						return HttpResponse(status=200)
+					else:
+						return HttpResponse(status=409, content='not enough credits')
+				else:
+					return HttpResponse(status=400, content='trying to redo a valid transaction')
+			elif request.POST['valid'] == 'false':
+				if transaction.valid == 1:
+					if transaction.user.credit >= -price :
+						transaction.valid = 0
+						transaction.user.credit += price
+						transaction.save()
+						transaction.user.save()
+						return HttpResponse(status=200)
+					else:
+						return HttpResponse(status=409, content='not enough credits')
+				else:
+					return HttpResponse(status=400, content='trying to redo a valid transaction')
+			
+			else:
+				return HttpResponse(status=400, content='mode unsupported')
+		else:
+			return render_to_response("transactionli.html", {'purchase': Purchase.objects.get(pk=tr_id)})
+	else:
+		return HttpResponse(status=400, content='non-ajax request not supported')
+
+
 def purchaselist(request, user_id):
 	purchases = Purchase.objects.filter(user=user_id).order_by('-date')
 
@@ -25,7 +71,8 @@ def purchaselist(request, user_id):
 
 def undoDialog(request, user_id):
 	purchases = Purchase.objects.filter(user=user_id).order_by('-date')
-	return render_to_response("undodialog.html", {'user_id': user_id, 'purchases': purchases})
+	user_name = User.objects.get(pk=user_id).name;
+	return render_to_response("undodialog.html", {'user_name': user_name ,'user_id': user_id, 'purchases': purchases})
 
 
 def newUser(request):
@@ -102,12 +149,12 @@ def user(request, user_id):
 			return HttpResponse(data, mimetype='application/json')
 		elif request.method == 'POST':
 			if request.POST['type'] == 'credit':
-				if user.buy_credit(request.POST['credittype'], int(request.POST['amount']) ):
+				if user.buy_credit(request.POST['credittype'], CREDITS[request.POST['credittype']]['price'], int(request.POST['amount']) ):
 					return HttpResponse(status=200)
 				else:
 					return HttpResponse(status=409, content='Incorrect credit type')
 			elif request.POST['type'] == 'product':
-				if user.buy_item(request.POST['productID']):
+				if user.buy_item(request.POST['productID'], PRODUCTS[request.POST['productID']]['price']):
 					return HttpResponse(status=200)
 				else:
 					return HttpResponse(status=409, content='Insufficient credit')

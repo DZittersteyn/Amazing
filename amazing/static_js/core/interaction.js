@@ -89,3 +89,7 @@ function new_user(){
 function edit_user(id){
 	loadEditUserDialog(id);
 }
+
+function undo(id){
+	loadUndoDialog(id);
+}

@@ -1,10 +1,12 @@
 <div id='undoDialog'>
-	<span class='hidden'>{{user_id}}</span>
-	<ol id='undoDialogPurchaseList'>
+	<span id='undo_userid' class='hidden'>{{user_id}}</span>
+	<span id='undo_user' class='hidden'>{{user_name}}</span>
+	<ul id='undoDialogPurchaseList'>
 		{% for purchase in purchases %}
 			
-			
-			<li><input type="checkbox" id="purchase-{{purchase.pk}}" class="checkboxwlabel" /> <label for="purchase-{{purchase.pk}}">{{purchase.user}}, {{purchase.desc}}, {{purchase.date}}</label></li>
+			<li id="purchaseli-{{purchase.pk}}"> </li>
+
+
 		{% endfor %}
-	</ol>
+	</ul>
 </div>	
