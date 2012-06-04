@@ -65,20 +65,24 @@ function init_selectables(){
 	});
 }
 
+function set_gui_user(id, password){
+
+}
+
 
 function set_gui_user(id){
 	$.getJSON("user/" + id, function(user){
 		if(user[0].fields.passcode){
+			
+		}else{
 
+			$('#username').html(user[0].fields.name);
+			$('#credit').html(user[0].fields.credit);
+			$('#usertabs').tabs("select", (user[0].fields.name.toLowerCase().charCodeAt(0)-'a'.charCodeAt(0))/2 +1);
+			$('#user-'+id).addClass('ui-selected');
+			set_user_spec_buttons(true);
+			$('#purchases').load("user/" + id + "/purchases");
 		}
-
-		$('#username').html(user[0].fields.name);
-		$('#credit').html(user[0].fields.credit);
-		$('#usertabs').tabs("select", (user[0].fields.name.toLowerCase().charCodeAt(0)-'a'.charCodeAt(0))/2 +1);
-		$('#user-'+id).addClass('ui-selected');
-		set_user_spec_buttons(true);
-		$('#purchases').load("user/" + id + "/purchases");
-
 
 	});
 

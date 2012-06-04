@@ -1,4 +1,4 @@
 <input type="checkbox" id="purchase-{{purchase.pk}}" class="checkboxwlabel" {{purchase.valid|yesno:"checked='checked',"}} /> 
 	<label for="purchase-{{purchase.pk}}">
-		<span class="undopurcdesc">{{purchase.desc}} &aacute; <span id="price-{{purchase.pk}}">{{purchase.price}}</span> credit{%if purchase.price != 1 %}s{%endif%}</span><span class="undopurcdate"> {{purchase.date}}</span> 
+		<span class="undopurcdesc">{{purchase.desc}} &aacute; <span id="price-{{purchase.pk}}">{{purchase.price}}</span> credit{%if purchase.price != 1 %}s{%endif%}</span><span class="undoundone">{%if purchase.valid != 1%}undone{%endif%}</span><span class="undopurcdate"> {{purchase.date}}</span> 
 	</label>

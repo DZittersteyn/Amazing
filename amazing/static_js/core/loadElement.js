@@ -62,7 +62,6 @@ function loadEditUserDialog(id){
 		})
 		.success(function(){
 			$.getJSON("user/" + id, function(user){
-				console.log(user[0].pk);
 				$('#edit_pk').val(user[0].pk);
 				$('#edit_name').val(user[0].fields.name);
 				$('#edit_address').val(user[0].fields.address);
@@ -143,6 +142,10 @@ function reloadLI(transid,id){
 				console.log("reload");
 				set_gui_user(id);		
 				reloadLI(transid, id);
+			}).error(function(jqxhr){
+				if(jqxhr.status = 409){
+					alert("Onvoldoende Credits!")
+				}
 			});
 		});
 	});	
@@ -159,8 +162,18 @@ function loadUndoDialog(id){
 				match = pattern.exec($(this).attr('id'));
 				if(match){
 					var transid = match[1];
-					reloadLI(transid,id);
-
+					$(this).find('.checkboxwlabel').button().click(function(){
+						$.post("transaction/" + transid + ".html",{'valid': $(this).prop("checked")})
+						.complete(function(){
+							console.log("reload");
+							set_gui_user(id);		
+							reloadLI(transid, id);
+						}).error(function(jqxhr){
+							if(jqxhr.status = 409){
+								alert("Onvoldoende Credits!")
+							}
+						});
+					});
 				}
 			});
 
@@ -176,7 +189,7 @@ function loadUndoDialog(id){
 				},
 				modal:true,
 				autoOpen: false,
-			    width: 510,
+			    width: 570,
 			    height:600,
 			    title: 'Transactieoverzicht' + ' ' + $('#undo_user').html() ,
 			    buttons: [{
@@ -236,7 +249,7 @@ function loadBuyLineDialog(){
 				unloadBuyLineDialog();
 			},
 			buttons: {
-				Contant: function(){
+				/*Contant: function(){
 					$.post('user/' + get_selected_user_id(), {'type':'credit',
 													 'credittype':'CASH',
 													    'amount' : $("#numLines").slider('value')
@@ -245,7 +258,7 @@ function loadBuyLineDialog(){
 						set_gui_user(get_selected_user_id());
 						unloadBuyLineDialog();
 					});
-				},
+				},*/
 				Machtiging: function(){
 					$.post('user/' + get_selected_user_id(), {'type':'credit',
 													 'credittype':'DIGITAL', 
