@@ -12,6 +12,9 @@ def index(request):
 	c.update(csrf(request))
 	return render_to_response("pos/userselect.html", c)
 
+def passcode(request):
+	return render_to_response("pos/passcode.html",context_instance=RequestContext(request))
+
 def noCredit(request):
 	return render_to_response("pos/noCredit.html", context_instance=RequestContext(request))
 
@@ -65,7 +68,7 @@ def transaction(request, tr_id):
 
 
 def purchaselist(request, user_id):
-	purchases = Purchase.objects.filter(user=user_id).order_by('-date')
+	purchases = Purchase.objects.filter(user=user_id).order_by('-date')[:10]
 
 	return render_to_response("userdetails.html", {'purchases': purchases, 'map': PRODUCTS}, context_instance=RequestContext(request))
 
@@ -136,14 +139,25 @@ def user_edit(request):
 	else:
 		return HttpResponse(status=400, content='non-ajax request not supported')
 
+def get_user_by_barcode(request):
+	if 'barcode' in request.GET:
+		u = User.objects.get(barcode=request.GET['barcode'])
+		return user(request, u.pk)
+	else:
+		return HttpResponse(status=400, content="no barcode submitted")
+
 def user(request, user_id):
 	if request.is_ajax():
 		user = User.objects.get(pk=user_id)
 		if user == None:
-			return HttpResponse(status=404)
+			return HttpResponse(status=404, content="user does not exist")
 		if request.method == 'GET':
+			if not (user.barcode != "" and 'barcode' in request.GET and user.barcode == request.GET['barcode']):
+				if user.has_passcode and 'passcode' in request.GET and (user.passcode != request.GET['passcode']):
+					return HttpResponse(status=401)
 			JSONSerializer = serializers.get_serializer("json")
 			json_serializer = JSONSerializer()
+			user.password = "blocked"
 			json_serializer.serialize([user])
 			data = json_serializer.getvalue()
 			return HttpResponse(data, mimetype='application/json')

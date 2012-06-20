@@ -34,7 +34,7 @@ function loadNewUserDialog(){
 								}).success(function(data){
 									//init_userlist();
 									unloadNewUserDialog();
-									set_gui_user(data);
+									set_gui_user_by_id(data);
 								});
 							}
 						},
@@ -61,7 +61,7 @@ function loadEditUserDialog(id){
 			$('body').append(data);
 		})
 		.success(function(){
-			$.getJSON("user/" + id, function(user){
+			$.getJSON("user/" + id,{"passcode": get_selected_user_pc()}, function(user){
 				$('#edit_pk').val(user[0].pk);
 				$('#edit_name').val(user[0].fields.name);
 				$('#edit_address').val(user[0].fields.address);
@@ -69,20 +69,16 @@ function loadEditUserDialog(id){
 				$('#edit_bank_account').val(user[0].fields.bank_account);
 				$('#edit_email').val(user[0].fields.email);
 				$('#edit_barcode').val(user[0].fields.barcode);
-				$('#edit_pin').val(user[0].fields.passcode);
-				if(!user[0].fields.has_passcode){
-					$('#edit_pin').attr("hidden",true);
-				}
-				$('#has_pin').attr("checked", user[0].fields.has_passcode);
-
-				$('#has_pin').change(function(obj){
-					console.log("flip");
+				$('#edit_pin').val("");
+				$('#edit_pin').attr("hidden",true);
+				//$('#has_pin').attr("checked", false);
+				$('#has_pin').button().click(function(){
 					if($('#has_pin').attr("checked") == "checked"){
 						$('#edit_pin').attr("hidden",false);
 					}else{
 						$('#edit_pin').attr("hidden",true);
 					}
-				})
+				});
 
 				$('#newUser').dialog({			
 					close: function(){
@@ -105,8 +101,8 @@ function loadEditUserDialog(id){
 									'bank_account': $('#edit_bank_account').val(),
 									'email': $('#edit_email').val(),
 									'barcode': $('#edit_barcode').val(),	
-									'has_passcode': $('#has_pin').attr('checked')?"True":"False",
-									'passcode': $('#edit_pin').val(),															
+									'has_passcode': $('#edit_pin').val() == "" ?"False":"True",
+									'passcode': $('#has_pin').prop("checked")?CryptoJS.SHA1($('#edit_pin').val()).toString():get_selected_user_pc(),															
 								}).success(function(data){
 									//init_userlist();
 									unloadEditUserDialog();
@@ -140,7 +136,7 @@ function reloadLI(transid,id){
 			$.post("transaction/" + transid + ".html",{'valid': $(this).prop("checked")})
 			.complete(function(){
 				console.log("reload");
-				set_gui_user(id);		
+				set_gui_user_by_id(id);		
 				reloadLI(transid, id);
 			}).error(function(jqxhr){
 				if(jqxhr.status = 409){
@@ -166,7 +162,7 @@ function loadUndoDialog(id){
 						$.post("transaction/" + transid + ".html",{'valid': $(this).prop("checked")})
 						.complete(function(){
 							console.log("reload");
-							set_gui_user(id);		
+							set_gui_user_by_id(id);		
 							reloadLI(transid, id);
 						}).error(function(jqxhr){
 							if(jqxhr.status = 409){
@@ -255,7 +251,7 @@ function loadBuyLineDialog(){
 													    'amount' : $("#numLines").slider('value')
 													})
 					.complete(function(){
-						set_gui_user(get_selected_user_id());
+						set_gui_user_by_id(get_selected_user_id());
 						unloadBuyLineDialog();
 					});
 				},*/
@@ -265,7 +261,7 @@ function loadBuyLineDialog(){
 													     'amount': $("#numLines").slider('value') 
 													 })
 					.complete(function(){
-						set_gui_user(get_selected_user_id());
+						set_gui_user_by_id(get_selected_user_id());
 						unloadBuyLineDialog();
 					});
 				},
@@ -309,3 +305,5 @@ function unloadNoCreditDialog(){
 
 function loadTransactionManagerDialog(){
 }
+
+

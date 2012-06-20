@@ -17,7 +17,7 @@ function button_click(productID){
 			loadNoCreditDialog();
 		})
 		.complete(function(){
-			set_gui_user(get_selected_user_id());
+			set_gui_user_by_id(get_selected_user_id());
 		});
 	}
 }

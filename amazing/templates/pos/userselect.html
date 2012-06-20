@@ -4,8 +4,10 @@
 
 
 <!-- Blueprint -->
+
 <link rel='stylesheet' href='{{STATIC_URL}}blueprint/screen.css' type='text/css' media='screen, projection'>
 <link rel='stylesheet' href='{{STATIC_URL}}blueprint/print.css' type='text/css' media='print'>
+
 <!--[if lt IE 8]>
 <link rel='stylesheet' href='{{STATIC_URL}}ie.css' type='text/css' media='screen, projection'>
 <![endif]-->
@@ -25,6 +27,9 @@
 <script type='text/javascript' src='{{STATIC_URL}}core/init.js'></script>
 <script type='text/javascript' src='{{STATIC_URL}}core/reset.js'></script>
 <script type='text/javascript' src='{{STATIC_URL}}core/values.js'></script>
+
+<!-- crypto -->
+<script type='text/javascript' src='{{STATIC_URL}}crypto/sha1.js'></script>
 
 <!-- On-screen Keyboard -->
 <link href='{{STATIC_URL}}keyboard/keyboard.css' rel='stylesheet'>
@@ -58,50 +63,58 @@
 
 {%csrf_token%}
 
-<p id='titlebar' class='container'> A.M.A.Z.I.N.G.: Maar Anders. Zelfde Interface, Nieuwe Generator. </p>
+<div id='topbar'>
+	<p class='content'>A.M.A.Z.I.N.G. - Studievereniging Cover</p>
+</div>
 
+<div id='mainbar'>
+	<div class='content'>
 
-<div class='container contents'>
-
-	<div id='tabscontainer' class='span-12  '>
-
-	</div>
-
-	<div id='buttoncontainer' class='span-12 last'>
-
-		<p class='buttontext textbox span-2'> User: </p><p id='username' class='buttontext textbox span-10 last'></p>
-		<p class='buttontext textbox span-2'>Credit: </p><p id='credit' class='buttontext textbox span-10 last'></p>
-
-		<button id='buyline' class=' buttontextsmall span-3'>Lijntje kopen</button>
-		<button id='undo' class=' buttontextsmall span-3'>Ongedaan maken</button>
-		<button id='edituser' class=' buttontextsmall span-3'>Wijzig gebruiker</button>
-		<button id='add' class=' buttontextsmall span-3 last'>Nieuwe gebruiker</button>
-		
-		<hr />
-
-		<button id='CANDYBIG' class=' buttontext productbutton  span-6'> Groot Snoep <br /> (&le; 2 stuks) </button>
-		<button id='CANDYSMALL' class='buttontext productbutton span-6 last'> Klein Snoep <br /> (&gt; 2 stuks) </button>
-
-		<button id='BEER' class='buttontext productbutton span-4'> Bier </button>
-		<button id='CAN' class='buttontext productbutton span-4'> Blikje of <br />PET-flesje </button>
-		<button id='SOUP' class='buttontext productbutton span-4 last'> Soep </button>
-
-		<button id='BREAD' class='buttontext productbutton span-4'> Beleg </button>
-		<button id='SAUSAGE' class='buttontext productbutton span-4'> Rookworst </button>
-		<button id='BAPAO' class='buttontext productbutton span-4 last'> Bapao </button>
-
-		<div id='purchases' class='span-12'>
+		<div id='usertabs'>
 
 		</div>
 
+		<div id='userinfo'>
+			<div id='buttoncontainer' class='span-12 last'>
+				<p class='hidden' id='passcode'></p>
+				<p class='hidden' id='barcode'></p>
+				<p class='hidden' id='user_id'></p>
+				<p class='buttontext textbox span-2'>User: </p><p id='username' class='buttontext textbox span-10 last'></p>
+				<p class='buttontext textbox span-2'>Credit: </p><p id='credit' class='buttontext textbox span-10 last'></p>
+
+				<button id='buyline' class=' buttontextsmall span-3'>Lijntje kopen</button>
+				<button id='undo' class=' buttontextsmall span-3'>Ongedaan maken</button>
+				<button id='edituser' class=' buttontextsmall span-3'>Wijzig gebruiker</button>
+				<button id='add' class=' buttontextsmall span-3 last'>Nieuwe gebruiker</button>
+				
+				<hr />
+
+				<button id='CANDYBIG' class=' buttontext productbutton  span-6'> Groot Snoep <br /> (&le; 2 stuks) </button>
+				<button id='CANDYSMALL' class='buttontext productbutton span-6 last'> Klein Snoep <br /> (&gt; 2 stuks) </button>
+
+				<button id='BEER' class='buttontext productbutton span-4'> Bier </button>
+				<button id='CAN' class='buttontext productbutton span-4'> Blikje of <br />PET-flesje </button>
+				<button id='SOUP' class='buttontext productbutton span-4 last'> Soep </button>
+
+				<button id='BREAD' class='buttontext productbutton span-4'> Beleg </button>
+				<button id='SAUSAGE' class='buttontext productbutton span-4'> Rookworst </button>
+				<button id='BAPAO' class='buttontext productbutton span-4 last'> Bapao </button>
+
+			</div>
+			
+			<div id='purchases' class='span-12 last'>
+			</div>
+		</div>
 	</div>
 </div>
 
 
 
 
-<div class='menu'>
-	<a href='admin'>admin</a> <a href='etc'>etc</a>
+<div id='bottombar'>
+	<div class='content'>
+		<p>A.M.A.Z.I.N.G., by Dirk Zittersteyn. <a href='admin'>Go to admin screen</a></p>
+	</div>
 </div>
 </body>
 

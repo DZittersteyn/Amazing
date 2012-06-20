@@ -1,91 +1,128 @@
 function get_selected_user_id(){
-		return $('.ui-selected').attr("id").split('-')[1];
+	return $('#user_id').html();
 }
 
-function set_user_spec_buttons(enable){
-	if(enable){
-		$('#buyline').button('enable');
-		$('#undo').button('enable');
-		$('#edituser').button('enable');
-		$('#CANDYBIG').button('enable');
-		$('#CANDYSMALL').button('enable');
-		$('#BEER').button('enable');
-		$('#CAN').button('enable');
-		$('#SOUP').button('enable');
-		$('#BREAD').button('enable');
-		$('#SAUSAGE').button('enable'); 
-		$('#BAPAO').button('enable');
-
+function get_selecting_user_id(){
+	if($('.ui-selected').length){
+		return $('.ui-selected').attr("id").split('-')[1];
 	}else{
-		$('#buyline').button('disable');
-		$('#undo').button('disable');
-		$('#edituser').button('disable');
-		$('#CANDYBIG').button('disable');
-		$('#CANDYSMALL').button('disable');
-		$('#BEER').button('disable');
-		$('#CAN').button('disable');
-		$('#SOUP').button('disable');
-		$('#BREAD').button('disable');
-		$('#SAUSAGE').button('disable'); 
-		$('#BAPAO').button('disable');
-		
+		return -1;
 	}
 }
 
+function get_selected_user_pc(){
+	console.log($('#passcode').html());
+	return $('#passcode').html();
+}
+
+
+function set_user_spec_buttons(enable){
+	var enableString = 'disable';
+	if(enable){
+		enableString = 'enable'
+	}
+	$('#buyline').button(enableString);
+	$('#undo').button(enableString);
+	$('#edituser').button(enableString);
+	$('#CANDYBIG').button(enableString);
+	$('#CANDYSMALL').button(enableString);
+	$('#BEER').button(enableString);
+	$('#CAN').button(enableString);
+	$('#SOUP').button(enableString);
+	$('#BREAD').button(enableString);
+	$('#SAUSAGE').button(enableString); 
+	$('#BAPAO').button(enableString);
+	
+}
+
 function clear_selected(){
+	$('#user_id').html("");
+	$('#passcode').html("");
 	$('#username').html("");
 	$('#credit').html("");
+	$('#passcode').html("");
+	$('#purchases').html("");;
 	set_user_spec_buttons(false);
-	$('.ui-selectee').removeClass('ui-selected');
+	$('.ui-selected').removeClass('ui-selected');
 	$('#purchases').html('');
 }
 
 function init_tabs(){
-	$("#usertabs").tabs().addClass('ui-tabs-vertical ui-helper-clearfix');
+	$("#usertabs").tabs({
+		ajaxOptions: {
+			success: function(data, textstatus, jqxhr){
+				var cp =  $("#usertabs").tabs('option','selected');
+				var up = Math.floor(($("#username").html().toLowerCase().charCodeAt(0)-'a'.charCodeAt(0))/2) +1;
+				console.log("cp: " + cp + " up: "+ up);
+				init_selectables();
+				if(cp != up){
+					clear_selected();
+				}else{
+					$('#user-' + get_selected_user_id()).addClass('ui-selected');
+				}
+			},
+		},
+		show: function(event, ui){
+			if(ui.index == 0){
+				$('#barcodeselect').focus();
+				clear_selected();
+			}
+				
+		}
+	})
+
+	$("#usertabs").addClass('ui-tabs-vertical ui-helper-clearfix');
 
 	$("#usertabs li.tab").removeClass('ui-corner-top').addClass('ui-corner-left');
+
+	init_barcode_submit();
 
 }
 
 function init_selectables(){
-	$( ".selectable" ).selectable();
+	$( ".selectable" ).selectable({
+		selected: function() {
+			set_gui_user_by_id(get_selecting_user_id());			
+		},
+		unselected: function(){
+			clear_selected();
+		},
+	});
 	$( ".selection" ).addClass('ui-corner-bottom');
 	$( ".selection" ).addClass('ui-corner-top');
 
-	$(".selectable").bind("selectableselected", function() {
-		set_gui_user(get_selected_user_id());			
-	});
-	
-	$('.selectable').bind('selectableunselected', function(){
-		clear_selected();
-	});
-
-	$("#usertabs").tabs().bind("tabsselect",function(){
-		clear_selected();
-	});
 }
 
-function set_gui_user(id, password){
-
+function set_gui_user_pc(passcode){
+	$('#passcode').html(CryptoJS.SHA1(passcode).toString());
 }
 
+function set_gui_user(user){
+	if(user){
+		$('#purchases').load("user/" + user.pk + "/purchases");
+		$('#username').html(user.fields.name);
+		$('#credit').html(user.fields.credit);
+		$('#user_id').html(user.pk);
+		$('#usertabs').tabs("select", (user.fields.name.toLowerCase().charCodeAt(0)-'a'.charCodeAt(0))/2 +1);
+		$('#user-'+user.pk).addClass('ui-selected');
+		set_user_spec_buttons(true);
+	}
+}
 
-function set_gui_user(id){
-	$.getJSON("user/" + id, function(user){
-		if(user[0].fields.passcode){
-			
-		}else{
+function set_gui_user_by_id(id, barcode){
+	passcode = get_selected_user_pc();
 
-			$('#username').html(user[0].fields.name);
-			$('#credit').html(user[0].fields.credit);
-			$('#usertabs').tabs("select", (user[0].fields.name.toLowerCase().charCodeAt(0)-'a'.charCodeAt(0))/2 +1);
-			$('#user-'+id).addClass('ui-selected');
-			set_user_spec_buttons(true);
-			$('#purchases').load("user/" + id + "/purchases");
+	$.getJSON("user/" + id, {'passcode': passcode, 'barcode':barcode}, function(user){
+		set_gui_user(user[0]);
+	})
+	.error(function(jqxhr){
+		if(jqxhr.status == 401){
+			$('#purchases').load("passcode.html",function(){
+				init_on_screen_keyboards();
+				$('#pin_input').focus();
+			});
 		}
-
 	});
-
 }
 
 function init_loading_dialog(){
@@ -159,6 +196,30 @@ function init_on_screen_keyboards(){
 			'shift': []
 		},
 	});
+
+	$(".osk_pin").keyboard({
+		layout: "custom",
+		openOn: "focus",
+		accepted: function(e, keyboard, el){
+			set_gui_user_pc(el.value);
+			//keyboard.destroy();
+			set_gui_user_by_id(get_selecting_user_id());
+		},
+		customLayout : {
+			'default': [
+				'{sp:2} 1 2 3 {bksp}',
+				      ' 4 5 6 ',
+				'{sp:2} 7 8 9 {accept}',
+				'  {sp:1} 0 {sp:1}',
+				
+			],
+			'shift': []
+		},
+	});
+
+
+
+
 }
 
 
@@ -200,7 +261,7 @@ function init_product_buttons(){
 }
 
 function init_userlist(){
-	$("#tabscontainer").load("userlist.html", function(){
+	$("#usertabs").load("userlist.html", function(){
 		init_selectables();
 		init_tabs(); 
 		
@@ -255,7 +316,21 @@ function init_csrf_token(){
 	});
 }
 
+function init_barcode_submit(){
+	$('#barcodeselect').keypress(function(e){
+		if(e.which == 13){
+			e.preventDefault();
+			var barcode = $('#barcodeselect').val();
+			$('#barcodeselect').val("");
+			$.getJSON('user/barcode', {'barcode': barcode}, function(user){
+				set_gui_user(user[0]);
+			});
+		}
+	});
+}
+
 function setup(){
+
 	init_loading_dialog();
 	init_product_buttons();
 	init_user_buttons();
