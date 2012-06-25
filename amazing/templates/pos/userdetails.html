@@ -1,10 +1,27 @@
 <table id='table_purchases'>
-{% for purchase in purchases %}
-<tr>
-	<td> {{purchase.date}}</td> 
-	<td> {{purchase.desc}}</td>
-	<td> {{purchase.valid|yesno:",undone,null"}}</td>
-
-</tr>
-{% endfor %}
+	{% for purchase in purchases %}
+	<tr class='test' id='exp_{{purchase.pk}}'>
+		<td class='expandable'>
+			<div>
+				<span class='purcdate'> {{purchase.date}} </span><span class='purcdesc'> {{purchase.desc}} </span><img class='purcstatus' id="status_{{purchase.pk}}" 
+					{%if purchase.valid != 1%}
+						src="{{STATIC_URL}}cross_t.png" title="Undone" 
+					{%elif purchase.admin != 0%}
+						src="{{STATIC_URL}}exclaim_t.png" title="By Admin"
+					{%elif purchase.activity.name != "Gewone Verkoop"%}
+						src="{{STATIC_URL}}info_t.png" title="At Activity" 
+					{%else%}
+						src="{{STATIC_URL}}check_t.png" title="Normal Sale"
+					{%endif%}
+				/>
+		
+			</div>
+			<div class='hidden'>
+				<span class='moreinfo'> Activity: </span><span>{{purchase.activity}} </span> <br />
+				<span class='moreinfo'> By: </span><span>{%if purchase.admin%}Admin{%else%}{{purchase.user.name}}{%endif%}</span><br \>
+				<span class='moreinfo'> Valid: </span><span>{{purchase.valid|yesno:"Yes,No"}}</span>
+			</div>
+		</td>
+	</tr>
+	{% endfor %}
 </table>

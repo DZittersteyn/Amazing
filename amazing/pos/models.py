@@ -63,12 +63,13 @@ class Activity(models.Model):
         if acts.exists():
             return acts[0]
         else:
-            std = Activity.objects.filter(name = 'gewone verkoop')
+            std = Activity.objects.filter(name = 'Gewone Verkoop')
             if std.exists():
                 return std[0]
             else:
-                Activity(name = 'gewone verkoop').save();
-                return Activity.objects.get(name = 'gewone verkoop')
+                Activity(name = 'Gewone Verkoop').save();
+                Activity.finish()
+                return Activity.objects.get(name = 'Gewone Verkoop')
     
     @staticmethod
     def finish():
@@ -79,6 +80,7 @@ class Activity(models.Model):
         
     
     name = models.CharField(max_length = 255)
+    responsible = models.CharField(max_length = 255)
     start = models.DateTimeField(auto_now_add = True)
     end = models.DateTimeField(null = True)
 
@@ -98,6 +100,7 @@ class Purchase(models.Model):
     price = models.IntegerField()
     date = models.DateTimeField(auto_now_add = True)
     valid = models.BooleanField(default=True)
+    admin = models.BooleanField(default=False)
 
 
 

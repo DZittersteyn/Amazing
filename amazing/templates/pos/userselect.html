@@ -1,3 +1,4 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml11/DTD/xhtml-strict.dtd">
 <html>
 <head>
 
@@ -55,6 +56,10 @@
 <!-- End jQuery -->
 
 <link rel='stylesheet' href='{{STATIC_URL}}pos.css' type='text/css' media='screen'>
+<link rel='stylesheet' href='{{STATIC_URL}}content.css' type='text/css' media='screen'>
+<link rel='stylesheet' href='{{STATIC_URL}}undodialog.css' type='text/css' media='screen'>
+<link rel='stylesheet' href='{{STATIC_URL}}userdialog.css' type='text/css' media='screen'>
+<link rel='stylesheet' href='{{STATIC_URL}}buylinedialog.css' type='text/css' media='screen'>
 
 
 </head>
@@ -64,7 +69,7 @@
 {%csrf_token%}
 
 <div id='topbar'>
-	<p class='content'>A.M.A.Z.I.N.G. - Studievereniging Cover</p>
+	<p class='content'>A.M.A.Z.I.N.G. - <span id='activity'>{{activity}}</span></p>
 </div>
 
 <div id='mainbar'>
@@ -75,30 +80,30 @@
 		</div>
 
 		<div id='userinfo'>
-			<div id='buttoncontainer' class='span-12 last'>
+			<div id='userbuttons' class='span-12 last'>
 				<p class='hidden' id='passcode'></p>
 				<p class='hidden' id='barcode'></p>
 				<p class='hidden' id='user_id'></p>
-				<p class='buttontext textbox span-2'>User: </p><p id='username' class='buttontext textbox span-10 last'></p>
-				<p class='buttontext textbox span-2'>Credit: </p><p id='credit' class='buttontext textbox span-10 last'></p>
+				<p class='normaltext span-2'>User: </p><p id='username' class='normaltext span-10 last'> </p>
+				<p class='normaltext span-2'>Credit: </p><p id='credit' class='normaltext span-10 last'> </p>
 
-				<button id='buyline' class=' buttontextsmall span-3'>Lijntje kopen</button>
-				<button id='undo' class=' buttontextsmall span-3'>Ongedaan maken</button>
-				<button id='edituser' class=' buttontextsmall span-3'>Wijzig gebruiker</button>
-				<button id='add' class=' buttontextsmall span-3 last'>Nieuwe gebruiker</button>
+				<button id='buyline' class='userbutton span-3'>Lijntje kopen</button>
+				<button id='undo' class='userbutton span-3'>Ongedaan maken</button>
+				<button id='edituser' class='userbutton span-3'>Wijzig gebruiker</button>
+				<button id='add' class='userbutton span-3 last'>Nieuwe gebruiker</button>
 				
 				<hr />
 
-				<button id='CANDYBIG' class=' buttontext productbutton  span-6'> Groot Snoep <br /> (&le; 2 stuks) </button>
-				<button id='CANDYSMALL' class='buttontext productbutton span-6 last'> Klein Snoep <br /> (&gt; 2 stuks) </button>
+				<button id='CANDYBIG' class='productbutton span-6'> Groot Snoep <br /> (&le; 2 stuks) </button>
+				<button id='CANDYSMALL' class='productbutton span-6 last'> Klein Snoep <br /> (&gt; 2 stuks) </button>
 
-				<button id='BEER' class='buttontext productbutton span-4'> Bier </button>
-				<button id='CAN' class='buttontext productbutton span-4'> Blikje of <br />PET-flesje </button>
-				<button id='SOUP' class='buttontext productbutton span-4 last'> Soep </button>
+				<button id='BEER' class='productbutton span-4'> Bier </button>
+				<button id='CAN' class='productbutton span-4'> Blikje of <br />PET-flesje </button>
+				<button id='SOUP' class='productbutton span-4 last'> Soep </button>
 
-				<button id='BREAD' class='buttontext productbutton span-4'> Beleg </button>
-				<button id='SAUSAGE' class='buttontext productbutton span-4'> Rookworst </button>
-				<button id='BAPAO' class='buttontext productbutton span-4 last'> Bapao </button>
+				<button id='BREAD' class='productbutton span-4'>Broodje met <br /> Beleg</button>
+				<button id='SAUSAGE' class='productbutton span-4'>Broodje met <br /> Rookworst</button>
+				<button id='BAPAO' class='productbutton span-4 last'>Broodje<br />Bapao</button>
 
 			</div>
 			
@@ -107,9 +112,6 @@
 		</div>
 	</div>
 </div>
-
-
-
 
 <div id='bottombar'>
 	<div class='content'>

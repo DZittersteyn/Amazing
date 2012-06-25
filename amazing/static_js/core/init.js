@@ -97,9 +97,17 @@ function set_gui_user_pc(passcode){
 	$('#passcode').html(CryptoJS.SHA1(passcode).toString());
 }
 
+function init_expandables(){
+	$('.expandable').click(function(){
+		$($(this).find('div')[1]).toggle(400,'swing');
+	});
+}
+
 function set_gui_user(user){
 	if(user){
-		$('#purchases').load("user/" + user.pk + "/purchases");
+		$('#purchases').load("user/" + user.pk + "/purchases", function(){
+			init_expandables();
+		});
 		$('#username').html(user.fields.name);
 		$('#credit').html(user.fields.credit);
 		$('#user_id').html(user.pk);

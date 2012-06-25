@@ -71,7 +71,7 @@ MIDDLEWARE_CLASSES = (
 'django.middleware.common.CommonMiddleware',
 'django.contrib.sessions.middleware.SessionMiddleware',
 'django.middleware.csrf.CsrfViewMiddleware',
-#'django.contrib.auth.middleware.AuthenticationMiddleware',
+'django.contrib.auth.middleware.AuthenticationMiddleware',
 'django.contrib.messages.middleware.MessageMiddleware',
 )
 TEMPLATE_CONTEXT_PROCESSORS = (
@@ -79,7 +79,7 @@ TEMPLATE_CONTEXT_PROCESSORS = (
     'django.core.context_processors.i18n',
     'django.core.context_processors.media',
     'django.core.context_processors.static',
-#    'django.contrib.auth.context_processors.auth',
+    'django.contrib.auth.context_processors.auth',
     'django.contrib.messages.context_processors.messages',
 )
 ROOT_URLCONF = 'amazing.urls'
@@ -91,6 +91,7 @@ TEMPLATE_DIRS = (
 
 )
 
+LOGIN_URL = 'login.html'
 
 STATIC_ROOT = "/home/dirk/Amazing/amazing/static/"
 
@@ -106,7 +107,7 @@ STATICFILES_DIRS = (
 INSTALLED_APPS = (
 'pos',
 'django.contrib.staticfiles',
-#'django.contrib.auth',
+'django.contrib.auth',
 'django.contrib.contenttypes',
 'django.contrib.sessions',
 'django.contrib.sites',

@@ -1,13 +1,13 @@
 	<ul>
-		<li class="tab"><a id="hometab" href="#usertabs-0"><img src="{{STATIC_URL}}home.png" /></a></li>
+		<li class="tab"><a id="hometab" href="#usertabs-0"><img src="{{STATIC_URL}}home.png" alt="{{STATIC_URL}}"/></a></li>
 		{% for filter in filters %}
 		<li class="tab"><a href="filtereduserlist-{{filter}}.html">{{filter}}</a></li>
 		{% endfor %}
 	</ul>
 
 	<div id="usertabs-0">
-		<!--<p >Welkom bij A.M.A.Z.I.N.G., Het web-based kruissysteem van Cover!</p>
+		<p >Welkom bij A.M.A.Z.I.N.G., Het web-based kruissysteem van Cover!</p>
 		<p >Als je je coverpas aan je account hebt gekoppeld kun je met de barcodescanner inloggen, selecteer anders je naam via de tabbladen.</p>
 		<input id="barcodeselect" type="text" name="barcode"/>	
-		-->
+		
 	</div>
