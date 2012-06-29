@@ -31,7 +31,7 @@ def login(request):
 			auth.login(request, user)
 			return HttpResponseRedirect(request.POST.get('next', default="."))
 		else:
-			return render_to_response("login.html",{'retry': True},request.GET.get('next'),context_instance=RequestContext(request))
+			return render_to_response("login.html",{'retry': True, 'next': request.GET.get('next')},context_instance=RequestContext(request))
 	else:
 		return HttpResponse(status=400, content='Unknown method')
 
@@ -110,12 +110,11 @@ def purchaselist(request, user_id):
 
 @ajax_required
 def undoDialog(request, user_id):
-	cutoff = datetime.datetime.now()
-	cutoff -= datetime.timedelta(hours=2)
-	print cutoff
+	cutoff = datetime.datetime.now() - datetime.timedelta(hours=2)
 	purchases = Purchase.objects.filter(user=user_id).order_by('-date').exclude(date__lte=cutoff)
+	purchases_old = Purchase.objects.filter(user=user_id).order_by('-date').exclude(date__gt=cutoff)
 	user_name = User.objects.get(pk=user_id).name;
-	return render_to_response("undodialog.html", {'user_name': user_name ,'user_id': user_id, 'purchases': purchases}, context_instance=RequestContext(request))
+	return render_to_response("undodialog.html", {'user_name': user_name ,'user_id': user_id, 'purchases': purchases, 'purchases_old': purchases_old}, context_instance=RequestContext(request))
 
 
 @ajax_required
@@ -183,7 +182,13 @@ def user_edit(request):
 @ajax_required
 def get_user_by_barcode(request):
 	if 'barcode' in request.GET:
-		u = User.objects.get(barcode=request.GET['barcode'])
+		try:
+			u = User.objects.get(barcode=request.GET['barcode'])
+		except User.DoesNotExist:
+			return HttpResponse(status=404, content="user does not exist")
+		except User.MultipleObjectsReturned:
+			users = User.objects.filter(barcode=request.GET['barcode'])
+			return HttpResponse(status=409, content="Multiple users have the same barcode! Offending users: " + ', '.join([us.name for us in users]))
 		return user(request, u.pk)
 	else:
 		return HttpResponse(status=400, content="no barcode submitted")

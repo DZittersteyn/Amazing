@@ -2,6 +2,6 @@
 
 <label for="purchase-{{purchase.pk}}">
 	<p>
-		<span class="undopurcdesc">{{purchase.desc}} &aacute; {{purchase.price}} credit{%if purchase.price != 1 %}s{%endif%}</span><span class="undoundone">{%if purchase.valid != 1%}<img src="{{STATIC_URL}}cross.png" alt="{{STATIC_URL}}"/>{%elif purchase.admin != 0%}<img src="{{STATIC_URL}}exclaim.png" alt="purchase done by admin"/>{%elif purchase.activity.name != "Gewone Verkoop"%}<img src="{{STATIC_URL}}info.png" alt="purchace at {{purchase.activity}}"/>{%else%}<img src="{{STATIC_URL}}check.png" alt=""/>{%endif%}</span><span class="undopurcdate"> {{purchase.date}}</span> 
+		<span class="undopurcdesc">{{purchase.desc}} &aacute; {{purchase.price}} credit{%if purchase.price != 1 %}s{%endif%}</span>{%if purchase.valid != 1%}<img src="{{STATIC_URL}}cross.png" alt="{{STATIC_URL}}"/>{%elif purchase.admin != 0%}<img src="{{STATIC_URL}}exclaim.png" alt="purchase done by admin"/>{%elif purchase.activity.name != "Gewone Verkoop"%}<img src="{{STATIC_URL}}info.png" alt="purchace at {{purchase.activity}}"/>{%else%}<img src="{{STATIC_URL}}check.png" alt=""/>{%endif%}<span class="undopurcdate"> {{purchase.date}}</span> 
 	</p>
 </label>

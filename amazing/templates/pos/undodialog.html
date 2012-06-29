@@ -1,6 +1,8 @@
 <div id='undoDialog'>
 	<span id='undo_userid' class='hidden'>{{user_id}}</span>
 	<span id='undo_user' class='hidden'>{{user_name}}</span>
+
+
 	<ul id='undoDialogPurchaseList'>
 		{% for purchase in purchases %}
 
@@ -12,4 +14,25 @@
 
 		{% endfor %}
 	</ul>
+	
+	<div id="expandOld" style="display: inline-block; text-align:center; padding-top:10px; padding-bottom:10px; width:510px">
+	<hr /> 
+	Transacties van meer dan 2 uur geleden <div class='plus' id="plusminus" style="background: url({{STATIC_URL}}plusminus.png)"></div>
+	<hr />
+	</div>
+<!--
+	<p class='textcenter emph'>Eerder</p>
+-->
+	<ul id='undoDialogOldPurchaseList' class='hidden'>
+		{% for purchase in purchases_old %}
+
+			
+			<li id="purchaseli-{{purchase.pk}}"> 
+				{% include "transactionli.html" %}
+			</li>
+
+
+		{% endfor %}
+	</ul>
+
 </div>	

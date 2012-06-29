@@ -11,7 +11,6 @@ function get_selecting_user_id(){
 }
 
 function get_selected_user_pc(){
-	console.log($('#passcode').html());
 	return $('#passcode').html();
 }
 
@@ -53,7 +52,6 @@ function init_tabs(){
 			success: function(data, textstatus, jqxhr){
 				var cp =  $("#usertabs").tabs('option','selected');
 				var up = Math.floor(($("#username").html().toLowerCase().charCodeAt(0)-'a'.charCodeAt(0))/2) +1;
-				console.log("cp: " + cp + " up: "+ up);
 				init_selectables();
 				if(cp != up){
 					clear_selected();
@@ -104,6 +102,7 @@ function init_expandables(){
 }
 
 function set_gui_user(user){
+
 	if(user){
 		$('#purchases').load("user/" + user.pk + "/purchases", function(){
 			init_expandables();
@@ -327,11 +326,19 @@ function init_csrf_token(){
 function init_barcode_submit(){
 	$('#barcodeselect').keypress(function(e){
 		if(e.which == 13){
+			$('#barcodeselect').removeClass('error');
 			e.preventDefault();
 			var barcode = $('#barcodeselect').val();
 			$('#barcodeselect').val("");
 			$.getJSON('user/barcode', {'barcode': barcode}, function(user){
 				set_gui_user(user[0]);
+			})
+			.error(function(jqxhr,txtstatus, error){
+				if(jqxhr.status == 404){ //no such user
+					$('#barcodeselect').addClass('ui-state-error');
+				}else if(jqxhr.status == 409){ //multiple users
+					alert(jqxhr.responseText);
+				}
 			});
 		}
 	});

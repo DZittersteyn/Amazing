@@ -3,52 +3,66 @@ function loadNewUserDialog(){
 		$('body').append(data);
 	})
 	.success(function(){
+		$('#edit_pk').val("");
 		$('#edit_name').val("");
 		$('#edit_address').val("");
 		$('#edit_city').val("");
 		$('#edit_bank_account').val("");
 		$('#edit_email').val("");
 		$('#edit_barcode').val("");
-		$('#newUser').dialog({
+		$('#edit_pin').val("");
+		$('#edit_pin').attr("hidden",true);
+		//$('#has_pin').attr("checked", false);
+		$('#has_pin').button().click(function(){
+			if($('#has_pin').attr("checked") == "checked"){
+				$('#edit_pin').attr("hidden",false);
+			}else{
+				$('#edit_pin').attr("hidden",true);
+			}
+		});
+
+		$('#newUser').dialog({			
 			close: function(){
-				unloadNewUserDialog();
+				unloadEditUserDialog();
 			},
 			modal:true,
 			autoOpen: false,
-			minWidth: 740,
-			title: 'Nieuwe gebruiker',
-			buttons:  [{
-						text: "Maak aan",
-						click: function(){
-							if(check_fields()){
-								$.post('user/', {
-									'mode': 'new',
-									'name': $('#edit_name').val(),
-									'address': $('#edit_address').val(),
-									'city': $('#edit_city').val(),
-									'bank_account': $('#edit_bank_account').val(),
-									'email': $('#edit_email').val(),
-									'barcode': $('#edit_barcode').val(),
-									'has_passcode': $('#has_pin').attr('checked')?true:false,
-									'passcode': $('#edit_pin').val(),																									
-								}).success(function(data){
-									//init_userlist();
-									unloadNewUserDialog();
-									set_gui_user_by_id(data);
-								});
-							}
-						},
-					},
-					{
-						text: "Annuleer",
-						click: function(){
-							unloadNewUserDialog();
-						},
-					}],
+		    minWidth: 740,
+		    title: 'Nieuwe gebruiker',
+		    buttons: [{
+				text: "Maak aan",
+				click: function(){
+					if(check_fields()){
+						$.post('user/', {
+							'mode': 'new',
+							'name': $('#edit_name').val(),
+							'address': $('#edit_address').val(),
+							'city': $('#edit_city').val(),
+							'bank_account': $('#edit_bank_account').val(),
+							'email': $('#edit_email').val(),
+							'barcode': $('#edit_barcode').val(),	
+							'has_passcode': $('#edit_pin').val() == "" ? "False" : "True",
+							'passcode': $('#has_pin').prop("checked")?CryptoJS.SHA1($('#edit_pin').val()).toString():get_selected_user_pc(),															
+						}).success(function(data){
+							//init_userlist();
+							unloadEditUserDialog();
+							set_gui_user_by_id(data);
+						});
+					}
+				},
+			},
+			{
+				text: "Annuleer",
+				click: function(){
+					unloadEditUserDialog();
+				},
+			}]
 		});
+
 		init_on_screen_keyboards();
-		$('#newUser').dialog('open').removeClass('hidden');	
+		$('#newUser').dialog('open').removeClass('hidden');
 	});
+	
 }
 
 function unloadNewUserDialog(){
@@ -106,7 +120,7 @@ function loadEditUserDialog(id){
 								}).success(function(data){
 									//init_userlist();
 									unloadEditUserDialog();
-									set_gui_user(data);
+									set_gui_user_by_id(data);
 								});
 							}
 						},
@@ -135,7 +149,6 @@ function reloadLI(transid,id){
 		$(this).find('.checkboxwlabel').button().click(function(){
 			$.post("transaction/" + transid + ".html",{'valid': $(this).prop("checked")})
 			.complete(function(){
-				console.log("reload");
 				set_gui_user_by_id(id);		
 				reloadLI(transid, id);
 			}).error(function(jqxhr){
@@ -153,23 +166,32 @@ function loadUndoDialog(id){
 			$('body').append(data);
 		})
 		.success(function(){
-			$("li").each(function(){
+			$('#expandOld').click(function(){
+				$(this).next().slideToggle(400,'swing');
+				$('#plusminus').toggleClass('plus');
+			});
+
+
+			$("#undoDialog li").each(function(){
 				pattern = /purchaseli-(\d+)/;
 				match = pattern.exec($(this).attr('id'));
 				if(match){
 					var transid = match[1];
-					$(this).find('.checkboxwlabel').button().click(function(){
-						$.post("transaction/" + transid + ".html",{'valid': $(this).prop("checked")})
-						.complete(function(){
-							console.log("reload");
-							set_gui_user_by_id(id);		
-							reloadLI(transid, id);
-						}).error(function(jqxhr){
-							if(jqxhr.status = 409){
-								alert("Onvoldoende Credits!")
-							}
+					if($(this).parent('#undoDialogPurchaseList').length){
+						$(this).find('.checkboxwlabel').button().click(function(){
+							$.post("transaction/" + transid + ".html",{'valid': $(this).prop("checked")})
+							.complete(function(){
+								set_gui_user_by_id(id);		
+								reloadLI(transid, id);
+							}).error(function(jqxhr){
+								if(jqxhr.status = 409){
+									alert("Onvoldoende Credits!")
+								}
+							});
 						});
-					});
+					} else {
+						$(this).find('.checkboxwlabel').button({disabled: true});;
+					}
 				}
 			});
 
@@ -183,10 +205,11 @@ function loadUndoDialog(id){
 				close: function(){
 					unloadUndoDialog();
 				},
-				modal:true,
+				resizable: false,
+				modal: true,
 				autoOpen: false,
 			    width: 570,
-			    height:600,
+			    height: 600,
 			    title: 'Transactieoverzicht' + ' ' + $('#undo_user').html() ,
 			    buttons: [{
 					text: "Sluiten",
