@@ -1,0 +1,17 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml11/DTD/xhtml-strict.dtd">
+<html>
+	<head></head>
+	<body>
+		<p>{{retry|yesno:"lol,wut"}}</p>
+	  <form action='login.html' method='post'>
+	    <label for="username">User name:</label>
+	    <input type="text" name="username" value="" id="username">
+	    <label for="password">Password:</label>
+	    <input type="password" name="password" value="" id="password">
+
+	    <input type="submit" value="login" />
+	    <input type="hidden" name="next" value="{%firstof next '.'%}" />
+		{%csrf_token%}
+	</form>
+  </body>
+</html>

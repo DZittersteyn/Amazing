@@ -209,7 +209,7 @@ function loadUndoDialog(id){
 				modal: true,
 				autoOpen: false,
 			    width: 570,
-			    height: 600,
+			    height: 630,
 			    title: 'Transactieoverzicht' + ' ' + $('#undo_user').html() ,
 			    buttons: [{
 					text: "Sluiten",

@@ -1,6 +1,11 @@
 import datetime
+import urllib
+import urllib2
+import shutil
 
 from django.db import models
+
+EXCHANGE = -0.50 # Price of one credit
 
 PRODUCTS = {
             'CANDYBIG':   {'price': 1, 'desc': 'Groot Snoep'},
@@ -21,16 +26,47 @@ CREDITS = {
             'ADMIN': {'price': -10 , 'desc': 'Adminlijntje'},
 }
 
+
+
 class User(models.Model):
     def __unicode__(self):
-        return self.name
+        return self.name        
     def buy_credit(self, type, price, amount):
-        if(type in CREDITS):
-            self.credit -= CREDITS[type]['price'] * amount
-            self.save()
-            for i in range(amount):
-                Purchase(user = self, product = type, price = price, activity = Activity.get_active()).save()
-            return True
+        if type in CREDITS:
+            if type == 'DIGITAL':
+                filename = " ".join([self.name, datetime.datetime.now().strftime("%Y %m %d-%H %M %S")]).replace(" ", "_") + ".pdf"
+                url = "http://www.svcover.nl/incasso/api"
+                dataDict = {
+                            'app': 'awesome',
+                            'bedrag': price*amount*EXCHANGE,
+                            'omschrijving': str(amount) + " lijntjes kopen via amazing",
+                            'naam': self.name,
+                            'adres': self.address,
+                            'woonplaats': self.city,
+                            'rekeningnummer': self.bank_account,
+                            }
+                if self.email != "":
+                    dataDict['email'] = self.email
+                data = urllib.urlencode(dataDict)
+                outfile = open(filename, 'wb')
+                try:
+                    infile = urllib2.urlopen(url,data)
+                except URLError:
+                    print ("urlerror")
+                    return False
+                shutil.copyfileobj(infile.fp, outfile)
+                outfile.close()
+                infile.close()
+
+                # TODO: Print
+
+                self.credit -= CREDITS[type]['price'] * amount
+                self.save()
+                for i in range(amount):
+                    Purchase(user = self, product = type, price = price, activity = Activity.get_active(), assoc_file=filename).save()
+                return True
+            else:
+                return False
         else:
             return False
     def buy_item(self, item, price):
@@ -50,7 +86,6 @@ class User(models.Model):
     isAdmin = models.BooleanField()
     has_passcode = models.BooleanField(default = False)
     passcode = models.CharField(max_length = 255) # Logging in from the actual POS requires an optional passcode
-    password = models.CharField(max_length = 255) # Logging in from a remote location requires this password
     credit = models.IntegerField()
 
 
@@ -99,8 +134,9 @@ class Purchase(models.Model):
     product = models.CharField(max_length = 255)
     price = models.IntegerField()
     date = models.DateTimeField(auto_now_add = True)
-    valid = models.BooleanField(default=True)
-    admin = models.BooleanField(default=False)
+    valid = models.BooleanField(default = True)
+    admin = models.BooleanField(default = False)
+    assoc_file = models.CharField(max_length = 255)
 
 
 

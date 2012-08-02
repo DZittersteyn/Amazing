@@ -8,6 +8,7 @@ from django.core import serializers
 from django.core.context_processors import csrf
 from django.contrib import auth 
 from django.contrib.auth.decorators import login_required
+from django.contrib.auth.decorators import permission_required
 import datetime
 
 def ajax_required(f):
@@ -112,7 +113,7 @@ def purchaselist(request, user_id):
 def undoDialog(request, user_id):
 	cutoff = datetime.datetime.now() - datetime.timedelta(hours=2)
 	purchases = Purchase.objects.filter(user=user_id).order_by('-date').exclude(date__lte=cutoff)
-	purchases_old = Purchase.objects.filter(user=user_id).order_by('-date').exclude(date__gt=cutoff)
+	purchases_old = Purchase.objects.filter(user=user_id).order_by('-date').exclude(date__gt=cutoff)[0:15]
 	user_name = User.objects.get(pk=user_id).name;
 	return render_to_response("undodialog.html", {'user_name': user_name ,'user_id': user_id, 'purchases': purchases, 'purchases_old': purchases_old}, context_instance=RequestContext(request))
 
@@ -213,7 +214,7 @@ def user(request, user_id):
 			if user.buy_credit(request.POST['credittype'], CREDITS[request.POST['credittype']]['price'], int(request.POST['amount']) ):
 				return HttpResponse(status=200)
 			else:
-				return HttpResponse(status=409, content='Incorrect credit type')
+				return HttpResponse(status=500, content='Incassomatic returned an error')
 		elif request.POST['type'] == 'product':
 			if user.buy_item(request.POST['productID'], PRODUCTS[request.POST['productID']]['price']):
 				return HttpResponse(status=200)
@@ -221,3 +222,6 @@ def user(request, user_id):
 				return HttpResponse(status=409, content='Insufficient credit')
 	
 
+@permission_required('pos.admin')
+def admin():
+	return render_to_response('admin.html', context_instance = RequestContext(request))
