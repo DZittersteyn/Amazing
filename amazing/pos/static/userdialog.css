@@ -1,0 +1,17 @@
+input.pininput {
+	width: 230px;
+} 
+
+.osk_norm, .osk_bank, .osk_mail, #edit_barcode{
+	width: 510px;	
+}
+
+#newUser > span{
+	margin-bottom: 0px;
+}
+
+#newuser > label{
+	margin-left: -1px;
+	margin-right: 9px;
+	margin-bottom: 5px;
+}
