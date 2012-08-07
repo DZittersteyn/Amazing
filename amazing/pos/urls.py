@@ -19,4 +19,6 @@ urlpatterns = patterns('pos.views',
      url(r'^transaction/(?P<tr_id>\d+).html$','transaction'),     
      url(r'^transactionli-(?P<tr_id>\d+).html$','transaction'),   
      url(r'^passcode.html$','passcode'),
+     url(r'^admin.html$','admin'),
+     url(r'^adminoptions/(?P<user_id>\d+).html','admin_user_options')
 )

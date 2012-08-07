@@ -34,6 +34,11 @@ function is_valid_bank_account(bank_account){
 	return pattern.test(bank_account);	
 }
 
+function is_valid_name(name){
+	var pattern = new RegExp(/^.*[ ].*/i);
+	return pattern.test(name);
+}
+
 function set_field_valid(valid, field){
 	if(valid){
 		$(field).removeClass('ui-state-error');
@@ -65,7 +70,7 @@ function check_fields(){
 	valid = set_field_valid(is_valid_bank_account($('#edit_bank_account').val()), '#edit_bank_account') 
 				&& valid;
 
-	valid = set_field_valid($('#edit_name').val() != "", '#edit_name') 
+	valid = set_field_valid(is_valid_name($('#edit_name').val()), '#edit_name') 
 				&& valid;
 
 	valid = set_field_valid($('#edit_address').val() != "", '#edit_address') 

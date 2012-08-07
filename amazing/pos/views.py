@@ -45,21 +45,26 @@ def logout(request):
 def index(request):
 	c = RequestContext(request)
 	c.update(csrf(request))
-	return render_to_response("pos/userselect.html", {'activity': Activity.get_active()}, c)
+
+	return render_to_response("pos/userselect.html", {'activity': Activity.get_active(), 'mainuser': request.user.username}, c)
 
 
+@login_required
 @ajax_required
 def passcode(request):
 	return render_to_response("pos/passcode.html",context_instance=RequestContext(request))
 
+@login_required
 @ajax_required
 def noCredit(request):
 	return render_to_response("pos/noCredit.html", context_instance=RequestContext(request))
 
+@login_required
 @ajax_required
 def buyLine(request):
 	return render_to_response("pos/buyLine.html", context_instance=RequestContext(request))
 
+@login_required
 @ajax_required
 def transaction(request, tr_id):
 	if request.method == 'POST':
@@ -103,12 +108,14 @@ def transaction(request, tr_id):
 
 
 
+@login_required
 @ajax_required
 def purchaselist(request, user_id):
 	purchases = Purchase.objects.filter(user=user_id).order_by('-date')[:20]
 
 	return render_to_response("userdetails.html", {'purchases': purchases, 'map': PRODUCTS}, context_instance=RequestContext(request))
 
+@login_required
 @ajax_required
 def undoDialog(request, user_id):
 	cutoff = datetime.datetime.now() - datetime.timedelta(hours=2)
@@ -118,18 +125,21 @@ def undoDialog(request, user_id):
 	return render_to_response("undodialog.html", {'user_name': user_name ,'user_id': user_id, 'purchases': purchases, 'purchases_old': purchases_old}, context_instance=RequestContext(request))
 
 
+@login_required
 @ajax_required
 def newUser(request):
 	return render_to_response("pos/newUser.html", context_instance=RequestContext(request))
 
+@login_required
 @ajax_required
 def filtereduserlist(request, beginswith):
 	users = []
 	for char in beginswith:
 		users.extend(User.objects.filter(name__startswith=char).order_by('name'))
 
-	return render_to_response("pos/filtereduserlist.html", {'beginswith':beginswith, 'users': users})
+	return render_to_response("pos/filtereduserlist.html", {'filter':beginswith, 'users': users})
 
+@login_required
 @ajax_required
 def userlist(request):
 	filters = []
@@ -140,6 +150,7 @@ def userlist(request):
 
 	return render_to_response("pos/userlist.html", {'filters': filters}, context_instance=RequestContext(request))
 
+@login_required
 @ajax_required
 def user_edit(request):
 	if request.method == 'POST':
@@ -180,6 +191,8 @@ def user_edit(request):
 	else:
 		return HttpResponse(status=400, content='GET not supported, use user/id')
 
+
+@login_required
 @ajax_required
 def get_user_by_barcode(request):
 	if 'barcode' in request.GET:
@@ -194,6 +207,8 @@ def get_user_by_barcode(request):
 	else:
 		return HttpResponse(status=400, content="no barcode submitted")
 
+
+@login_required
 @ajax_required
 def user(request, user_id):
 	user = User.objects.get(pk=user_id)
@@ -223,5 +238,19 @@ def user(request, user_id):
 	
 
 @permission_required('pos.admin')
-def admin():
-	return render_to_response('admin.html', context_instance = RequestContext(request))
+def admin(request):
+	users = User.objects.all().order_by('name');
+	return render_to_response('admin.html', {'users': users}, context_instance = RequestContext(request))
+
+
+def admin_user_options(request, user_id):
+	user = User.objects.get(pk=user_id)
+	return render_to_response('admin_user_options.html', {'user': user}, context_instance = RequestContext(request))
+
+
+
+
+
+
+
+

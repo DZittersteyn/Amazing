@@ -130,6 +130,10 @@ body{
 	font-family: "Verdana";
 }
 
+a{
+	color: white;
+}
+
 .content{
 	background-color: rgba(255, 255, 255, 0.2);
 	
@@ -182,9 +186,14 @@ HR{
 
 
 /* Hacks to make the vertical tabs behave properly */
+
+li.tab.ui-tabs-selected{
+	background: #ddd;
+}
+
 ul.ui-tabs-nav{
 	width: 50px;
-
+	
 	position:absolute;
 	top: 0px;
 	bottom: 0px;

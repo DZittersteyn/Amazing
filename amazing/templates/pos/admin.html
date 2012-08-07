@@ -1,0 +1,83 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml11/DTD/xhtml-strict.dtd">
+<html>
+<head>
+
+<!-- Blueprint -->
+<link rel='stylesheet' href='{{STATIC_URL}}blueprint/screen.css' type='text/css' media='screen, projection'>
+<link rel='stylesheet' href='{{STATIC_URL}}blueprint/print.css' type='text/css' media='print'>
+
+<!-- jQuery -->
+<script type='text/javascript' src='{{STATIC_URL}}jquery/jquery-1.7.1.min.js'></script>
+<script type='text/javascript' src='{{STATIC_URL}}jquery/jquery-ui-1.8.17.custom.min.js'></script>
+<!-- jQuery Theme -->
+<link type='text/css' href='{{STATIC_URL}}jquery/blitzer/jquery-ui-1.8.17.custom.css' rel='stylesheet' />
+
+
+
+<link rel='stylesheet' href='{{STATIC_URL}}admin.css' type='text/css' media='screen'>
+<link rel='stylesheet' href='{{STATIC_URL}}content.css' type='text/css' media='screen'>
+
+
+<script type='text/javascript' src='{{STATIC_URL}}core/admin.js'></script>
+
+<link rel='stylesheet' href='{{STATIC_URL}}jquery/selectable.css' type='text/css' media='screen,print,projection'>
+
+
+</head>
+
+<body>
+
+	{%csrf_token%}
+	<script type='text/javascript'>
+		$(function() {
+			setup();
+		});
+	</script>
+
+
+	<div id="topbar">
+		<p class="content">Adminpanel A.M.A.Z.I.N.G </p>
+	</div>
+	<div id="mainbar">
+		<div class="content">
+			<div id="tabs">
+				<ul>
+					<li><a href="#tabs-1">User Options</a></li>
+					<li><a href="#tabs-2">Activities</a></li>
+					<li><a href="#tabs-3">Inventory</a></li>
+				</ul>
+				<div id="tabs-1">
+
+					<div id="users">
+					<div id="userselect">
+						{%for user in users%}		
+							<input type="radio" id="user-{{user.pk}}" name="userbutton" /><label class="userbutton" for="user-{{user.pk}}">{{user.name}}</label></br>
+						{%endfor%}
+					</div>
+					<div id="edituserbuttons">
+						<button class="test">+</button>
+						<button class="test">-</button>
+						<button class="test">e</button>
+					</div>
+				</div>
+					<div id="useroptions">
+
+					</div>
+
+
+
+				</div>
+				<div id="tabs-2">
+					<p>Activities</p>	
+				</div>
+				<div id="tabs-3">
+					<p>Inventory</p>
+				</div>
+			</div>
+		</div>
+
+	</div>
+
+</body>
+
+</html>

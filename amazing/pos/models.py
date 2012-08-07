@@ -77,6 +77,9 @@ class User(models.Model):
             return True
         else:
             return False
+    def get_latest_purchase_date(self):
+        return Purchase.objects.filter(user=self).order_by('-date')[:1]
+
     name = models.CharField(max_length = 255)
     address = models.CharField(max_length = 255)
     city = models.CharField(max_length = 255)
