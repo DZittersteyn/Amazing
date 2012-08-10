@@ -90,6 +90,7 @@ class User(models.Model):
     has_passcode = models.BooleanField(default = False)
     passcode = models.CharField(max_length = 255) # Logging in from the actual POS requires an optional passcode
     credit = models.IntegerField()
+    active = models.BooleanField(default = True);
 
 
 class Activity(models.Model): 

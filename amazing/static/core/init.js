@@ -9,9 +9,7 @@ function get_selecting_user_id(){
 		return -1;
 	}
 }
-
 function get_selected_user_pc(){
-	console.log($('#passcode').html());
 	return $('#passcode').html();
 }
 
@@ -40,11 +38,10 @@ function clear_selected(){
 	$('#passcode').html("");
 	$('#username').html("");
 	$('#credit').html("");
-	$('#passcode').html("");
+	$('#barcode').html("");
 	$('#purchases').html("");;
 	set_user_spec_buttons(false);
 	$('.ui-selected').removeClass('ui-selected');
-	$('#purchases').html('');
 }
 
 function init_tabs(){
@@ -53,7 +50,6 @@ function init_tabs(){
 			success: function(data, textstatus, jqxhr){
 				var cp =  $("#usertabs").tabs('option','selected');
 				var up = Math.floor(($("#username").html().toLowerCase().charCodeAt(0)-'a'.charCodeAt(0))/2) +1;
-				console.log("cp: " + cp + " up: "+ up);
 				init_selectables();
 				if(cp != up){
 					clear_selected();
@@ -104,12 +100,14 @@ function init_expandables(){
 }
 
 function set_gui_user(user){
+
 	if(user){
 		$('#purchases').load("user/" + user.pk + "/purchases", function(){
 			init_expandables();
 		});
 		$('#username').html(user.fields.name);
 		$('#credit').html(user.fields.credit);
+		$('#barcode').html(user.fields.barcode);
 		$('#user_id').html(user.pk);
 		$('#usertabs').tabs("select", (user.fields.name.toLowerCase().charCodeAt(0)-'a'.charCodeAt(0))/2 +1);
 		$('#user-'+user.pk).addClass('ui-selected');
@@ -254,7 +252,7 @@ function init_user_buttons(){
 			if(get_selected_user_id() != ""){
 				loadBuyLineDialog();
 			}
-		});
+		});	
 
 }
 
@@ -327,11 +325,22 @@ function init_csrf_token(){
 function init_barcode_submit(){
 	$('#barcodeselect').keypress(function(e){
 		if(e.which == 13){
+			$('#barcodeselect').removeClass('error');
 			e.preventDefault();
 			var barcode = $('#barcodeselect').val();
+			if(barcode == ""){
+				return;
+			}
 			$('#barcodeselect').val("");
 			$.getJSON('user/barcode', {'barcode': barcode}, function(user){
 				set_gui_user(user[0]);
+			})
+			.error(function(jqxhr,txtstatus, error){
+				if(jqxhr.status == 404){ //no such user
+					$('#barcodeselect').addClass('ui-state-error');
+				}else if(jqxhr.status == 409){ //multiple users
+					alert(jqxhr.responseText);
+				}
 			});
 		}
 	});

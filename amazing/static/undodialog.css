@@ -1,0 +1,75 @@
+/* undo dialog settings */
+
+#undoDialogPurchaseList, #undoDialogOldPurchaseList{
+	list-style:none;
+	margin:0;
+	padding:0;
+}
+
+#undoDialog{
+	overflow-y:scroll;
+}
+
+#undoDialog .ui-state-default{
+	background: none repeat scroll 0 0 #AAA;
+	color: #666;
+}
+
+#undoDialog .ui-state-active{
+	background: none repeat scroll 0 0 #EEE;
+	color: #000;
+}
+
+#undoDialog label p{
+	margin: 0;
+}
+#undoDialog label span.ui-button-text{
+	width:510px;
+	height: 18px;
+	text-align: left;
+
+}
+
+#undoDialog label span {
+	display:inline-block;
+}
+
+#undoDialog label {
+	margin-bottom: 1px;
+	display:inline-block;
+}
+
+#undoDialog label span{
+	height: 18px;
+	vertical-align:top;
+}
+
+#undoDialog label span.undopurcdate{
+	width: 200px;
+}
+
+#undoDialog label span.undopurcdesc{
+	width:240px;
+}
+
+#undoDialog label img{
+	width:18px;
+	padding: 0 26px;
+}
+#undoDialog #expandOld #plusminus{
+	display:inline-block;
+	width:13px;
+	height:13px;
+	margin-bottom: -2px;
+}
+#undoDialog #expandOld .plus{
+	background-position: 0 -13px !important;
+}
+
+#undoDialog #expandOld hr{
+	margin-bottom: 4px; 
+	display: inline-block; 
+	width: 100px
+}
+
+	

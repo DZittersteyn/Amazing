@@ -14,9 +14,6 @@ whitebg{
 	margin: auto;
 }
 
-#usertabs-0{
-	text-align:center;
-}
 
 #menu a{
 	color: #fff;
@@ -33,6 +30,7 @@ body{
 	border-radius: 5px 5px 5px 5px;
 	background-color: rgba(255, 255, 255, 0.2);
 }
+
 #maincontent{
 	height:20%;
 	overflow:hidden;
@@ -69,9 +67,6 @@ P{
 	margin-bottom:0;
 }
 
-.osk_bank, .osk_norm, .osk_mail, .input{
-	width: 500px;	
-}
 
 .pininput{
 	width: 100px !important;
@@ -118,25 +113,11 @@ P{
 .ui-icon-large { 
 	width: 30px; height: 30px; background-image: url(jquery/blitzer/images/ui-icons_004276_512x480.png); 
 }
+
 .ui-icon-plus-large { 
 	background-position: -34px -259px; 
 }
 
-#tabscontainer *{
-	text-align:center;
-}
-
-#tabscontainer * .ui-tabs-panel{
-	width: 83%;
-}
-
-#tabscontainer * .ui-tabs-nav{
-	width: 17%;
-}
-
-#tabscontainer * .selection{
-	text-align:left;
-}
 */
 
 /* HIER ONDER IS NIEUW! */
@@ -146,6 +127,11 @@ body{
 	background: url("http://www.svcover.nl/themes/default/images/swoosh.png") no-repeat scroll center top #3B3B3B;
 	color: white;
 	overflow-y:auto;
+	font-family: "Verdana";
+}
+
+a{
+	color: white;
 }
 
 .content{
@@ -163,169 +149,17 @@ body{
 	
 }
 
+.textcenter{
+	text-align:center;
+}
+
+.emph{
+	font-style: italic;
+}
 
 .selectable{
 	font-size: 1.1em;
 	width:100%;
-}
-
-/* top */
-#topbar{
-	width:100%;
-	height:18px;
-	position: absolute;
-	top:20px;
-}
-
-#topbar > .content{
-    
-	font-family:"Verdana";
-    font-weight: bold;
-	font-size: 25px;
-	text-align: center;
-    text-shadow: 1px 1px 0 #000000;
-	
-    box-shadow: 0 2px 7px #333333;
-    background-image: url("http://www.svcover.nl/themes/default/images/menubg.png");
-    background-repeat: repeat-x;
-    
-    padding-top:0;
-    padding-bottom:0;
-}
-
-/* main */
-#mainbar{
-	width:100%;
-	position:absolute;
-	
-	top:68px;
-	bottom:68px;
-}
-
-#mainbar > .content {
-	height:100%;
-}
-
- #usertabs{
-	width: 470px;
-	
-	position:absolute;
-	top:10px;
-	bottom:10px;
-	left:10px;
-}
-
-#userinfo{
-	width: 470px;
-
-	position:absolute;
-	top:10px;
-	bottom:10px;
-	right: 10px;
-
-	overflow-y:hidden;
-}
-
-#userinfo > #userbuttons{
-	height:350px;
-	
-	position:absolute;
-	top:0px;
-}
-
-#userinfo > #purchases{
-	position:absolute;
-	top:350px;
-	bottom:0px;
-
-	overflow-y:auto;
-}
-
-#userinfo span{
-	display:inline-block;
-}
-
-#userinfo span.purcdate{
-	width: 200px;
-}
-#userinfo span.purcdesc{
-	width: 210px;
-}
-#userinfo img.purcstatus{
-	margin-bottom: -5px;
-}
-
-#userinfo span.moreinfo{
-	width: 70px;
-	padding-left: 20px;
-}
-
-
-
-
-/* bottom */
-#bottombar{
-	width:100%;
-	height:18px;
-	
-	position:absolute;
-	bottom:20px;
-}
-
-#bottombar > .content > P{
-	margin-top:0;
-	margin-bottom:0;
-}
-
-
-
-
-
-
-/* undo dialog settings */
-
-#undoDialogPurchaseList{
-	list-style:none;
-	margin:0;
-	padding:0;
-}
-
-#undoDialog{
-	overflow-y:scroll;
-}
-
-#undoDialog .ui-state-default{
-	background: none repeat scroll 0 0 #AAA;
-	color: #666;
-}
-
-#undoDialog .ui-state-active{
-	background: none repeat scroll 0 0 #EEE;
-	color: #000;
-}
-
-#undoDialog label p{
-	margin: 0;
-}
-#undoDialog label span.ui-button-text{
-	width:510px;
-	text-align: left;
-}
-
-#undodialog label span{
-	display:inline-block;
-	overflow-x: hidden;
-}
-#undodialog label span.undoundone{
-	width: 70px;
-}
-
-#undodialog label span.undopurcdesc{
-	width:240px;
-}
-
-#undodialog label span.undopurcdate{
-	width:200px;
 }
 
 /* generic use */
@@ -350,31 +184,16 @@ HR{
 	margin: 10px 0px 10px 0px;
 }
 
-button.productbutton{
-	height: 60px;
-	margin-bottom: 10px;
-
-	font-family: "Verdana";
-	font-size:15px;
-}
-
-button.userbutton{
-	height: 50px;
-	margin-bottom: 10px;
-
-	font-family: "Verdana";
-	font-size:13px;
-}
-
-tbody tr:nth-child(2n) td {
-	background: none repeat scroll 0 0 rgba(255,255,255,0.1) !important;
-	color: #ffffff !important;
-}
 
 /* Hacks to make the vertical tabs behave properly */
+
+li.tab.ui-tabs-selected{
+	background: #ddd;
+}
+
 ul.ui-tabs-nav{
 	width: 50px;
-
+	
 	position:absolute;
 	top: 0px;
 	bottom: 0px;

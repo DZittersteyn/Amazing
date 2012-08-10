@@ -1,6 +1,6 @@
 function button_click(productID){
 	if (get_selected_user_id() != ""){
-		$.post('user/' + get_selected_user_id(), {'type':'product', 'productID': productID})
+		$.post('user/' + get_selected_user_id(), { 'type':'product', 'productID': productID})
 		.success(function(){
 			/* TODO: enable me :D
 			$.idleTimer(3 * 1000);
@@ -17,7 +17,14 @@ function button_click(productID){
 			loadNoCreditDialog();
 		})
 		.complete(function(){
-			set_gui_user_by_id(get_selected_user_id());
+			var barcode = $('#barcode').html();
+			if(barcode != ""){
+				$.getJSON('user/barcode', {'barcode': barcode}, function(user){
+					set_gui_user(user[0]);
+				});
+			}else{
+				set_gui_user_by_id(get_selected_user_id());
+			}
 		});
 	}
 }
@@ -32,6 +39,11 @@ function is_valid_bank_account(bank_account){
 	/*TODO: digit check. */
 	var pattern = new RegExp(/^[0-9]+$/i);
 	return pattern.test(bank_account);	
+}
+
+function is_valid_name(name){
+	var pattern = new RegExp(/^.*[ ].*/i);
+	return pattern.test(name);
 }
 
 function set_field_valid(valid, field){
@@ -65,13 +77,13 @@ function check_fields(){
 	valid = set_field_valid(is_valid_bank_account($('#edit_bank_account').val()), '#edit_bank_account') 
 				&& valid;
 
-	valid = set_field_valid($('#edit_name').val() != "", '#edit_name') 
+	valid = set_field_valid(is_valid_name($('#edit_name').val()), '#edit_name') 
 				&& valid;
 
 	valid = set_field_valid($('#edit_address').val() != "", '#edit_address') 
 				&& valid;
 
-	valid =set_field_valid($('#edit_barcode').val() != "", '#edit_barcode') 
+	valid = set_field_valid(true, '#edit_barcode') 
 				&& valid;
 
 	valid = set_field_valid($('#edit_city').val() != "", '#edit_city') 

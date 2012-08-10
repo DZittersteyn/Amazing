@@ -7,12 +7,11 @@ HR{
 	margin: 10px 0px 10px 0px;
 	width: 90%;
 }
-.hidden{
-	display:none;
-}
+
 label.userbutton{
 	text-align: left !important;
 }
+
 .content{
 	width: 90%;
 	margin: 10px auto 0;
@@ -47,16 +46,16 @@ label.userbutton{
 
 }
 
-#userselectcontainer{
+#userselect{
 	width: 100%;
 	height: 100%;
 	overflow-y:scroll;
 }
 #userselect > button{
-	
+	width: 30%;
 }
 
-#userselect > .userbutton{
+#userselect > label{
 	padding: 2px;
 	list-style: none;
 	width:90%;
@@ -67,11 +66,6 @@ label.userbutton{
 #userlist{
 	padding: 0;
 	margin: 0;
-}
-
-.label{
-	display: inline-block;
-	width: 150px;
 }
 
 #useroptions{

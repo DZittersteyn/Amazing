@@ -135,7 +135,7 @@ def newUser(request):
 def filtereduserlist(request, beginswith):
 	users = []
 	for char in beginswith:
-		users.extend(User.objects.filter(name__startswith=char).order_by('name'))
+		users.extend(User.objects.filter(name__startswith=char).order_by('name').filter(active=True))
 
 	return render_to_response("pos/filtereduserlist.html", {'filter':beginswith, 'users': users})
 
@@ -239,18 +239,39 @@ def user(request, user_id):
 
 @permission_required('pos.admin')
 def admin(request):
-	users = User.objects.all().order_by('name');
-	return render_to_response('admin.html', {'users': users}, context_instance = RequestContext(request))
+	return render_to_response('admin.html', context_instance = RequestContext(request))
+
+@permission_required('pos.admin')
+def user_admin(request, user_id):
+	user = User.objects.get(pk=user_id)
+	if user.has_passcode:
+		request.GET['passcode'] = user.passcode
+	return user(request, user_id)
 
 
+@permission_required('pos.admin')
 def admin_user_options(request, user_id):
 	user = User.objects.get(pk=user_id)
 	return render_to_response('admin_user_options.html', {'user': user}, context_instance = RequestContext(request))
 
 
+@permission_required('pos.admin')
+def admin_user_deactivate(request, user_id):
+	user = User.objects.get(pk=user_id)
+	user.active = False
+	user.save()
+	return HttpResponse(status=200, content="User deactivated")
 
+@permission_required('pos.admin')
+def admin_user_activate(request, user_id):
+	user = User.objects.get(pk=user_id)
+	user.active = True
+	user.save()
+	return HttpResponse(status=200, content="User deactivated")
 
-
-
+@permission_required('pos.admin')
+def admin_user_list(request):
+	users = User.objects.all().extra(select={'lower_name': 'lower(name)'}).order_by('lower_name')
+	return render_to_response('admin_user_list.html', {'users': users}, context_instance = RequestContext(request))
 
 

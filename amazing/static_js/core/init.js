@@ -9,9 +9,12 @@ function get_selecting_user_id(){
 		return -1;
 	}
 }
-
 function get_selected_user_pc(){
 	return $('#passcode').html();
+}
+
+function get_selected_user_bc(){
+	return $('#barcode').html();
 }
 
 
@@ -39,11 +42,10 @@ function clear_selected(){
 	$('#passcode').html("");
 	$('#username').html("");
 	$('#credit').html("");
-	$('#passcode').html("");
+	$('#barcode').html("");
 	$('#purchases').html("");;
 	set_user_spec_buttons(false);
 	$('.ui-selected').removeClass('ui-selected');
-	$('#purchases').html('');
 }
 
 function init_tabs(){
@@ -109,6 +111,7 @@ function set_gui_user(user){
 		});
 		$('#username').html(user.fields.name);
 		$('#credit').html(user.fields.credit);
+		$('#barcode').html(user.fields.barcode);
 		$('#user_id').html(user.pk);
 		$('#usertabs').tabs("select", (user.fields.name.toLowerCase().charCodeAt(0)-'a'.charCodeAt(0))/2 +1);
 		$('#user-'+user.pk).addClass('ui-selected');
@@ -237,7 +240,7 @@ function init_buyline_dialog(){
 function init_user_buttons(){
 	$("#edituser").button()
 		.button('disable')
-		.click(function(){edit_user(get_selected_user_id())})
+		.click(function(){edit_user(get_selected_user_id(),get_selected_user_pc(),get_selected_user_bc())})
 		.addClass('doubleheightbutton');
 	$('#add').button()
 		.click(function(){new_user()})
@@ -253,7 +256,7 @@ function init_user_buttons(){
 			if(get_selected_user_id() != ""){
 				loadBuyLineDialog();
 			}
-		});
+		});	
 
 }
 
@@ -329,6 +332,9 @@ function init_barcode_submit(){
 			$('#barcodeselect').removeClass('error');
 			e.preventDefault();
 			var barcode = $('#barcodeselect').val();
+			if(barcode == ""){
+				return;
+			}
 			$('#barcodeselect').val("");
 			$.getJSON('user/barcode', {'barcode': barcode}, function(user){
 				set_gui_user(user[0]);

@@ -1,1 +1,29 @@
-<p>User: {{user.name}}</p>
+<p><span class="label">ID:              </span> <span id="pk"       >{{user.pk}}</span></p>
+<p><span class="label">Naam:            </span> <span id="name"     >{{user.name}}</span></p>
+<p><span class="label">Adres:           </span> <span id=""         >{{user.     }}</span></p>
+<p><span class="label">Woonplaats:      </span> <span id=""         >{{user.     }}</span></p>
+<p><span class="label">Bankrekening:    </span> <span id=""         >{{user.     }}</span></p>
+<p><span class="label">E-mail:          </span> <span id=""         >{{user.     }}</span></p>
+<p><span class="label">                 </span> <span id=""         >{{user.     }}</span></p>
+<p><span class="label">                 </span> <span id=""         >{{user.     }}</span></p>
+<p><span class="label">                 </span> <span id=""         >{{user.     }}</span></p>
+<p><span class="label">                 </span> <span id=""         >{{user.     }}</span></p>
+<p><span class="label">Credit:          </span> <span id="credit"   >{{user.credit}}</span></p>
+<p><span class="label">Has Passcode:    </span> <span id=""         >{{user.     }}</span></p>
+<p><span class="label">Hashed passcode: </span> <span id="passcode" >{{user.passcode}}</span></p>
+<p><span class="label">Barcode:         </span> <span id="barcode"  >{{user.barcode}}</span></p>
+
+<div id="setactive">
+<input type="radio" id="activate" name="actbutton" {{user.active|yesno:'checked,'}} /><label for="activate">active</label></input>
+<input type="radio" id="deactivate" name="actbutton" {{user.active|yesno:',checked'}} /><label for="deactivate">inactive</label></input>
+</div>
+
+
+
+
+<script type='text/javascript'>
+	$(function() {
+		setup_admin_useroptions();
+	});
+	$("p button").button();
+</script>

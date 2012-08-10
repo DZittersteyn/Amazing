@@ -18,9 +18,31 @@
 <link rel='stylesheet' href='{{STATIC_URL}}content.css' type='text/css' media='screen'>
 
 
+<!-- Core functions -->
+<script type='text/javascript' src='{{STATIC_URL}}core/loadElement.js'></script>
+<script type='text/javascript' src='{{STATIC_URL}}core/interaction.js'></script>
+<script type='text/javascript' src='{{STATIC_URL}}core/init.js'></script>
+<script type='text/javascript' src='{{STATIC_URL}}core/reset.js'></script>
+<script type='text/javascript' src='{{STATIC_URL}}core/values.js'></script>
 <script type='text/javascript' src='{{STATIC_URL}}core/admin.js'></script>
 
+<!-- crypto -->
+<script type='text/javascript' src='{{STATIC_URL}}crypto/sha1.js'></script>
+
+<!-- On-screen Keyboard -->
+<link href='{{STATIC_URL}}keyboard/keyboard.css' rel='stylesheet'>
+<script src='{{STATIC_URL}}keyboard/jquery.keyboard.js'></script>
+<!-- End On-screen Keyboard -->
+
+<!-- Idle timer -->
+<script src='{{STATIC_URL}}idletimer/jquery.idle-timer.js'></script>
+<!-- End Idle timer -->
 <link rel='stylesheet' href='{{STATIC_URL}}jquery/selectable.css' type='text/css' media='screen,print,projection'>
+
+
+<link rel='stylesheet' href='{{STATIC_URL}}undodialog.css' type='text/css' media='screen'>
+<link rel='stylesheet' href='{{STATIC_URL}}userdialog.css' type='text/css' media='screen'>
+<link rel='stylesheet' href='{{STATIC_URL}}buylinedialog.css' type='text/css' media='screen'>
 
 
 </head>
@@ -28,15 +50,16 @@
 <body>
 
 	{%csrf_token%}
+
 	<script type='text/javascript'>
 		$(function() {
-			setup();
+			setup_admin();
 		});
 	</script>
 
 
 	<div id="topbar">
-		<p class="content">Adminpanel A.M.A.Z.I.N.G </p>
+		<p class="content">Adminpanel A.M.A.Z.I.N.G.</p>
 	</div>
 	<div id="mainbar">
 		<div class="content">
@@ -45,26 +68,26 @@
 					<li><a href="#tabs-1">User Options</a></li>
 					<li><a href="#tabs-2">Activities</a></li>
 					<li><a href="#tabs-3">Inventory</a></li>
+					<li><a href="#tabs-4">System Users</a></li>
 				</ul>
 				<div id="tabs-1">
 
 					<div id="users">
-					<div id="userselect">
-						{%for user in users%}		
-							<input type="radio" id="user-{{user.pk}}" name="userbutton" /><label class="userbutton" for="user-{{user.pk}}">{{user.name}}</label></br>
-						{%endfor%}
+						<div id="userselectcontainer">
+							<button id="adduser">+</button>
+							<input type="checkbox" id="filterinactive" checked="checked">
+								<label for="filterinactive">Filter inactive</label>
+							</input>
+							<hr />
+							<div id="userselect">
+
+							</div>
+
+						</div>
 					</div>
-					<div id="edituserbuttons">
-						<button class="test">+</button>
-						<button class="test">-</button>
-						<button class="test">e</button>
-					</div>
-				</div>
 					<div id="useroptions">
-
+						<p>test</p>
 					</div>
-
-
 
 				</div>
 				<div id="tabs-2">
@@ -72,6 +95,9 @@
 				</div>
 				<div id="tabs-3">
 					<p>Inventory</p>
+				</div>
+				<div id="tabs-4">
+					<p>System users</p>
 				</div>
 			</div>
 		</div>

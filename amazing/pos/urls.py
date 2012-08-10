@@ -15,10 +15,15 @@ urlpatterns = patterns('pos.views',
      url(r'^user/barcode$', 'get_user_by_barcode'),
      url(r'^user/(?P<user_id>\d+)$', 'user'),
      url(r'^user/(?P<user_id>\d+)/purchases$','purchaselist'),
+     url(r'^user/(?P<user_id>\d+)/activate$','admin_user_activate'),
+     url(r'^user/(?P<user_id>\d+)/deactivate$','admin_user_deactivate'),
      url(r'^purchase-(?P<tr_id>\d+).html$','transaction'),
      url(r'^transaction/(?P<tr_id>\d+).html$','transaction'),     
      url(r'^transactionli-(?P<tr_id>\d+).html$','transaction'),   
      url(r'^passcode.html$','passcode'),
+
+
      url(r'^admin.html$','admin'),
-     url(r'^adminoptions/(?P<user_id>\d+).html','admin_user_options')
+     url(r'^adminuserlist.html','admin_user_list'),
+     url(r'^adminoptions/(?P<user_id>\d+).html','admin_user_options'),
 )

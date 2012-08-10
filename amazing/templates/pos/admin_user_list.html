@@ -1,0 +1,4 @@
+
+{%for user in users%}		
+	<input class="userbutton-input" type="radio" id="user-{{user.pk}}" name="userbutton" /><label class="userbutton {{user.active|yesno:'active,nonactive'}}" for="user-{{user.pk}}">{{user.name}}</label></input>
+{%endfor%}

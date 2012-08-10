@@ -69,73 +69,85 @@ function unloadNewUserDialog(){
 	$('#newUser').remove();
 }
 
-function loadEditUserDialog(id){
+function setEditUserFields(user){
+	$('#edit_pk').val(user[0].pk);
+	$('#edit_name').val(user[0].fields.name);
+	$('#edit_address').val(user[0].fields.address);
+	$('#edit_city').val(user[0].fields.city);
+	$('#edit_bank_account').val(user[0].fields.bank_account);
+	$('#edit_email').val(user[0].fields.email);
+	$('#edit_barcode').val(user[0].fields.barcode);
+	$('#edit_pin').val("");
+	$('#edit_pin').attr("hidden",true);
+	//$('#has_pin').attr("checked", false);
+	$('#has_pin').button().click(function(){
+		if($('#has_pin').attr("checked") == "checked"){
+			$('#edit_pin').attr("hidden",false);
+		}else{
+			$('#edit_pin').attr("hidden",true);
+		}
+	});
+
+	$('#newUser').dialog({			
+		close: function(){
+			unloadEditUserDialog();
+		},
+		modal:true,
+		autoOpen: false,
+	    minWidth: 740,
+	    title: 'Wijzig gebruiker',
+	    buttons: [{
+			text: "Sla op",
+			click: function(){
+				if(check_fields()){
+					$.post('user/', {
+						'mode': 'edit',
+						'pk': $('#edit_pk').val(),
+						'name': $('#edit_name').val(),
+						'address': $('#edit_address').val(),
+						'city': $('#edit_city').val(),
+						'bank_account': $('#edit_bank_account').val(),
+						'email': $('#edit_email').val(),
+						'barcode': $('#edit_barcode').val(),	
+						'has_passcode': $('#edit_pin').val() == "" ?"False":"True",
+						'passcode': $('#has_pin').prop("checked")?CryptoJS.SHA1($('#edit_pin').val()).toString():get_selected_user_pc(),															
+					}).success(function(data){
+						//init_userlist();
+						unloadEditUserDialog();
+						set_gui_user_by_id(data);
+					});
+				}
+			},
+		},
+		{
+			text: "Annuleer",
+			click: function(){
+				unloadEditUserDialog();
+			},
+		}]
+	});
+
+	init_on_screen_keyboards();
+	$('#newUser').dialog('open').removeClass('hidden');
+}
+
+function loadEditUserDialog(id, passcode, barcode){
 	if(id){
 		$.get('newUser.html',function (data){
 			$('body').append(data);
 		})
 		.success(function(){
-			$.getJSON("user/" + id,{"passcode": get_selected_user_pc()}, function(user){
-				$('#edit_pk').val(user[0].pk);
-				$('#edit_name').val(user[0].fields.name);
-				$('#edit_address').val(user[0].fields.address);
-				$('#edit_city').val(user[0].fields.city);
-				$('#edit_bank_account').val(user[0].fields.bank_account);
-				$('#edit_email').val(user[0].fields.email);
-				$('#edit_barcode').val(user[0].fields.barcode);
-				$('#edit_pin').val("");
-				$('#edit_pin').attr("hidden",true);
-				//$('#has_pin').attr("checked", false);
-				$('#has_pin').button().click(function(){
-					if($('#has_pin').attr("checked") == "checked"){
-						$('#edit_pin').attr("hidden",false);
-					}else{
-						$('#edit_pin').attr("hidden",true);
-					}
+			if(barcode){
+				$.getJSON('user/barcode', {'barcode': barcode}, function(user){
+					setEditUserFields(user);
 				});
+			}else{
 
-				$('#newUser').dialog({			
-					close: function(){
-						unloadEditUserDialog();
-					},
-					modal:true,
-					autoOpen: false,
-				    minWidth: 740,
-				    title: 'Wijzig gebruiker',
-				    buttons: [{
-						text: "Sla op",
-						click: function(){
-							if(check_fields()){
-								$.post('user/', {
-									'mode': 'edit',
-									'pk': $('#edit_pk').val(),
-									'name': $('#edit_name').val(),
-									'address': $('#edit_address').val(),
-									'city': $('#edit_city').val(),
-									'bank_account': $('#edit_bank_account').val(),
-									'email': $('#edit_email').val(),
-									'barcode': $('#edit_barcode').val(),	
-									'has_passcode': $('#edit_pin').val() == "" ?"False":"True",
-									'passcode': $('#has_pin').prop("checked")?CryptoJS.SHA1($('#edit_pin').val()).toString():get_selected_user_pc(),															
-								}).success(function(data){
-									//init_userlist();
-									unloadEditUserDialog();
-									set_gui_user_by_id(data);
-								});
-							}
-						},
-					},
-					{
-						text: "Annuleer",
-						click: function(){
-							unloadEditUserDialog();
-						},
-					}]
+				$.getJSON("user/" + id,{"passcode": passcode}, function(user){
+					setEditUserFields(user);
 				});
+			}
 
-				init_on_screen_keyboards();
-				$('#newUser').dialog('open').removeClass('hidden');
-			});
 		});
 	}
 }
