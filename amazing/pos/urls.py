@@ -26,4 +26,7 @@ urlpatterns = patterns('pos.views',
      url(r'^admin.html$','admin'),
      url(r'^adminuserlist.html','admin_user_list'),
      url(r'^adminoptions/(?P<user_id>\d+).html','admin_user_options'),
+     url(r'^admin_edit_user','admin_edit_user'),
+
+
 )

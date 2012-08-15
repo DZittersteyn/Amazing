@@ -150,6 +150,24 @@ def userlist(request):
 
 	return render_to_response("pos/userlist.html", {'filters': filters}, context_instance=RequestContext(request))
 
+def user_auth_req(user, requestlib):
+	passcode = ""
+	if 'passcode' in requestlib:
+		passcode = requestlib['passcode']
+	barcode = ""
+	if 'barcode' in requestlib:
+		barcode = requestlib['barcode']
+	return user_auth(user,passcode,barcode)
+
+def user_auth(user, passcode, barcode):
+	if not user.has_passcode:
+		return True
+	if user.has_passcode and user.passcode == passcode:
+		return True
+	if user.barcode != "" and user.barcode == barcode:
+		return True
+	return False
+
 @login_required
 @ajax_required
 def user_edit(request):
@@ -170,18 +188,17 @@ def user_edit(request):
 			return HttpResponse(status=200, content=u.pk)
 		elif request.POST['mode'] == 'edit':
 			u = User.objects.get(pk=request.POST['pk'])
+			if not user_auth_req(u,request.POST):
+				return HttpResponse(status=401)
+
 			u.name=request.POST['name']
 			u.address=request.POST['address']
 			u.city=request.POST['city']
 			u.bank_account=request.POST['bank_account']
 			u.email=request.POST['email']
-			u.barcode=request.POST['barcode']
-			print('-----------------------------------')
-			print(request.POST['has_passcode'])
-			print('-----------------------------------')
-			u.has_passcode= True if request.POST['has_passcode'] == "True" else False
-			print(u.has_passcode)
-			u.passcode=request.POST['passcode']
+			if request.POST['changed_passcode'] == "True":
+				u.has_passcode = True if request.POST['has_passcode'] == "True" else False
+				u.passcode=request.POST['new_passcode']
 			u.save()
 			u = User.objects.get(pk=request.POST['pk'])
 			print(u.has_passcode)
@@ -215,9 +232,8 @@ def user(request, user_id):
 	if user == None:
 		return HttpResponse(status=404, content="user does not exist")
 	if request.method == 'GET':
-		if not (user.barcode != "" and 'barcode' in request.GET and user.barcode == request.GET['barcode']):
-			if user.has_passcode and 'passcode' in request.GET and (user.passcode != request.GET['passcode']):
-				return HttpResponse(status=401)
+		if not user_auth_req(user, request.GET):
+			return HttpResponse(status=401)
 		JSONSerializer = serializers.get_serializer("json")
 		json_serializer = JSONSerializer()
 		user.password = "blocked"
@@ -225,6 +241,8 @@ def user(request, user_id):
 		data = json_serializer.getvalue()
 		return HttpResponse(data, mimetype='application/json')
 	elif request.method == 'POST':
+		if not user_auth_req(user, request.POST):
+			return HttpResponse(status=401)
 		if request.POST['type'] == 'credit':
 			if user.buy_credit(request.POST['credittype'], CREDITS[request.POST['credittype']]['price'], int(request.POST['amount']) ):
 				return HttpResponse(status=200)

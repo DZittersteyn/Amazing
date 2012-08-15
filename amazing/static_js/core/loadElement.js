@@ -81,11 +81,9 @@ function setEditUserFields(user){
 	$('#edit_pin').attr("hidden",true);
 	//$('#has_pin').attr("checked", false);
 	$('#has_pin').button().click(function(){
-		if($('#has_pin').attr("checked") == "checked"){
-			$('#edit_pin').attr("hidden",false);
-		}else{
-			$('#edit_pin').attr("hidden",true);
-		}
+		$('#edit_pin').attr("hidden",false);
+		$('#has_pin').next().hide();
+		$('#has_pin').hide();
 	});
 
 	$('#newUser').dialog({			
@@ -110,7 +108,9 @@ function setEditUserFields(user){
 						'email': $('#edit_email').val(),
 						'barcode': $('#edit_barcode').val(),	
 						'has_passcode': $('#edit_pin').val() == "" ?"False":"True",
-						'passcode': $('#has_pin').prop("checked")?CryptoJS.SHA1($('#edit_pin').val()).toString():get_selected_user_pc(),															
+						'changed_passcode': $('#has_pin').prop("checked") ? "True":"False",
+						'passcode': get_selected_user_pc(),
+						'new_passcode': CryptoJS.SHA1($('#edit_pin').val()).toString(),															
 					}).success(function(data){
 						//init_userlist();
 						unloadEditUserDialog();
@@ -137,16 +137,9 @@ function loadEditUserDialog(id, passcode, barcode){
 			$('body').append(data);
 		})
 		.success(function(){
-			if(barcode){
-				$.getJSON('user/barcode', {'barcode': barcode}, function(user){
-					setEditUserFields(user);
-				});
-			}else{
-
-				$.getJSON("user/" + id,{"passcode": passcode}, function(user){
-					setEditUserFields(user);
-				});
-			}
+			$.getJSON("user/" + id,{"passcode": passcode, "barcode":barcode}, function(user){
+				setEditUserFields(user);
+			});
 
 		});
 	}

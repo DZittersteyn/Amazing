@@ -1,21 +1,24 @@
-<p><span class="label">ID:              </span> <span id="pk"       >{{user.pk}}</span></p>
-<p><span class="label">Naam:            </span> <span id="name"     >{{user.name}}</span></p>
-<p><span class="label">Adres:           </span> <span id=""         >{{user.     }}</span></p>
-<p><span class="label">Woonplaats:      </span> <span id=""         >{{user.     }}</span></p>
-<p><span class="label">Bankrekening:    </span> <span id=""         >{{user.     }}</span></p>
-<p><span class="label">E-mail:          </span> <span id=""         >{{user.     }}</span></p>
-<p><span class="label">                 </span> <span id=""         >{{user.     }}</span></p>
-<p><span class="label">                 </span> <span id=""         >{{user.     }}</span></p>
-<p><span class="label">                 </span> <span id=""         >{{user.     }}</span></p>
-<p><span class="label">                 </span> <span id=""         >{{user.     }}</span></p>
+<form name="admin_useredit" action="admin_edit_user" method="post">
+	<p><span class="label">ID:              </span> <span id="pk"       >{{user.pk}}</span></p>
+	<p><span class="label">Naam:            </span> <input type="text" name="name" id="name" value="{{user.name}}" />   </p>
+	<p><span class="label">Adres:           </span> <input type="text" name="address" id="address" value="{{user.address}}" /></p>
+	<p><span class="label">Woonplaats:      </span> <input type="text" name="city" id="city" value="{{user.city}}" /></p>
+	<p><span class="label">Bankrekening:    </span> <input type="text" name="bank_account" id="bank_account" value="{{user.bank_account}}" /></p>
+	<p><span class="label">E-mail:          </span> <input type="text" name="email" id="email" value="{{user.email}}" /></p>
+	<input type="submit" value="Sla op" /> 
+</form>
+
+
+
+
 <p><span class="label">Credit:          </span> <span id="credit"   >{{user.credit}}</span></p>
-<p><span class="label">Has Passcode:    </span> <span id=""         >{{user.     }}</span></p>
+<p><span class="label">Has Passcode:    </span> <span id=""         >{{user.has_passcode}}</span></p>
 <p><span class="label">Hashed passcode: </span> <span id="passcode" >{{user.passcode}}</span></p>
 <p><span class="label">Barcode:         </span> <span id="barcode"  >{{user.barcode}}</span></p>
 
 <div id="setactive">
-<input type="radio" id="activate" name="actbutton" {{user.active|yesno:'checked,'}} /><label for="activate">active</label></input>
-<input type="radio" id="deactivate" name="actbutton" {{user.active|yesno:',checked'}} /><label for="deactivate">inactive</label></input>
+	<input type="radio" id="activate" name="actbutton" {{user.active|yesno:'checked,'}} /><label for="activate">active</label></input>
+	<input type="radio" id="deactivate" name="actbutton" {{user.active|yesno:',checked'}} /><label for="deactivate">inactive</label></input>
 </div>
 
 

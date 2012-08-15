@@ -236,7 +236,7 @@ function init_buyline_dialog(){
 function init_user_buttons(){
 	$("#edituser").button()
 		.button('disable')
-		.click(function(){edit_user(get_selected_user_id())})
+		.click(function(){edit_user(get_selected_user_id(),get_selected_user_pc(), get_selected_user_bc());})
 		.addClass('doubleheightbutton');
 	$('#add').button()
 		.click(function(){new_user()})
