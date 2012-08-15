@@ -48,15 +48,18 @@ class User(models.Model):
                 if self.email != "":
                     dataDict['email'] = self.email
                 data = urllib.urlencode(dataDict)
-                outfile = open(filename, 'wb')
-                try:
-                    infile = urllib2.urlopen(url,data)
-                except URLError:
-                    print ("urlerror")
-                    return False
-                shutil.copyfileobj(infile.fp, outfile)
-                outfile.close()
-                infile.close()
+
+                print(data)
+
+                #outfile = open(filename, 'wb')
+                #try:
+                #    infile = urllib2.urlopen(url,data)
+                #except URLError:
+                #    print ("urlerror")
+                #    return False
+                #shutil.copyfileobj(infile.fp, outfile)
+                #outfile.close()
+                #infile.close()
 
                 # TODO: Print
 

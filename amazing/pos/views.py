@@ -3,6 +3,7 @@ from pos.models import *
 from django.template import RequestContext
 from django.db.models.query import ValuesListQuerySet
 from django.http import HttpResponse
+from django.http import HttpResponseBadRequest
 from django.http import HttpResponseRedirect
 from django.core import serializers
 from django.core.context_processors import csrf
@@ -167,7 +168,7 @@ def user_auth(user, passcode, barcode):
 	if user.barcode != "" and user.barcode == barcode:
 		return True
 	return False
-
+ 
 @login_required
 @ajax_required
 def user_edit(request):
@@ -271,6 +272,10 @@ def user_admin(request, user_id):
 def admin_user_options(request, user_id):
 	user = User.objects.get(pk=user_id)
 	return render_to_response('admin_user_options.html', {'user': user}, context_instance = RequestContext(request))
+
+@permission_required('pos.admin')
+def admin_edit_user(request, user_id):
+	user = User.objects.get(pk=user_id)
 
 
 @permission_required('pos.admin')
