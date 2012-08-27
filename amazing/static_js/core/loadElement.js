@@ -243,32 +243,24 @@ function loadBuyLineDialog(){
 		$('#numLines').slider({
 			range:"min",
 			min: 0,
-			value: 1,
-			max: 10,
+			value: 5,
+			step: 5,
+			max: 100,
 			slide: function(event, ui){
 				$("#txtNumLines").html(ui.value);
-				$("#price").html(ui.value * 5);
-				if(ui.value != 1){
-					$("#denom").html("s");
-				}else{
-					$("#denom").html("");
-				}
-				$("#baas").html("&nbsp;");
-			
-				if(ui.value == 10){
-					$("#baas").html("ALS EEN BAAS");
-				}
-				if(ui.value == 0){
-					$("#baas").html("Nope.");
-				}
+				$("#price").html((ui.value * $("#pieceprice").html()).toFixed(2));
 			},
 		});
+
+		$("#txtNumLines").html($('#numLines').slider('value'));
+		$("#price").html(($('#numLines').slider('value') * $("#pieceprice").html()).toFixed(2));
+		
 
 		$('#buyLine_dialog').dialog({
 			modal: true,
 			autoOpen: false,
 			minWidth: 400,
-			minHeight: 120,
+			minHeight: 200,
 			close: function(){
 				unloadBuyLineDialog();
 			},
@@ -284,9 +276,10 @@ function loadBuyLineDialog(){
 					});
 				},*/
 				Machtiging: function(){
+					// TODO: Auth the user!
 					$.post('user/' + get_selected_user_id(), {'type':'credit',
-													 'credittype':'DIGITAL', 
-													     'amount': $("#numLines").slider('value') 
+													 		  'credittype':'DIGITAL', 
+													     	  'amount': $("#numLines").slider('value') 
 													 })
 					.complete(function(){
 						set_gui_user_by_id(get_selected_user_id());

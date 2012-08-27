@@ -19,7 +19,8 @@
 			<div class='hidden'>
 				<span class='moreinfo'> Activity: </span><span>{{purchase.activity}} </span> <br />
 				<span class='moreinfo'> By: </span><span>{%if purchase.admin%}Admin{%else%}{{purchase.user.name}}{%endif%}</span><br \>
-				<span class='moreinfo'> Valid: </span><span>{{purchase.valid|yesno:"Yes,No"}}</span>
+				<span class='moreinfo'> Valid: </span><span>{{purchase.valid|yesno:"Yes,No"}}</span><br \>
+				<span class='moreinfo'> Cost: </span><span>{{purchase.price}}</span>
 			</div>
 		</td>
 	</tr>

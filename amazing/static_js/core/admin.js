@@ -16,7 +16,6 @@ function setup_admin(){
 
 	reload_admin_userlist();
 
-
 	init_csrf_token();
 }
 
@@ -45,24 +44,25 @@ function setup_admin_useroptions(){
 		$.post('user/' + admin_get_selected_user() + "/remove");
 	});
 
-	$('#edituser').button().click(function(){
-		console.log("lol");
-		edit_user(admin_get_selected_user(), admin_get_selected_pc(), admin_get_selected_bc());
-	});
-
 	$('#setactive').buttonset();
 	$('#activate').click(function(){
-		var selected = admin_get_selected_user()
+		var selected = admin_get_selected_user();
 		$.post('user/' + selected +'/activate');
 		reload_admin_userlist("#user-" + selected);
 	});
 	$('#deactivate').click(function(){
-		var selected = admin_get_selected_user()
+		var selected = admin_get_selected_user();
 		$.post('user/' + selected +'/deactivate');
 		reload_admin_userlist("#user-" + selected);
 
 
 	});
+
+
+	$('#submitchanges').button();
+	$('#resetpassword').button();
+
+
 
 }
 

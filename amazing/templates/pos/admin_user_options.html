@@ -4,23 +4,33 @@
 <p><span class="label">Woonplaats:      </span> <input type="text" name="city" id="city" value="{{user.city}}" /></p>
 <p><span class="label">Bankrekening:    </span> <input type="text" name="bank_account" id="bank_account" value="{{user.bank_account}}" /></p>
 <p><span class="label">E-mail:          </span> <input type="text" name="email" id="email" value="{{user.email}}" /></p>
-<button id="sumbitchanges">Save</button>
+<p><span class="label">Barcode:         </span> <input type="text" name="barcode" id="barcode" value="{{user.barcode}}" /></p>
 <p><span class="label">Credit:          </span> <span id="credit"   >{{user.credit}}</span></p>
-<p><span class="label">Barcode:         </span> <span id="barcode"  >{{user.barcode}}</span></p>
+
+<p><span class="label">&nbsp;           </span> <button id="submitchanges">Save</button></p>
+
+<hr />
+
 <p><span class="label">Has Passcode:    </span> <span id="has_passcode" >{{user.has_passcode}}</span></p>
-<p><span class="label">Hashed passcode: </span> <span id="hash_passcode">{{user.passcode}}    </span></p>
-<p><span class="label">Hashed passcode: </span> <span id="hash_passcode">{{user.passcode}}    </span></p>
-<p><span class="label">Hashed passcode: </span> <span id="hash_passcode">{{user.passcode}}    </span></p>
-
-
-
-<button id="resetpassword">Reset Passcode</button>
-
-<div id="setactive">
+<p><span class="label">Passcode:        </span> <button id="resetpassword">Reset Passcode</button></p>
+<p><span class="label">Active:          </span>
+<span id="setactive">
 	<input type="radio" id="activate" name="actbutton" {{user.active|yesno:'checked,'}} /><label for="activate">active</label></input>
 	<input type="radio" id="deactivate" name="actbutton" {{user.active|yesno:',checked'}} /><label for="deactivate">inactive</label></input>
-</div>
+</span></p>
 
+<hr />
+
+<p>Amounts: </p>
+
+<p><span class="label">CANDYBIG:   </span> <span id="candybigcount">  {{candybigcount}}      </span></p>
+<p><span class="label">CANDYSMALL: </span> <span id="candysmallcount">{{candysmallcount}}    </span></p>
+<p><span class="label">BEER:       </span> <span id="beercount">      {{beercount}}          </span></p>
+<p><span class="label">CAN:        </span> <span id="cancount">       {{cancount}}           </span></p>
+<p><span class="label">SOUP:       </span> <span id="soupcount">      {{soupcount}}          </span></p>
+<p><span class="label">BREAD:      </span> <span id="breadcount">     {{breadcount}}         </span></p>
+<p><span class="label">SAUSAGE:    </span> <span id="sausagecount">   {{sausagecount}}       </span></p>
+<p><span class="label">BAPAO:      </span> <span id="bapaocount">     {{bapaocount}}         </span></p>
 
 
 

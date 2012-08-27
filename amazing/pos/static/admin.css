@@ -3,19 +3,43 @@ body{
 	overflow-y: auto;
 	font-family: "Verdana";
 }
+
+p{
+	margin:0;
+}
+
+test{
+	margin:0
+}
+
+input[type=text]{
+	margin: 1px;
+	width: 200px;
+}
 HR{
-	margin: 10px 0px 10px 0px;
-	width: 90%;
+	width: 100%;
+
+	margin-top: 10px;
+	margin-bottom: 10px;
 }
 .hidden{
 	display:none;
 }
 label.userbutton{
+
 	text-align: left !important;
 }
 .content{
 	width: 90%;
 	margin: 10px auto 0;
+}
+label[for="activate"], label[for="deactivate"]{
+	width: 100px;
+}
+
+#submitchanges, #resetpassword{
+	width: 204px;
+	margin: 0;
 }
 
 #users{
@@ -28,6 +52,17 @@ label.userbutton{
 	width:100%;
 	height:35px;
 	text-align: center;
+}
+
+#useroptions{
+	padding-left: 10px;
+}
+
+#topbar{
+	min-width: 1000px;
+}
+#mainbar{
+	min-width: 1000px;
 }
 
 .ui-tabs-nav{

@@ -5,14 +5,14 @@ import shutil
 
 from django.db import models
 
-EXCHANGE = -0.50 # Price of one credit
+EXCHANGE = 0.25 # Price of one credit in Euros. Positive float.
 
-PRODUCTS = {
+PRODUCTS = { # price is in CREDITS! always a positive integer
             'CANDYBIG':   {'price': 1, 'desc': 'Groot Snoep'},
             'CANDYSMALL': {'price': 1, 'desc': 'Klein Snoep'},
             'SOUP':       {'price': 1, 'desc': 'Soep'},
             'CAN':        {'price': 1, 'desc': 'Blikje'},
-            'BEER':       {'price': 1, 'desc': 'Bier'},
+            'BEER':       {'price': 2, 'desc': 'Bier'},
             'SAUSAGE':    {'price': 1, 'desc': 'Broodje rookworst'},
             'BAPAO':      {'price': 1, 'desc': 'Bapao'},
             'BREAD':      {'price': 1, 'desc': 'Broodje beleg'},
@@ -20,10 +20,12 @@ PRODUCTS = {
             }
 
 
-CREDITS = {
-            'CASH': {'price': -10 , 'desc': 'Cash lijntje'},
-            'DIGITAL': {'price': -10 , 'desc': 'Gemachtigd lijntje'},
-            'ADMIN': {'price': -10 , 'desc': 'Adminlijntje'},
+CREDITS = { # price is in CREDITS! always a negative integer. 
+            # editor beware, -2 means a user gets 2 credits per EXCHANGE euro. 
+            # Don't know why you would want this, but it's in there anyways ;)
+            'CASH':    {'price': -1 , 'desc': 'Cash kruisje'},
+            'DIGITAL': {'price': -1 , 'desc': 'Gemachtigd kruisje'},
+            'ADMIN':   {'price': -1 , 'desc': 'Admin kruisje'},
 }
 
 
@@ -31,15 +33,15 @@ CREDITS = {
 class User(models.Model):
     def __unicode__(self):
         return self.name        
-    def buy_credit(self, type, price, amount):
+    def buy_credit(self, type, amount):
         if type in CREDITS:
             if type == 'DIGITAL':
                 filename = " ".join([self.name, datetime.datetime.now().strftime("%Y %m %d-%H %M %S")]).replace(" ", "_") + ".pdf"
                 url = "http://www.svcover.nl/incasso/api"
                 dataDict = {
                             'app': 'awesome',
-                            'bedrag': price*amount*EXCHANGE,
-                            'omschrijving': str(amount) + " lijntjes kopen via amazing",
+                            'bedrag': amount*EXCHANGE,
+                            'omschrijving': str(amount) + " kruisjes kopen via amazing",
                             'naam': self.name,
                             'adres': self.address,
                             'woonplaats': self.city,
@@ -65,21 +67,22 @@ class User(models.Model):
 
                 self.credit -= CREDITS[type]['price'] * amount
                 self.save()
-                for i in range(amount):
-                    Purchase(user = self, product = type, price = price, activity = Activity.get_active(), assoc_file=filename).save()
+                Purchase(user = self, product = type, price = CREDITS[type]['price'] * amount, activity = Activity.get_active(), assoc_file=filename).save()
                 return True
             else:
                 return False
         else:
             return False
-    def buy_item(self, item, price):
+    def buy_item(self, item):
         if item != None and self.credit >= PRODUCTS[item]['price']:
             self.credit -= PRODUCTS[item]['price']
             self.save()
-            Purchase(user = self, product = item, price = price, activity = Activity.get_active()).save()
+            Purchase(user = self, product = item, price = PRODUCTS[item]['price'], activity = Activity.get_active()).save()
             return True
         else:
             return False
+
+
     def get_latest_purchase_date(self):
         return Purchase.objects.filter(user=self).order_by('-date')[:1]
 
