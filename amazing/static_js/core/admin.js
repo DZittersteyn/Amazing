@@ -58,8 +58,10 @@ function setup_admin_useroptions(){
 
 	});
 
+  combo_setup();
+	$('#submitchanges').button().click(function(){
 
-	$('#submitchanges').button();
+	});
 	$('#resetpassword').button();
 
 

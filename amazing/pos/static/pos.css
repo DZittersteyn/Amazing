@@ -1,127 +1,3 @@
-
-/*
-whitebg{
-	background-color: rgb(255,255,255);
-}
-
-
-
-
-#menu{
-	margin-top: 10px;
-	position:absolute;
-	bottom:5px;
-	margin: auto;
-}
-
-
-#menu a{
-	color: #fff;
-}
-
-body{
-	text-align:center;
-}
-.container{
-	position:relative;
-	margin:0 auto;
-	text-align:left;
-	padding: 10px;
-	border-radius: 5px 5px 5px 5px;
-	background-color: rgba(255, 255, 255, 0.2);
-}
-
-#maincontent{
-	height:20%;
-	overflow:hidden;
-}
-.contents{
-	position:relative;
-	top: 60px;
-	bottom: 38px;
-} 
-
-#tabscontainer{
-	height:500px;
-}
-
-
-#purchases{
-	border-width: 1px;
-	height: 218px;
-	overflow-y: auto;
-	overflow-x: hidden;
-}
-
-.ui-tabs-nav{
-	height:590px;
-}
-.doubleheightbutton{
-	height:60px;
-	margin-bottom: 10px;
-}
-
-
-
-P{
-	margin-bottom:0;
-}
-
-
-.pininput{
-	width: 100px !important;
-	display:block;
-	margin-left:auto!important;
-	margin-right:auto!important;
-	margin-top:10px!important;
-}
-
-.inline{
-	display:inline;
-}
-.block{
-	display:block;
-}
-#numLines{
-	width: 100%;
-	display: block;
-	margin-bottom: 1em;
-}
-
-.center{
-	display:block;
-	margin-left: auto;
-	margin-right: auto;
-}
-
-.margin{
-	margin: 1em;
-}
-
-.textbox{
-	height:30px;
-	margin-bottom: 0;
-}
-
-
-
-#usertabs{
-	border: 0 !important;
-}
-
-
-.ui-icon-large { 
-	width: 30px; height: 30px; background-image: url(jquery/blitzer/images/ui-icons_004276_512x480.png); 
-}
-
-.ui-icon-plus-large { 
-	background-position: -34px -259px; 
-}
-
-*/
-
-/* HIER ONDER IS NIEUW! */
-
 /* global */
 body{
 	background: url("http://www.svcover.nl/themes/default/images/swoosh.png") no-repeat scroll center top #3B3B3B;
@@ -135,6 +11,7 @@ a{
 }
 
 .content{
+	background-color: rgb(100,100,100);
 	background-color: rgba(255, 255, 255, 0.2);
 	
 	position:relative;
@@ -181,7 +58,7 @@ a{
 }
 
 HR{
-	margin: 10px 0px 10px 0px;
+	margin: 10px 0 10px 0;
 }
 
 
@@ -203,21 +80,17 @@ ul.ui-tabs-nav{
 }
 
 div#usertabs{
-	padding:0px;
+	padding: 0;
 }
 
 div.ui-tabs-panel{
 	position:absolute;
-	top: 0px;
-	bottom: 0px;
-	right: 0px;
+	top: 0;
+	bottom: 0;
+	right: 0;
 	left: 55px;
 
 	overflow-y: scroll;
 	overflow-x: hidden;
 }
 
-
-/* lelijke hacks! */
-
-/* leeg :) */

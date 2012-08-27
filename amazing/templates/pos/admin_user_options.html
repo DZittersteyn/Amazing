@@ -1,19 +1,19 @@
-<p><span class="label">ID:              </span> <span id="pk" >{{user.pk}}</span></p>
-<p><span class="label">Naam:            </span> <input type="text" name="name" id="name" value="{{user.name}}" />   </p>
-<p><span class="label">Adres:           </span> <input type="text" name="address" id="address" value="{{user.address}}" /></p>
-<p><span class="label">Woonplaats:      </span> <input type="text" name="city" id="city" value="{{user.city}}" /></p>
-<p><span class="label">Bankrekening:    </span> <input type="text" name="bank_account" id="bank_account" value="{{user.bank_account}}" /></p>
-<p><span class="label">E-mail:          </span> <input type="text" name="email" id="email" value="{{user.email}}" /></p>
-<p><span class="label">Barcode:         </span> <input type="text" name="barcode" id="barcode" value="{{user.barcode}}" /></p>
-<p><span class="label">Credit:          </span> <span id="credit"   >{{user.credit}}</span></p>
+<label>ID:              </label> <span id="pk" >{{user.pk}}</span></p>
+<label>Naam:            </label> <input type="text" name="name" id="name" value="{{user.name}}" />   </p>
+<label>Adres:           </label> <input type="text" name="address" id="address" value="{{user.address}}" /></p>
+<label>Woonplaats:      </label> <input type="text" name="city" id="city" value="{{user.city}}" /></p>
+<label>Bankrekening:    </label> <input type="text" name="bank_account" id="bank_account" value="{{user.bank_account}}" /></p>
+<label>E-mail:          </label> <input type="text" name="email" id="email" value="{{user.email}}" /></p>
+<label>Barcode:         </label> <input type="text" name="barcode" id="barcode" value="{{user.barcode}}" /></p>
+<label>Credit:          </label> <span id="credit"   >{{user.credit}}</span></p>
 
-<p><span class="label">&nbsp;           </span> <button id="submitchanges">Save</button></p>
+<label>&nbsp;           </label> <button id="submitchanges">Save</button></p>
 
 <hr />
 
-<p><span class="label">Has Passcode:    </span> <span id="has_passcode" >{{user.has_passcode}}</span></p>
-<p><span class="label">Passcode:        </span> <button id="resetpassword">Reset Passcode</button></p>
-<p><span class="label">Active:          </span>
+<label>Has Passcode:    </label> <span id="has_passcode" >{{user.has_passcode}}</span></p>
+<label>Passcode:        </label> <button id="resetpassword">Reset Passcode</button></p>
+<label>Active:          </label>
 <span id="setactive">
 	<input type="radio" id="activate" name="actbutton" {{user.active|yesno:'checked,'}} /><label for="activate">active</label></input>
 	<input type="radio" id="deactivate" name="actbutton" {{user.active|yesno:',checked'}} /><label for="deactivate">inactive</label></input>
@@ -21,16 +21,47 @@
 
 <hr />
 
+
+<label>Activity</label>
+<select id="combobox">
+  <option value="">Select one...</option>
+  <option value="ActionScript">ActionScript</option>
+  <option value="AppleScript">AppleScript</option>
+  <option value="Asp">Asp</option>
+  <option value="BASIC">BASIC</option>
+  <option value="C">C</option>
+  <option value="C++">C++</option>
+  <option value="Clojure">Clojure</option>
+  <option value="COBOL">COBOL</option>
+  <option value="ColdFusion">ColdFusion</option>
+  <option value="Erlang">Erlang</option>
+  <option value="Fortran">Fortran</option>
+  <option value="Groovy">Groovy</option>
+  <option value="Haskell">Haskell</option>
+  <option value="Java">Java</option>
+  <option value="JavaScript">JavaScript</option>
+  <option value="Lisp">Lisp</option>
+  <option value="Perl">Perl</option>
+  <option value="PHP">PHP</option>
+  <option value="Python">Python</option>
+  <option value="Ruby">Ruby</option>
+  <option value="Scala">Scala</option>
+  <option value="Scheme">Scheme</option>
+</select>
+
+
+
+
 <p>Amounts: </p>
 
-<p><span class="label">CANDYBIG:   </span> <span id="candybigcount">  {{candybigcount}}      </span></p>
-<p><span class="label">CANDYSMALL: </span> <span id="candysmallcount">{{candysmallcount}}    </span></p>
-<p><span class="label">BEER:       </span> <span id="beercount">      {{beercount}}          </span></p>
-<p><span class="label">CAN:        </span> <span id="cancount">       {{cancount}}           </span></p>
-<p><span class="label">SOUP:       </span> <span id="soupcount">      {{soupcount}}          </span></p>
-<p><span class="label">BREAD:      </span> <span id="breadcount">     {{breadcount}}         </span></p>
-<p><span class="label">SAUSAGE:    </span> <span id="sausagecount">   {{sausagecount}}       </span></p>
-<p><span class="label">BAPAO:      </span> <span id="bapaocount">     {{bapaocount}}         </span></p>
+<label>CANDYBIG:   </label> <span id="candybigcount">  {{candybigcount}}      </span></p>
+<label>CANDYSMALL: </label> <span id="candysmallcount">{{candysmallcount}}    </span></p>
+<label>BEER:       </label> <span id="beercount">      {{beercount}}          </span></p>
+<label>CAN:        </label> <span id="cancount">       {{cancount}}           </span></p>
+<label>SOUP:       </label> <span id="soupcount">      {{soupcount}}          </span></p>
+<label>BREAD:      </label> <span id="breadcount">     {{breadcount}}         </span></p>
+<label>SAUSAGE:    </label> <span id="sausagecount">   {{sausagecount}}       </span></p>
+<label>BAPAO:      </label> <span id="bapaocount">     {{bapaocount}}         </span></p>
 
 
 
