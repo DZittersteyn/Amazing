@@ -32,9 +32,6 @@ label.userbutton{
 	width: 90%;
 	margin: 10px auto 0;
 }
-label[for="activate"], label[for="deactivate"]{
-	width: 100px;
-}
 
 #submitchanges, #resetpassword{
 	width: 204px;
@@ -56,9 +53,13 @@ label[for="activate"], label[for="deactivate"]{
 #useroptions{
 	padding-left: 10px;
 }
-#useroptions > label{
+#useroptions label{
 	width:150px;
 	display:inline-block;
+}
+
+label[for="activate"], label[for="deactivate"]{
+	width: 100px !important; 
 }
 
 #topbar{
@@ -137,6 +138,7 @@ label[for="activate"], label[for="deactivate"]{
     /* adjust styles for IE 6/7 */
     *height: 1.7em;
     *top: 0.1em;
+
   }
   .ui-combobox-input {
     margin: 0;

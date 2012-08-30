@@ -288,6 +288,11 @@ def admin_user_options(request, user_id):
     sausagecount = purchases.filter(product="SAUSAGE").count()
     bapaocount = purchases.filter(product="BAPAO").count()
 
+    kruisjes = purchases.filter(product="DIGITAL").count()
+
+
+    activities = Activity.objects.all()
+
     return render_to_response('admin_user_options.html', {'user': user,
         'candybigcount': candybigcount,
         'candysmallcount': candysmallcount,
@@ -297,6 +302,10 @@ def admin_user_options(request, user_id):
         'breadcount': breadcount,
         'sausagecount': sausagecount,
         'bapaocount': bapaocount,
+
+        'kruisjes': kruisjes,
+
+        'activities': activities,
         }, context_instance=RequestContext(request))
 
 

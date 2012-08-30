@@ -59,6 +59,12 @@ function setup_admin_useroptions(){
 	});
 
   combo_setup();
+  console.log('test');
+	$('.ui-combobox-input').bind("autocompleteselect", function(event,ui){
+		console.log(ui.item.name);
+		$('#userdata').load('userdata', {'filter': ui.item.name});
+	});
+
 	$('#submitchanges').button().click(function(){
 
 	});
