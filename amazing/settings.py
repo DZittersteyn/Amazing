@@ -12,7 +12,7 @@ MANAGERS = ADMINS
 DATABASES = {
 'default': {
 'ENGINE': 'django.db.backends.sqlite3', # Add 'postgresql_psycopg2', 'postgresql', 'mysql', 'sqlite3' or 'oracle'.
-'NAME': '/Users/dirk/Documents/Amazing/amazing/database',                      # Or path to database file if using sqlite3.
+'NAME': '/home/dirk/Amazing/amazing/database',                      # Or path to database file if using sqlite3.
 'USER': '',                 # Not used with sqlite3.
 'PASSWORD': '',             # Not used with sqlite3.
 'HOST': '',                 # Set to empty string for localhost. Not used with sqlite3.
@@ -85,22 +85,22 @@ TEMPLATE_CONTEXT_PROCESSORS = (
 ROOT_URLCONF = 'amazing.urls'
 
 TEMPLATE_DIRS = (
-'/Users/dirk/Documents/Amazing/amazing',
-'/Users/dirk/Documents/Amazing/amazing/templates',
-'/Users/dirk/Documents/Amazing/amazing/templates/pos',
+'/home/dirk/Amazing/amazing',
+'/home/dirk/Amazing/amazing/templates',
+'/home/dirk/Amazing/amazing/templates/pos',
 
 )
 
 LOGIN_URL = 'login.html'
 
-STATIC_ROOT = "/Users/dirk/Documents/Amazing/amazing/static/"
+STATIC_ROOT = "/home/dirk/Amazing/amazing/static/"
 
 STATIC_URL = "/static/"
 
 STATICFILES_DIRS = (
-	'/Users/dirk/Documents/Amazing/amazing/static_css',
-	'/Users/dirk/Documents/Amazing/amazing/static_js',
-	'/Users/dirk/Documents/Amazing/amazing/static_img',
+	'/home/dirk/Amazing/amazing/static_css',
+	'/home/dirk/Amazing/amazing/static_js',
+	'/home/dirk/Amazing/amazing/static_img',
 )
 
 

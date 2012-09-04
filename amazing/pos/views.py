@@ -85,6 +85,15 @@ def transaction(request, tr_id):
                     transaction.user.credit -= price
                     transaction.save()
                     transaction.user.save()
+                    product = ""
+                    if transaction.product in PRODUCTS:
+                        product = PRODUCTS[transaction.product]['desc']
+                    elif transaction.product in CREDITS:
+                        product = CREDITS[transaction.product]['desc']
+                    else:
+                        product = 'ERROR!!'
+                    Writer.write("purchase/" + transaction.user.name + "/" + datetime.datetime.now().isoformat() + " " + str(transaction.price) + " credits worth of " + product)
+
                     return HttpResponse(status=200)
                 else:
                     return HttpResponse(status=409, content='not enough credits')
@@ -97,11 +106,21 @@ def transaction(request, tr_id):
                     transaction.user.credit += price
                     transaction.save()
                     transaction.user.save()
+
+                    product = ""
+                    if transaction.product in PRODUCTS:
+                        product = PRODUCTS[transaction.product]['desc']
+                    elif transaction.product in CREDITS:
+                        product = CREDITS[transaction.product]['desc']
+                    else:
+                        product = 'ERROR!!'
+                    Writer.write("purchase/" + transaction.user.name + "/" + datetime.datetime.now().isoformat() + " " + str(-transaction.price) + " credits worth of " + product)
+
                     return HttpResponse(status=200)
                 else:
                     return HttpResponse(status=409, content='not enough credits')
             else:
-                return HttpResponse(status=400, content='trying to redo a valid transaction')
+                return HttpResponse(status=400, content='trying to undo an invalid transaction')
         else:
             return HttpResponse(status=400, content='mode unsupported')
     else:
@@ -288,7 +307,10 @@ def admin_user_options(request, user_id):
     sausagecount = purchases.filter(product="SAUSAGE").count()
     bapaocount = purchases.filter(product="BAPAO").count()
 
-    kruisjes = purchases.filter(product="DIGITAL").count()
+    kruisjes_purchase = purchases.filter(product="DIGITAL")
+    numkruisjes = 0
+    for purchase in kruisjes_purchase:
+        numkruisjes += purchase.price
 
 
     activities = Activity.objects.all()
@@ -303,7 +325,8 @@ def admin_user_options(request, user_id):
         'sausagecount': sausagecount,
         'bapaocount': bapaocount,
 
-        'kruisjes': kruisjes,
+        'kruisjes': -numkruisjes,
+        'price': -numkruisjes * EXCHANGE,
 
         'activities': activities,
         }, context_instance=RequestContext(request))
