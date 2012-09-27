@@ -5,7 +5,7 @@ from django.http import HttpResponse
 from django.http import HttpResponseBadRequest
 from django.http import HttpResponseRedirect
 from django.core import serializers
-from django.core.context_processors import csrf
+# from django.core.context_processors import csrf
 from django.contrib import auth
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth.decorators import permission_required
@@ -14,10 +14,25 @@ import datetime
 
 def ajax_required(f):
     def wrap(request, *args, **kwargs):
-            if not request.is_ajax():
-                return HttpResponseBadRequest()
-            return f(request, *args, **kwargs)
+        if not request.is_ajax():
+            return HttpResponseBadRequest()
+        return f(request, *args, **kwargs)
 
+    wrap.__doc__ = f.__doc__
+    wrap.__name__ = f.__name__
+    return wrap
+
+
+def user_auth_required(f):
+    def wrap(request, *args, **kwargs):
+        if 'user' in request.REQUEST:
+            user = User.objects.get(pk=request.REQUEST['user'])
+            bcauth = 'barcode' in request.REQUEST and user.barcode != "" and request.REQUEST['barcode'] == user.barcode
+            pcauth = (not user.has_passcode) or ('passcode' in request.REQUEST and request.REQUEST['passcode'] == user.passcode)
+            if bcauth or pcauth:
+                return f(request, *args, **kwargs)
+
+        return HttpResponse(status=401, content="authenticated user required")
     wrap.__doc__ = f.__doc__
     wrap.__name__ = f.__name__
     return wrap
@@ -47,10 +62,10 @@ def logout(request):
 
 @login_required
 def index(request):
-    c = RequestContext(request)
-    c.update(csrf(request))
+    #c = RequestContext(request) #why did i do this? seems to work fine without.
+    #c.update(csrf(request))
 
-    return render_to_response("pos/userselect.html", {'activity': Activity.get_active(), 'mainuser': request.user.username}, c)
+    return render_to_response("pos/userselect.html", {'activity': Activity.get_active(), 'mainuser': request.user.username}, context_instance=RequestContext(request))
 
 
 @login_required
@@ -71,73 +86,59 @@ def buyLine(request):
     return render_to_response("pos/buyLine.html", {'pieceprice': EXCHANGE}, context_instance=RequestContext(request))
 
 
+@user_auth_required
 @login_required
 @ajax_required
-def transaction(request, tr_id):
+def purchase(request):
     if request.method == 'POST':
-        transaction = Purchase.objects.get(pk=tr_id)
-        price = transaction.price
+        purchase = Purchase.objects.get(pk=request.POST['purchaseid'])
+        price = purchase.price
 
         if request.POST['valid'] == 'true':
-            if transaction.valid == 0:
-                if transaction.user.credit >= price:
-                    transaction.valid = 1
-                    transaction.user.credit -= price
-                    transaction.save()
-                    transaction.user.save()
-                    product = ""
-                    if transaction.product in PRODUCTS:
-                        product = PRODUCTS[transaction.product]['desc']
-                    elif transaction.product in CREDITS:
-                        product = CREDITS[transaction.product]['desc']
-                    else:
-                        product = 'ERROR!!'
-                    Writer.write("purchase/" + transaction.user.name + "/" + datetime.datetime.now().isoformat() + " " + str(transaction.price) + " credits worth of " + product)
+            if purchase.valid == 0:
+                if purchase.user.credit >= price:
+                    purchase.valid = 1
+                    purchase.user.credit -= price
+                    purchase.save()
+                    purchase.user.save()
 
-                    return HttpResponse(status=200)
+                    return render_to_response("transactionli.html", {'purchase': Purchase.objects.get(pk=request.POST['purchaseid'])}, context_instance=RequestContext(request))
                 else:
                     return HttpResponse(status=409, content='not enough credits')
             else:
-                return HttpResponse(status=400, content='trying to redo a valid transaction')
+                return HttpResponse(status=400, content='trying to redo a valid purchase')
         elif request.POST['valid'] == 'false':
-            if transaction.valid == 1:
-                if transaction.user.credit >= -price:
-                    transaction.valid = 0
-                    transaction.user.credit += price
-                    transaction.save()
-                    transaction.user.save()
+            if purchase.valid == 1:
+                if purchase.user.credit >= -price:
+                    purchase.valid = 0
+                    purchase.user.credit += price
+                    purchase.save()
+                    purchase.user.save()
 
-                    product = ""
-                    if transaction.product in PRODUCTS:
-                        product = PRODUCTS[transaction.product]['desc']
-                    elif transaction.product in CREDITS:
-                        product = CREDITS[transaction.product]['desc']
-                    else:
-                        product = 'ERROR!!'
-                    Writer.write("purchase/" + transaction.user.name + "/" + datetime.datetime.now().isoformat() + " " + str(-transaction.price) + " credits worth of " + product)
-
-                    return HttpResponse(status=200)
+                    return render_to_response("transactionli.html", {'purchase': Purchase.objects.get(pk=request.POST['purchaseid'])}, context_instance=RequestContext(request))
                 else:
                     return HttpResponse(status=409, content='not enough credits')
             else:
-                return HttpResponse(status=400, content='trying to undo an invalid transaction')
+                return HttpResponse(status=400, content='trying to undo an invalid purchase')
         else:
             return HttpResponse(status=400, content='mode unsupported')
     else:
-        return render_to_response("transactionli.html", {'purchase': Purchase.objects.get(pk=tr_id)}, context_instance=RequestContext(request))
+        return render_to_response("transactionli.html", {'purchase': Purchase.objects.get(pk=request.GET['purchaseid'])}, context_instance=RequestContext(request))
 
 
 @login_required
 @ajax_required
-def purchaselist(request, user_id):
-    purchases = Purchase.objects.filter(user=user_id).order_by('-date')[:20]
+def purchaselist(request):
+    purchases = Purchase.objects.filter(user=request.GET['user']).order_by('-date')[:20]
 
     return render_to_response("userdetails.html", {'purchases': purchases, 'map': PRODUCTS}, context_instance=RequestContext(request))
 
 
+@user_auth_required
 @login_required
 @ajax_required
-def undoDialog(request, user_id):
+def undo_dialog(request):
+    user_id = request.GET['user']
     cutoff = datetime.datetime.now() - datetime.timedelta(hours=2)
     purchases = Purchase.objects.filter(user=user_id).order_by('-date').exclude(date__lte=cutoff)
     purchases_old = Purchase.objects.filter(user=user_id).order_by('-date').exclude(date__gt=cutoff)[0:15]
@@ -153,10 +154,11 @@ def newUser(request):
 
 @login_required
 @ajax_required
-def filtereduserlist(request, beginswith):
+def filtereduserlist(request):
+    beginswith = request.GET['beginswith']
     users = []
     for char in beginswith:
-        users.extend(User.objects.filter(name__startswith=char).order_by('name').filter(active=True))
+        users.extend(User.objects.filter(name__startswith=char).extra(select={'lower_name': 'lower(name)'}).order_by('lower_name').filter(active=True))
 
     return render_to_response("pos/filtereduserlist.html", {'filter': beginswith, 'users': users})
 
@@ -173,29 +175,9 @@ def userlist(request):
     return render_to_response("pos/userlist.html", {'filters': filters}, context_instance=RequestContext(request))
 
 
-def user_auth_req(user, requestlib):
-    passcode = ""
-    if 'passcode' in requestlib:
-        passcode = requestlib['passcode']
-    barcode = ""
-    if 'barcode' in requestlib:
-        barcode = requestlib['barcode']
-    return user_auth(user, passcode, barcode)
-
-
-def user_auth(user, passcode, barcode):
-    if not user.has_passcode:
-        return True
-    if user.has_passcode and user.passcode == passcode:
-        return True
-    if user.barcode != "" and user.barcode == barcode:
-        return True
-    return False
-
-
 @login_required
 @ajax_required
-def user_edit(request):
+def new_user(request):
     if request.method == 'POST':
         if request.POST['mode'] == 'new':
             u = User(
@@ -206,32 +188,35 @@ def user_edit(request):
                 email=request.POST['email'],
                 barcode=request.POST['barcode'],
                 credit=0,
-                has_passcode=request.POST['has_passcode'],
+                has_passcode=True if request.POST['has_passcode'] == "True" else False,
                 passcode=request.POST['passcode']
                 )
             u.save()
             return HttpResponse(status=200, content=u.pk)
-        elif request.POST['mode'] == 'edit':
-            u = User.objects.get(pk=request.POST['pk'])
-            if not user_auth_req(u, request.POST):
-                return HttpResponse(status=401)
 
-            u.name = request.POST['name']
-            u.address = request.POST['address']
-            u.city = request.POST['city']
-            u.bank_account = request.POST['bank_account']
-            u.email = request.POST['email']
+
+@user_auth_required
+@login_required
+@ajax_required
+def edit_user(request):
+    if request.method == 'POST':
+        if request.POST['mode'] == 'edit':
+            u = User.objects.get(pk=request.POST['user'])
+            u.name = request.POST['new_name']
+            u.address = request.POST['new_address']
+            u.city = request.POST['new_city']
+            u.bank_account = request.POST['new_bank_account']
+            u.email = request.POST['new_email']
+            u.barcode = request.POST['new_barcode']
             if request.POST['changed_passcode'] == "True":
                 u.has_passcode = True if request.POST['has_passcode'] == "True" else False
                 u.passcode = request.POST['new_passcode']
             u.save()
-            u = User.objects.get(pk=request.POST['pk'])
-            print(u.has_passcode)
             return HttpResponse(status=200, content=u.pk)
         else:
-            return HttpResponse(status=400, content='mode unsupported')
+            return HttpResponse(status=400, content='trying to edit from a new_user dialog')
     else:
-        return HttpResponse(status=400, content='GET not supported, use user/id')
+        return HttpResponse(status=400, content='GET not supported, use user/')
 
 
 @login_required
@@ -245,20 +230,22 @@ def get_user_by_barcode(request):
         except User.MultipleObjectsReturned:
             users = User.objects.filter(barcode=request.GET['barcode'])
             return HttpResponse(status=409, content="Multiple users have the same barcode! Offending users: " + ', '.join([us.name for us in users]))
-        return user(request, u.pk)
+        request.GET = request.GET.copy()
+        request.GET['user'] = u.pk
+        return user(request)
     else:
         return HttpResponse(status=400, content="no barcode submitted")
 
 
+@user_auth_required
 @login_required
 @ajax_required
-def user(request, user_id):
-    user = User.objects.get(pk=user_id)
+def user(request):
+
+    user = User.objects.get(pk=request.REQUEST['user'])
     if user == None:
         return HttpResponse(status=404, content="user does not exist")
     if request.method == 'GET':
-        if not user_auth_req(user, request.GET):
-            return HttpResponse(status=401)
         JSONSerializer = serializers.get_serializer("json")
         json_serializer = JSONSerializer()
         user.password = "blocked"
@@ -266,8 +253,6 @@ def user(request, user_id):
         data = json_serializer.getvalue()
         return HttpResponse(data, mimetype='application/json')
     elif request.method == 'POST':
-        if not user_auth_req(user, request.POST):
-            return HttpResponse(status=401)
         if request.POST['type'] == 'credit':
             if user.buy_credit(request.POST['credittype'], int(request.POST['amount'])):
                 return HttpResponse(status=200)
@@ -311,7 +296,6 @@ def admin_user_options(request, user_id):
     numkruisjes = 0
     for purchase in kruisjes_purchase:
         numkruisjes += purchase.price
-
 
     activities = Activity.objects.all()
 

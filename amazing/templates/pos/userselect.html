@@ -47,7 +47,10 @@
 
 <script type='text/javascript'>
 	$(function() {
-		setup()
+		site_gui.setup();
+		$('#add').button('enable'); 
+		// workaround for a firefox bug, which would disable the new user button
+		// see http://stackoverflow.com/questions/2719044/jquery-ui-button-gets-disabled-on-refresh
 	});
 </script>
 
@@ -94,11 +97,6 @@
 				
 				<hr />
 
-				<button id='CAN' class='productbutton huge span-6'> Fris <br /> 1 kruisje</button>
-				<button id='BEER' class='productbutton huge span-6 last'> Wijn/Bier/EnergyDrink <br /> 2 kruisjes </button>
-				
-
-				<!--
 				<button id='CANDYBIG' class='productbutton span-6'> Groot Snoep <br /> (&le; 2 stuks) </button>
 				<button id='CANDYSMALL' class='productbutton span-6 last'> Klein Snoep <br /> (&gt; 2 stuks) </button>
 
@@ -109,7 +107,7 @@
 				<button id='BREAD' class='productbutton span-4'>Broodje met <br /> Beleg</button>
 				<button id='SAUSAGE' class='productbutton span-4'>Broodje met <br /> Rookworst</button>
 				<button id='BAPAO' class='productbutton span-4 last'>Broodje<br />Bapao</button>
-				-->
+
 			</div>
 			
 			<div id='purchases' class='span-12 last'>

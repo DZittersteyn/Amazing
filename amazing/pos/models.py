@@ -1,5 +1,5 @@
 import datetime
-import urllib
+# import urllib
 import os
 
 from django.db import models
@@ -11,7 +11,7 @@ PRODUCTS = {  # price is in CREDITS! always a positive integer
             'CANDYSMALL': {'price': 1, 'desc': 'Klein Snoep'},
             'SOUP':       {'price': 1, 'desc': 'Soep'},
             'CAN':        {'price': 1, 'desc': 'Blikje'},
-            'BEER':       {'price': 2, 'desc': 'Bier'},
+            'BEER':       {'price': 1, 'desc': 'Bier'},
             'SAUSAGE':    {'price': 1, 'desc': 'Broodje rookworst'},
             'BAPAO':      {'price': 1, 'desc': 'Bapao'},
             'BREAD':      {'price': 1, 'desc': 'Broodje beleg'},
@@ -52,7 +52,7 @@ class User(models.Model):
 
                 filename = " ".join([self.name, datetime.datetime.now().strftime("%Y %m %d-%H %M %S")]).replace(" ", "_") + ".pdf"
                 # url = "http://www.svcover.nl/incasso/api"
-                #dataDict = {
+                # dataDict = {
                 #            'app': 'awesome',
                 #            'bedrag': amount * EXCHANGE,
                 #            'omschrijving': str(amount) + " kruisjes kopen via amazing",
@@ -168,3 +168,6 @@ class Purchase(models.Model):
     admin = models.BooleanField(default=False)
     assoc_file = models.CharField(max_length=255)
 
+class Inventory(models.Model):
+    choices = [[PRODUCTS[a]['desc'], a] for a in PRODUCTS.keys()]
+    #item = models.CharField(max_length=30, choices)

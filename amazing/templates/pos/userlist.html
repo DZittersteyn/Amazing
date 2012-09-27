@@ -1,7 +1,7 @@
 	<ul>
 		<li class="tab"><a id="hometab" href="#usertabs-0"><img src="{{STATIC_URL}}home.png" alt="{{STATIC_URL}}"/></a></li>
 		{% for filter in filters %}
-		<li class="tab"><a href="filtereduserlist-{{filter}}.html">{{filter}}</a></li>
+		<li class="tab"><a href="filtereduserlist?beginswith={{filter}}">{{filter}}</a></li>
 		{% endfor %}
 	</ul>
 
