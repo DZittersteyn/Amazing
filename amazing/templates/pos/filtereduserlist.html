@@ -1,8 +1,15 @@
 <div id="usertabs-{{filter}}">
-	<ol id="filteredlist-{{filter}}" class="selectable">
-		{% for user in users %}
-			<li id='user-{{user.pk}}' class="normaltext selection ui-widget-content">{{user.name}}</li>
-		{% endfor %}
-	</ol>
+
+    <form id="filteredlist-{{filter}}" class="filteredlist">
+        {% for user in users %}
+            <input type="radio" name='userbutton' id="user-{{user.pk}}" class="checkboxwlabel"/> 
+
+            <label for="user-{{user.pk}}">
+                    {{user.name}}
+            </label>
+
+        {% endfor %}
+    </form>
+
 
 </div>

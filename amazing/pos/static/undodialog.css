@@ -10,12 +10,12 @@
 	overflow-y:scroll;
 }
 
-#undoDialog .ui-state-default{
+#undoDialog .invalid{
 	background: none repeat scroll 0 0 #AAA;
 	color: #666;
 }
 
-#undoDialog .ui-state-active{
+#undoDialog .valid{
 	background: none repeat scroll 0 0 #EEE;
 	color: #000;
 }

@@ -10,13 +10,15 @@ site_user = {
 	selected_user_bc: function(){
 		return $('#barcode').html();
 	},
-	
-	selecting_user_id: function(){
-		if($('.ui-selected').length){
-			return $('.ui-selected').attr("id").split('-')[1];
-		}else{
-			return -1;
+
+	set_selecting_user_id: function(src){
+		if($(src).length){
+			$('#selecting_user_id').html($(src).attr("id").split('-')[1]);
 		}
+	},
+	
+	selecting_user_id: function(src){
+		return $('#selecting_user_id').html();
 	},
 
 	update_user: function(){
@@ -36,6 +38,7 @@ site_gui = {
 		$('#user_id').html("");
 		$('#passcode').html("");
 		$('#username').html("");
+		$('#selecting_user_id').html("");
 		$('#credit').html("");
 		$('#barcode').html("");
 		$('#purchases').html("");
@@ -63,11 +66,11 @@ site_gui = {
 	
 	set_gui_user: function(user){
 		if(user){
-			$('#username').html(user.fields.name);
-			$('#credit').html(user.fields.credit);
-			$('#barcode').html(user.fields.barcode);
+			$('#username').html(user.name);
+			$('#credit').html(user.credit);
+			$('#barcode').html(user.barcode);
 			$('#user_id').html(user.pk);
-			$('#usertabs').tabs("select", (user.fields.name.toLowerCase().charCodeAt(0)-'a'.charCodeAt(0))/2 +1);
+			$('#usertabs').tabs("select", (user.name.toLowerCase().charCodeAt(0)-'a'.charCodeAt(0))/2 +1);
 			$('#user-'+user.pk).addClass('ui-selected');
 			
 			$.get("user/purchases",{
@@ -89,7 +92,8 @@ site_gui = {
 			'passcode' : passcode,
 			'barcode'  : barcode
 		}, function(user){
-			site_gui.set_gui_user(user[0]);
+			console.log('here');
+			site_gui.set_gui_user(user);
 		})
 		.error(function(jqxhr){
 			if(jqxhr.status == 401){
@@ -138,16 +142,16 @@ site_gui = {
 	},
 
 	init_selectables: function(){
-		$( ".selectable" ).selectable({
-			selected: function() {
-				site_gui.set_gui_user_by_id(site_user.selecting_user_id());
-			},
-			unselected: function(){
-				site_gui.clear_selected();
+		$( ".checkboxwlabel" ).button()
+			.click(function(){
+				site_user.set_selecting_user_id(this);
+				site_gui.set_gui_user_by_id(
+					site_user.selecting_user_id(),
+					site_user.selected_user_bc(),
+					site_user.selected_user_pc()
+				);
 			}
-		});
-		$( ".selection" ).addClass('ui-corner-bottom');
-		$( ".selection" ).addClass('ui-corner-top');
+		);
 	},
 
 	init_user_buttons: function(){
@@ -345,7 +349,7 @@ site_gui = {
 
 				$('#barcodeselect').val('');
 				$.getJSON('user/barcode', {'barcode': barcode}, function(user){
-					site_gui.set_gui_user(user[0]);
+					site_gui.set_gui_user(user);
 				})
 				.error(function(jqxhr,txtstatus, error){
 					if(jqxhr.status == 404){ //no such user

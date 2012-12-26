@@ -1,0 +1,5 @@
+
+{%for activity in activities%}       
+    <input class="activitybutton-input" type="radio" id="activity-{{activity.pk}}" name="activitybutton" />
+    <label class="userbuttonstyle activitybutton" for="activity-{{activity.pk}}">{{activity.name}}</label>
+{%endfor%}

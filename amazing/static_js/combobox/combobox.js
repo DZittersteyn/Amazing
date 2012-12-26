@@ -48,6 +48,8 @@ function combo_setup(){
                 select.children( "option" ).each(function() {
                   if ( $( this ).text().match( matcher ) ) {
                     this.selected = valid = true;
+                    alert('hai');
+                    self._trigger('changed', event, ui);
                     return false;
                   }
                 });
@@ -107,9 +109,9 @@ function combo_setup(){
   })( jQuery );
 
   $(function() {
-    $( "#combobox" ).combobox();
+    $( "#activities" ).combobox();
     $( "#toggle" ).click(function() {
-      $( "#combobox" ).toggle();
+      $( "#activities" ).toggle();
     });
   });
 }

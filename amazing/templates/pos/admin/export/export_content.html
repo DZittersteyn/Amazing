@@ -1,0 +1,23 @@
+<table id='exports'>
+    <thead>
+        <th>From</th>
+        <th>To (exclusive)</th>
+        <th>Export</th>
+        <th>Refresh</th>
+    </thead>
+    <tbody>
+        {% for export in exports %}
+        <tr>
+            <td>{{export.start|date:"F j, Y"}}</td>
+            <td>{{export.end|date:"F j, Y"}}</td>
+            <td id='progress-{{export.pk}}'></td>
+            <td><button id='refresh-{{export.pk}}' class='refreshbutton'>&nbsp;</button></td>
+        </tr>
+        {% endfor %}
+
+    </tbody>
+</table>
+
+<script type='text/javascript'>
+  export_tab.export_options.setup();
+</script>

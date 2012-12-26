@@ -14,8 +14,9 @@
 
 
 
-<link rel='stylesheet' href='{{STATIC_URL}}admin.css' type='text/css' media='screen'>
 <link rel='stylesheet' href='{{STATIC_URL}}content.css' type='text/css' media='screen'>
+<link rel='stylesheet' href='{{STATIC_URL}}admin.css' type='text/css' media='screen'>
+<link rel='stylesheet' href='{{STATIC_URL}}undodialog.css' type='text/css' media='screen'>
 
 
 <!-- Core functions -->
@@ -37,16 +38,13 @@
 <!-- Idle timer -->
 <script src='{{STATIC_URL}}idletimer/jquery.idle-timer.js'></script>
 
-<!-- Combobox -->
-<script src='{{STATIC_URL}}combobox/combobox.js'></script>
-
 <!-- End Idle timer -->
 <link rel='stylesheet' href='{{STATIC_URL}}jquery/selectable.css' type='text/css' media='screen,print,projection'>
 
 
+<link rel='stylesheet' href='{{STATIC_URL}}buylinedialog.css' type='text/css' media='screen'>
 <link rel='stylesheet' href='{{STATIC_URL}}undodialog.css' type='text/css' media='screen'>
 <link rel='stylesheet' href='{{STATIC_URL}}userdialog.css' type='text/css' media='screen'>
-<link rel='stylesheet' href='{{STATIC_URL}}buylinedialog.css' type='text/css' media='screen'>
 
 
 </head>
@@ -57,57 +55,45 @@
 
 	<script type='text/javascript'>
 		$(function() {
-			setup_admin();
+			admin.setup();
 		});
 	</script>
 
+	<div id="content">
 
-	<div id="topbar">
-		<p class="content">Adminpanel A.M.A.Z.I.N.G.</p>
-	</div>
-	<div id="mainbar">
-		<div class="content">
-			<div id="tabs">
-				<ul>
-					<li><a href="#tabs-1">User Options</a></li>
-					<li><a href="#tabs-2">Activities</a></li>
-					<li><a href="#tabs-3">Inventory</a></li>
-					<li><a href="#tabs-4">System Users</a></li>
-				</ul>
-				<div id="tabs-1">
-
-					<div id="users">
-						<div id="userselectcontainer">
-							<button id="adduser">+</button>
-							<input type="checkbox" id="filterinactive" checked="checked">
-								<label for="filterinactive">Filter inactive</label>
-							</input>
-							<hr />
-							<div id="userselect">
-
-							</div>
-
-						</div>
+		<div id="topbar">
+			<p class="content">Adminpanel K.A.S.T.</p>
+		</div>
+		<div id="mainbar">
+			<div class="content">
+				<div class="tabs">
+					<ul>
+						<li><a href="#user_tab">User Options</a></li>
+						<li><a href="#activity_tab">Activities</a></li>
+						<li><a href="#inventory_tab">Inventory</a></li>
+						<li><a href="#system_user_tab">System Users</a></li>
+						<li><a href="#export_tab">Export</a></li>
+					</ul>
+					<div id="user_tab">
+						{% include "admin/user/user_tab.html" %}
 					</div>
-					<div id="useroptions">
-						<p>test</p>
+					<div id="activity_tab">
+						{% include "admin/activity/activity_tab.html" %}
 					</div>
-
-				</div>
-				<div id="tabs-2">
-					<p>Activities</p>	
-				</div>
-				<div id="tabs-3">
-					<p>Inventory</p>
-				</div>
-				<div id="tabs-4">
-					<p>System users</p>
+					<div id="inventory_tab">
+						<p>Inventory</p>
+					</div>
+					<div id="system_user_tab">
+						<p>System Users</p>
+					</div>
+					<div id="export_tab">
+						{% include "admin/export/export_tab.html" %}
+					</div>
 				</div>
 			</div>
+
 		</div>
-
 	</div>
-
 </body>
 
 </html>

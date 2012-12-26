@@ -1,0 +1,4 @@
+username, product, price, date, valid, admin
+Dirk Zittersteyn, BEER, 6, 2012-11-01T00:00:00, True, True
+Dirk Zittersteyn, CAN, 1, 2012-11-01T00:00:00, True, True
+Dirk Zittersteyn, DIGITAL, -45, 2012-11-01T00:00:00, True, True

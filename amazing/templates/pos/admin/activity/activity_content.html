@@ -1,0 +1,76 @@
+<div class="leftpane">
+  <p><label>Activiteit:      </label> <input type="text" name="name"  id="activity_name"  value="{{activity.name}}" />          
+  <img class='hidden changedalert' src='{{STATIC_URL}}/exclaim.png'/> </p>
+  <p><label>Verantwoordelijk:</label> <input type="text" name="responsible"  id="activity_resp"  value="{{activity.responsible}}" />   
+  <img class='hidden changedalert' src='{{STATIC_URL}}/exclaim.png'/> </p>
+  <p><label>Notitie:         </label> <input type="text" name="note"  id="activity_note"  value="{{activity.note}}" />          
+  <img class='hidden changedalert' src='{{STATIC_URL}}/exclaim.png'/> </p>
+  <p><label>Begindatum:      </label> <input type="text" name="start_date" id="activity_start_date" value="{{activity.start|date:'d/m/Y'}}" />         
+  <img class='hidden changedalert' src='{{STATIC_URL}}/exclaim.png'/> </p>
+  <p><label>Begintijd:       </label> <input type="text" name="start_time" id="activity_start_time" value="{{activity.start|date:'H:i'}}" />         
+  <img class='hidden changedalert' src='{{STATIC_URL}}/exclaim.png'/> </p>
+  <p><label>Einddatum:       </label> <input type="text" name="end_date"   id="activity_end_date"   value="{{activity.end|date:'d/m/Y'}}" />           
+  <img class='hidden changedalert' src='{{STATIC_URL}}/exclaim.png'/> </p>
+  <p><label>Eindtijd:        </label> <input type="text" name="end_time"   id="activity_end_time"   value="{{activity.end|date:'H:i'}}" />           
+  <img class='hidden changedalert' src='{{STATIC_URL}}/exclaim.png'/> </p>
+
+  <label>&nbsp;           </label> <button class='halfwidebutton' id="revertchanges">Revert</button> <button class='halfwidebutton' id="submitchanges">Save</button>
+
+
+  <hr />
+
+  <label>Has Passcode:    </label> <span id="has_passcode" >{{user.has_passcode}}</span></p>
+  <label>Passcode:        </label> <button class='widebutton' id="resetpassword">Reset Passcode</button></p>
+  <label>Active:          </label>
+  <span id="setactive">
+    <input type="radio" id="activate" name="actbutton" {{user.active|yesno:'checked,'}} /><label for="activate">active</label></input>
+    <input type="radio" id="deactivate" name="actbutton" {{user.active|yesno:',checked'}} /><label for="deactivate">inactive</label></input>
+  </span></p>
+
+
+
+
+
+</div>
+
+<div class="rightpane">
+  <label>Select Activity</label>
+  <select id="activities">
+    <option value="all">Alle Activiteiten</option>
+    {% for activity in activities %}
+      <option value="{{activity.pk}}">{{activity.name}}</option>
+    {% endfor %}
+
+  </select>
+
+  <button class='fullwidebutton' id="admin_undo">Undo from activity "<span class='actlabel'>Alle Activiteiten</span>"</button>
+  
+  <hr />
+  
+  <div id="user_data">
+    {% include "admin/user/userdata.html" %}
+  </div>
+  
+  <hr />
+  
+  <div id='admin_productbuttons'>
+    <label>Groot Snoep           </label> <input class="valuefield" type="number" min='0' name="candybigvalue"   id="CANDYBIG"    value="0" /> 
+    <label>Klein Snoep           </label> <input class="valuefield" type="number" min='0' name="candysmallvalue" id="CANDYSMALL"  value="0" />
+    <label>Bier                  </label> <input class="valuefield" type="number" min='0' name="beervalue"       id="BEER"        value="0" /> 
+    <label>Blikje                </label> <input class="valuefield" type="number" min='0' name="canvalue"        id="CAN"         value="0" /> 
+    <label>Soep                  </label> <input class="valuefield" type="number" min='0' name="soupvalue"       id="SOUP"        value="0" /> 
+    <label>Broodje met beleg     </label> <input class="valuefield" type="number" min='0' name="breadvalue"      id="BREAD"       value="0" /> 
+    <label>Rookworst             </label> <input class="valuefield" type="number" min='0' name="sausagevalue"    id="SAUSAGE"     value="0" /> 
+    <label>Broodje Bapao         </label> <input class="valuefield" type="number" min='0' name="bapaovalue"      id="BAPAO"       value="0" /> 
+    <button class='fullwidebutton' id="commit_purchase">Select an Activity</button>
+  </div>
+
+
+</div>
+
+
+<script type='text/javascript'>
+  $(function() {
+      user_tab.user_options.setup();
+  });
+</script>

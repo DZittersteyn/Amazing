@@ -1,0 +1,70 @@
+<div class="leftpane">
+  <p><label>ID:              </label> <span id="pk" >{{user.pk}}</span></p>
+  <p><label>Naam:            </label> <input type="text" name="name" id="name" value="{{user.name}}" />                          <img class='hidden changedalert' src='{{STATIC_URL}}/exclaim.png'/> </p>
+  <p><label>Adres:           </label> <input type="text" name="address" id="address" value="{{user.address}}" />                 <img class='hidden changedalert' src='{{STATIC_URL}}/exclaim.png'/> </p>
+  <p><label>Woonplaats:      </label> <input type="text" name="city" id="city" value="{{user.city}}" />                          <img class='hidden changedalert' src='{{STATIC_URL}}/exclaim.png'/> </p>
+  <p><label>Bankrekening:    </label> <input type="text" name="bank_account" id="bank_account" value="{{user.bank_account}}" />  <img class='hidden changedalert' src='{{STATIC_URL}}/exclaim.png'/> </p>
+  <p><label>E-mail:          </label> <input type="text" name="email" id="email" value="{{user.email}}" />                       <img class='hidden changedalert' src='{{STATIC_URL}}/exclaim.png'/> </p>
+  <p><label>Barcode:         </label> <input type="text" name="barcode" id="barcode" value="{{user.barcode}}" />                 <img class='hidden changedalert' src='{{STATIC_URL}}/exclaim.png'/> </p>
+  <p><label>Credit:          </label> <span                             id="credit">        {{user.credit}}                                                         </span></p>
+
+  <label>&nbsp;           </label> <button class='halfwidebutton' id="revertchanges">Revert</button> <button class='halfwidebutton' id="submitchanges">Save</button>
+
+
+  <hr />
+
+  <label>Has Passcode:    </label> <span id="has_passcode" >{{user.has_passcode}}</span></p>
+  <label>Passcode:        </label> <button class='widebutton' id="resetpassword">Reset Passcode</button></p>
+  <label>Active:          </label>
+  <span id="setactive">
+  	<input type="radio" id="activate" name="actbutton" {{user.active|yesno:'checked,'}} /><label for="activate">active</label></input>
+  	<input type="radio" id="deactivate" name="actbutton" {{user.active|yesno:',checked'}} /><label for="deactivate">inactive</label></input>
+  </span></p>
+
+
+
+
+
+</div>
+
+<div class="rightpane">
+  <label>Select Activity</label>
+  <select id="activities">
+    <option value="all">Alle Activiteiten</option>
+    {% for activity in activities %}
+      <option value="{{activity.pk}}">{{activity.name}}</option>
+    {% endfor %}
+
+  </select>
+
+  <button class='fullwidebutton' id="admin_undo">Undo from activity "<span class='actlabel'>Alle Activiteiten</span>"</button>
+  
+  <hr />
+  
+  <div id="user_data">
+    {% include "admin/user/userdata.html" %}
+  </div>
+  
+  <hr />
+  
+  <div id='admin_productbuttons'>
+    <label>Groot Snoep           </label> <input class="valuefield" type="number" min='0' name="candybigvalue"   id="CANDYBIG"    value="0" /> 
+    <label>Klein Snoep           </label> <input class="valuefield" type="number" min='0' name="candysmallvalue" id="CANDYSMALL"  value="0" />
+    <label>Bier                  </label> <input class="valuefield" type="number" min='0' name="beervalue"       id="BEER"        value="0" /> 
+    <label>Blikje                </label> <input class="valuefield" type="number" min='0' name="canvalue"        id="CAN"         value="0" /> 
+    <label>Soep                  </label> <input class="valuefield" type="number" min='0' name="soupvalue"       id="SOUP"        value="0" /> 
+    <label>Broodje met beleg     </label> <input class="valuefield" type="number" min='0' name="breadvalue"      id="BREAD"       value="0" /> 
+    <label>Rookworst             </label> <input class="valuefield" type="number" min='0' name="sausagevalue"    id="SAUSAGE"     value="0" /> 
+    <label>Broodje Bapao         </label> <input class="valuefield" type="number" min='0' name="bapaovalue"      id="BAPAO"       value="0" /> 
+    <button class='fullwidebutton' id="commit_purchase">Select an Activity</button>
+  </div>
+
+
+</div>
+
+
+<script type='text/javascript'>
+  $(function() {
+      user_tab.user_options.setup();
+  });
+</script>

@@ -63,13 +63,13 @@ user_dialog = {
 	},
 
 	set_fields: function(user){
-		$('#edit_pk').val(user ? user[0].pk : "");
-		$('#edit_name').val(user ? user[0].fields.name : "");
-		$('#edit_address').val(user ? user[0].fields.address : "");
-		$('#edit_city').val(user ? user[0].fields.city : "");
-		$('#edit_bank_account').val(user ? user[0].fields.bank_account : "");
-		$('#edit_email').val(user ? user[0].fields.email : "");
-		$('#edit_barcode').val(user ? user[0].fields.barcode : "");
+		$('#edit_pk').val(user ? user.pk : "");
+		$('#edit_name').val(user ? user.name : "");
+		$('#edit_address').val(user ? user.address : "");
+		$('#edit_city').val(user ? user.city : "");
+		$('#edit_bank_account').val(user ? user.bank_account : "");
+		$('#edit_email').val(user ? user.email : "");
+		$('#edit_barcode').val(user ? user.barcode : "");
 		$('#edit_pin').val("");
 		$('#edit_pin').attr("hidden",true);
 		$('#has_pin').button().click(function(){
@@ -101,33 +101,34 @@ new_user_dialog = {
 					minWidth: 740,
 					title: 'Nieuwe gebruiker',
 					buttons: [{
-					text: "Maak aan",
-					click: function(){
-						if(user_dialog.check_fields()){
-							var passcode = $('#has_pin').prop("checked")?CryptoJS.SHA1($('#edit_pin').val()).toString():"";
-							$.post('user/new', {
-								'mode': 'new',
-								'name': $('#edit_name').val(),
-								'address': $('#edit_address').val(),
-								'city': $('#edit_city').val(),
-								'bank_account': $('#edit_bank_account').val(),
-								'email': $('#edit_email').val(),
-								'barcode': $('#edit_barcode').val(),
-								'has_passcode': $('#edit_pin').val() === "" ? "False" : "True",
-								'passcode': passcode
-							}).success(function(data){
-								new_user_dialog.unload();
-								site_gui.set_gui_user_by_id(data, "", passcode);
-							});
+						text: "Annuleer",
+						click: function(){
+							new_user_dialog.unload();
+						}
+					},
+					{
+						text: "Maak aan",
+						click: function(){
+							if(user_dialog.check_fields()){
+								var passcode = $('#has_pin').prop("checked")?CryptoJS.SHA1($('#edit_pin').val()).toString():"";
+								$.post('user/new', {
+									'mode': 'new',
+									'name': $('#edit_name').val(),
+									'address': $('#edit_address').val(),
+									'city': $('#edit_city').val(),
+									'bank_account': $('#edit_bank_account').val(),
+									'email': $('#edit_email').val(),
+									'barcode': $('#edit_barcode').val(),
+									'has_passcode': $('#edit_pin').val() === "" ? "False" : "True",
+									'passcode': passcode
+								}).success(function(data){
+									new_user_dialog.unload();
+									site_gui.set_gui_user_by_id(data, "", passcode);
+								});
+							}
 						}
 					}
-				},
-				{
-					text: "Annuleer",
-					click: function(){
-						new_user_dialog.unload();
-					}
-				}]
+				]
 			});
 
 			site_gui.init_on_screen_keyboards();
@@ -222,7 +223,13 @@ undo_dialog = {
 			'valid'       : $('#purchase-' + purchaseid).prop("checked"),
 			'purchaseid'  : purchaseid
 		}, function(data){
-			site_user.update_user();
+			if($('#userinfo').size()){        //user panel
+				site_user.update_user();
+			}else if($('#user_data').size()){ //admin panel
+				user = user_tab.selected_user();
+				$('#user_data').load('admin_userdata', {'user': user, 'activity': $('#activities').val()});
+			}
+
 			$('#purchaseli-'+purchaseid).html(data);
 			$('#purchase-' + purchaseid).button().click(function(){
 				undo_dialog.submit_and_refresh(purchaseid);
@@ -235,12 +242,14 @@ undo_dialog = {
 		});
 	},
 
-	load: function(){
-		$.get('user/undodialog', {
-				'user'    : site_user.selected_user_id(),
-				'passcode': site_user.selected_user_pc(),
-				'barcode' : site_user.selected_user_bc()
-		},
+	load: function(request){
+		if(!request){
+			request = {};
+			request.user = site_user.selected_user_id();
+			request.passcode = site_user.selected_user_pc();
+			request.barcode = site_user.selected_user_bc();
+		}
+		$.get('user/undodialog', request,
 		function (data){
 			$('body').append(data);
 		})
@@ -263,6 +272,7 @@ undo_dialog = {
 						});
 					} else {
 						$(this).find('.checkboxwlabel').button({disabled: true});
+						// TODO: Server-side check!
 					}
 				}
 			});

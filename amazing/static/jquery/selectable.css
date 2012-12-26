@@ -1,5 +1,0 @@
-#feedback { font-size: 1.4em; }
-.selectable .ui-selecting { border:1px solid #b20909; color:black; }
-.selectable .ui-selected { background: #b20909; color: white; }
-.selectable { list-style-type: none; margin: 0; padding: 0; }
-.selectable li.selection { margin: 3px; padding: 0.4em; font-size: 1em; }

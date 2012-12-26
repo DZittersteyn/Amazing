@@ -1,18 +1,24 @@
 /* global */
 body{
-	background: url("http://www.svcover.nl/themes/default/images/swoosh.png") no-repeat scroll center top #3B3B3B;
+	background: url("swoosh.png") no-repeat scroll center top #3B3B3B;
 	color: white;
 	overflow-y:auto;
 	font-family: "Verdana";
 }
 
+body .admin{
+	background: url("images/ui-bg_diagonals-thick_75_f3d8d8_40x40.png") repeat scroll 50% 50% #F3D8D8;
+}
+
 a{
 	color: white;
+}
+span{
+	font-size:inherit;
 }
 
 .content{
 	background-color: rgb(100,100,100);
-	background-color: rgba(255, 255, 255, 0.2);
 	
 	position:relative;
 	top:-10px;
@@ -34,9 +40,11 @@ a{
 	font-style: italic;
 }
 
-.selectable{
-	font-size: 1.1em;
+.filteredlist > label{
+	font-size: 1.2em !important;
 	width:100%;
+	text-align: left;
+	margin-bottom: 5px;
 }
 
 /* generic use */
@@ -92,5 +100,9 @@ div.ui-tabs-panel{
 
 	overflow-y: scroll;
 	overflow-x: hidden;
+}
+
+.adminalert{
+	background: url("./notice-stripe.png") repeat scroll 50% 50% #ffd897;
 }
 

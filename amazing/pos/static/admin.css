@@ -1,6 +1,6 @@
 body{
 	background: url("../static/skin_side_up.png") repeat #FFF;
-	overflow-y: auto;
+    height: 100%;
 	font-family: "Verdana";
 }
 
@@ -8,52 +8,88 @@ p{
 	margin:0;
 }
 
-test{
-	margin:0
+label{
+    height: 29px;
 }
 
-input[type=text]{
+
+.rightdetail input[type=text], .rightdetail input[type=number], .rightdetail select{
 	margin: 1px;
 	width: 200px;
+    height: 18px;
 }
+
+thead th{
+    background: none repeat scroll 0 0 #DDD;
+}
+
+tbody tr td{
+    background: none repeat scroll 0 0 #FFF;
+}
+
+td{
+    border-bottom: solid 1px #000;
+}
+
+
+.refreshbutton{
+    background-image: url('../static/refresh.png') !important;
+}
+
 HR{
 	width: 100%;
-
 	margin-top: 10px;
 	margin-bottom: 10px;
 }
+
+#content{
+    width: 1200px;
+    height: 100%;
+    margin-right: auto;
+    margin-left: auto;
+}
+
 .hidden{
 	display:none;
 }
-label.userbutton{
+.userbutton{
 	text-align: left !important;
 }
 .content{
-	width: 90%;
+	width: 100%;
 	margin: 10px auto 0;
 }
 
-#submitchanges, #resetpassword{
+.halfwidebutton{
+    width: 102px;
+    margin: 0;
+}
+
+.widebutton{
 	width: 204px;
 	margin: 0;
 }
 
-#users{
+.fullwidebutton{
+    width: 100%;
+}
+
+.leftselect{
 	width:200px;
 	height:100%;
 	float:left;
+    overflow-y:scroll;
 }
 
-#edituserbuttons{
-	width:100%;
-	height:35px;
-	text-align: center;
-}
-
-#useroptions{
+.rightdetail{
+    width: 900px;
+    float:right;
+    height: 100%;
 	padding-left: 10px;
 }
-#useroptions label{
+
+
+.rightdetail label{
 	width:150px;
 	display:inline-block;
 }
@@ -63,39 +99,40 @@ label[for="activate"], label[for="deactivate"]{
 }
 
 #topbar{
-	min-width: 1000px;
+    position: relative;
+    top: 10px;
 }
+
 #mainbar{
-	min-width: 1000px;
+    position: relative;
+    top: 50px;
+    bottom: 0;
+    height: 800px;
 }
 
-.ui-tabs-nav{
-	height:33px;
+.bordered{
+    border: 1px solid #DDD;
 }
-
-#tabs{
-	height: 100%;
-}
-
-#tabs > div{
-	position:absolute;
-	top:37px;
-	bottom:0px;
-	left:0px;
-	right:0px;
+.tabs > div{
+    height: 740px;
+    overflow-y: auto;
 
 }
-
-#userselectcontainer{
-	width: 100%;
-	height: 100%;
-	overflow-y:scroll;
-}
-#userselect > button{
-	
+.leftpane{
+    width: 380px;
+    float: left;
+    padding-right: 15px;
 }
 
-#userselect > .userbutton{
+.rightpane{
+    border-left:1px solid #DDD;
+    width: 375px;
+    float: left;
+    padding-left: 15px;
+}
+
+
+.userbuttonstyle{
 	padding: 2px;
 	list-style: none;
 	width:90%;
@@ -103,13 +140,15 @@ label[for="activate"], label[for="deactivate"]{
 	margin-left:auto;
 }
 
-#userlist{
+.rightselect{
 	padding: 0;
 	margin: 0;
 }
 
 
-#useroptions{
+.leftdetail{
+    overflow-y:scroll;
+    width: 940px;
 	height:100%;
 	float:left;
 }
@@ -123,24 +162,10 @@ label[for="activate"], label[for="deactivate"]{
 	color: white;
 }
 
-/* combobox */
+.changedalert{
+    margin-bottom: -4px;
+}
 
-  .ui-combobox {
-    position: relative;
-    display: inline-block;
-  }
-  .ui-combobox-toggle {
-    position: absolute;
-    top: 0;
-    bottom: 0;
-    margin-left: -1px;
-    padding: 0;
-    /* adjust styles for IE 6/7 */
-    *height: 1.7em;
-    *top: 0.1em;
-
-  }
-  .ui-combobox-input {
-    margin: 0;
-    padding: 0.3em;
-  }
+.changedalert:after{
+    content: 'Unsaved';
+}
