@@ -8,15 +8,6 @@ admin = {
 		inventory_tab.setup();
 		system_user_tab.setup();
 
-
-		$('#filter_inactive_users').button().click(function(){
-			if($(this).is(":checked")){
-				$(".nonactive").addClass("hidden");
-			}else{
-				$(".nonactive").removeClass("hidden");
-			}
-		});
-
 		site_gui.init_csrf_token();
 	}
 
@@ -58,6 +49,15 @@ user_tab = {
 			$.get('adminoptions', {'user': $(this).prop('id').split('-')[1]}, function(data){
 				$('#useroptions').html(data);
 			});
+		});
+
+
+		$('#filter_inactive_users').button().click(function(){
+			if($(this).is(":checked")){
+				$(".nonactive").addClass("hidden");
+			}else{
+				$(".nonactive").removeClass("hidden");
+			}
 		});
 
 	},
@@ -169,7 +169,7 @@ user_tab = {
 			});
 
 
-			$('#user_tab').on('keyup', 'input[type=text]', function(){
+			$('#user_tab').on('keyup', '.leftpane input[type=text]', function(){
 				var field = $(this);
 
 				user = user_tab.get_auth();
@@ -202,20 +202,21 @@ activity_tab = {
 		$('#add_activity').button().click(function(e){
 			e.preventDefault();
 			$.post('adminactivitylist/new', {'name': $('#new_activity_name').val()}, function(){
+				$('#new_activity_name').val('');
 				activity_tab.reload_activitylist();
+			}).error(function(jqXHR){
+				alert(jqXHR.responseText);
 			});
 		});
 
 		activity_tab.reload_activitylist();
 
 		$('#activity_tab').on('click', '.activitybutton-input', function(){
-			$.get('activityoptions', {'activity': $(this).prop('id').split('-')[1]}, function(data){
-				$('#activityoptions').html(data);
-			});
+			activity_tab.activity_options.load($(this).prop('id').split('-')[1]);
 		});
 
 
-		$('#activity_tab').on('keyup', 'input[type=text]', function(){
+		$('#activity_tab').on('keyup', '.leftpane input[type=text]', function(){
 			var field = $(this);
 
 			activity = {'activity' : activity_tab.selected_activity()};
@@ -234,21 +235,115 @@ activity_tab = {
 
 		});
 
+
 	},
 
-	reload_activitylist: function(){
+	activity_options: {
+
+		setup: function(){
+
+
+			$('#clear_start').button().click(function(){
+				activity_tab.activity_options.set_date_time('#activity_start');
+				$('#activity_start_date').trigger('keyup');
+				$('#activity_start_time').trigger('keyup');
+			});
+
+			$('#clear_end').button().click(function(){
+				activity_tab.activity_options.set_date_time('#activity_end');
+				$('#activity_end_date').trigger('keyup');
+				$('#activity_end_time').trigger('keyup');
+			});
+
+			$('#now_start').button().click(function(){
+				activity_tab.activity_options.set_date_time('#activity_start', new Date());
+				$('#activity_start_date').trigger('keyup');
+				$('#activity_start_time').trigger('keyup');
+			});
+
+			$('#now_end').button().click(function(){
+				activity_tab.activity_options.set_date_time('#activity_end', new Date());
+				$('#activity_end_date').trigger('keyup');
+				$('#activity_end_time').trigger('keyup');
+			});
+
+
+
+
+
+			$('#submitchanges_activity').button().click(function(){
+				var activity = {};
+				activity['id'] = activity_tab.selected_activity();
+				activity['name'] = $('#activity_name').val();
+				activity['responsible'] = $('#activity_resp').val();
+				activity['note'] = $('#activity_note').val();
+				activity['start'] = $('#activity_start_date').val() + " " +$('#activity_start_time').val();
+				activity['end'] = $('#activity_end_date').val() + " " +$('#activity_end_time').val();
+				$.post('activity/edit', activity, function(){
+					activity_tab.reload_activitylist();
+					activity_tab.activity_options.load(activity_tab.selected_activity());
+				}).error(function(jqXHR){
+					alert(jqXHR.responseText);
+				});
+			});
+
+			$('#revertchanges_activity').button().click(function(){
+				activity_tab.activity_options.load(activity_tab.selected_activity());
+			});
+
+			$('#delete_activity').button().click(function(){
+				$.post('activity/delete', {'id': activity_tab.selected_activity()}, function(){
+					activity_tab.reload_activitylist(true);
+					$('#activityoptions').html("");
+				}).error(function(jqXHR){
+					alert(jqXHR.responseText);
+				});
+			});
+
+		},
+
+		load: function(id){
+			$.get('activityoptions', {'activity': id}, function(data){
+				$('#activityoptions').html(data);
+			});
+		},
+
+		set_date_time: function(field, datetime){
+			var date = '';
+			var time = '';
+			if(datetime){
+				console.log('datetime');
+				date = $.datepicker.formatDate('dd/mm/yy',datetime);
+				var hr = (datetime.getHours() < 10 ? '0' : '') + datetime.getHours();
+				var mn = (datetime.getMinutes() < 10 ? '0' : '') + datetime.getMinutes();
+				time = hr + ':' + mn;
+			}
+			$(field+'_date').val(date);
+			$(field+'_time').val(time);
+
+		}
+	},
+
+
+	reload_activitylist: function(refresh){
+		refresh = typeof refresh !== 'undefined' ? refresh : false;
+
+		var selected = activity_tab.selected_activity();
 
 		$.get('adminactivitylist', function(data){
 			$('#activityselect').html(data);
 		}).success(function(){
 			$('.activitybutton-input').button();
+			if(refresh){
+				$('#activity-' +selected).button().click();
+			}
 		});
 
 
 	},
 
 	selected_activity: function(){
-		if ($('.activitybutton-input:checked')){
+		if ($('.activitybutton-input:checked').length){
 			return $('.activitybutton-input:checked').prop('id').split('-')[1];
 		}
 	}
@@ -297,7 +392,7 @@ export_tab = {
 			$('#exports').on('click', '.downloadbutton', function(){
 				window.location.href = 'export/' + $(this).prop('id').split('-')[1];
 			});
-	    }
+		}
 	}
 };
 

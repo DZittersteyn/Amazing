@@ -1,60 +1,60 @@
 <div class="leftpane">
-  <p><label>Activiteit:      </label> <input type="text" name="name"  id="activity_name"  value="{{activity.name}}" />          
+
+  <p>An activity can be in one of three states:</p>
+  <ul>
+    <li> Incomplete: No start date. </li>
+    <li> Active: No end date or end date hasn't passed yet.</li>
+    <li> Done: end date has passed.</li>
+  </ul>
+  <p>If multiple activities are active, the one started the last is used.</p>
+
+<hr/>
+
+  <p><label>Activity:        </label> <input type="text" name="name"  id="activity_name"  value="{{activity.name}}" />          
   <img class='hidden changedalert' src='{{STATIC_URL}}/exclaim.png'/> </p>
-  <p><label>Verantwoordelijk:</label> <input type="text" name="responsible"  id="activity_resp"  value="{{activity.responsible}}" />   
+  <p><label>Responsible:     </label> <input type="text" name="responsible"  id="activity_resp"  value="{{activity.responsible}}" />   
   <img class='hidden changedalert' src='{{STATIC_URL}}/exclaim.png'/> </p>
-  <p><label>Notitie:         </label> <input type="text" name="note"  id="activity_note"  value="{{activity.note}}" />          
-  <img class='hidden changedalert' src='{{STATIC_URL}}/exclaim.png'/> </p>
-  <p><label>Begindatum:      </label> <input type="text" name="start_date" id="activity_start_date" value="{{activity.start|date:'d/m/Y'}}" />         
-  <img class='hidden changedalert' src='{{STATIC_URL}}/exclaim.png'/> </p>
-  <p><label>Begintijd:       </label> <input type="text" name="start_time" id="activity_start_time" value="{{activity.start|date:'H:i'}}" />         
-  <img class='hidden changedalert' src='{{STATIC_URL}}/exclaim.png'/> </p>
-  <p><label>Einddatum:       </label> <input type="text" name="end_date"   id="activity_end_date"   value="{{activity.end|date:'d/m/Y'}}" />           
-  <img class='hidden changedalert' src='{{STATIC_URL}}/exclaim.png'/> </p>
-  <p><label>Eindtijd:        </label> <input type="text" name="end_time"   id="activity_end_time"   value="{{activity.end|date:'H:i'}}" />           
+  <p><label>Note:            </label> <input type="text" name="note"  id="activity_note"  value="{{activity.note}}" />          
   <img class='hidden changedalert' src='{{STATIC_URL}}/exclaim.png'/> </p>
 
-  <label>&nbsp;           </label> <button class='halfwidebutton' id="revertchanges">Revert</button> <button class='halfwidebutton' id="submitchanges">Save</button>
+  <hr/>
 
+  <p><label>Start date:      </label> <input type="text" name="start_date" id="activity_start_date" value="{{activity.start|date:'d/m/Y'}}" />         
+  <img class='hidden changedalert' src='{{STATIC_URL}}/exclaim.png'/> </p>
+  <p><label>Start time:      </label> <input type="text" name="start_time" id="activity_start_time" value="{{activity.start|date:'H:i'}}" />         
+  <img class='hidden changedalert' src='{{STATIC_URL}}/exclaim.png'/> </p>
+  <p><label>                 </label> <button id="clear_start" class="halfwidebutton">Clear</button> <button id="now_start" class="halfwidebutton">Now</button>
 
-  <hr />
+  <hr/>
 
-  <label>Has Passcode:    </label> <span id="has_passcode" >{{user.has_passcode}}</span></p>
-  <label>Passcode:        </label> <button class='widebutton' id="resetpassword">Reset Passcode</button></p>
-  <label>Active:          </label>
-  <span id="setactive">
-    <input type="radio" id="activate" name="actbutton" {{user.active|yesno:'checked,'}} /><label for="activate">active</label></input>
-    <input type="radio" id="deactivate" name="actbutton" {{user.active|yesno:',checked'}} /><label for="deactivate">inactive</label></input>
-  </span></p>
+  <p><label>End date:        </label> <input type="text" name="end_date"   id="activity_end_date"   value="{{activity.end|date:'d/m/Y'}}" />           
+  <img class='hidden changedalert' src='{{STATIC_URL}}/exclaim.png'/> </p>
+  <p><label>End Time:        </label> <input type="text" name="end_time"   id="activity_end_time"   value="{{activity.end|date:'H:i'}}" />           
+  <img class='hidden changedalert' src='{{STATIC_URL}}/exclaim.png'/> </p>
+  <p><label>                 </label> <button id="clear_end" class="halfwidebutton">Clear</button> <button id="now_end" class="halfwidebutton">Now</button>
+  
 
-
+  <hr/>
+  
+  <label>&nbsp;           </label> <button class='widebutton' id="delete_activity">Delete</button> 
+  
+  <hr/>
+  <label>&nbsp;           </label> <button class='halfwidebutton' id="revertchanges_activity">Revert</button> <button class='halfwidebutton' id="submitchanges_activity">Save</button>
 
 
 
 </div>
 
 <div class="rightpane">
-  <label>Select Activity</label>
-  <select id="activities">
-    <option value="all">Alle Activiteiten</option>
-    {% for activity in activities %}
-      <option value="{{activity.pk}}">{{activity.name}}</option>
-    {% endfor %}
 
-  </select>
-
-  <button class='fullwidebutton' id="admin_undo">Undo from activity "<span class='actlabel'>Alle Activiteiten</span>"</button>
-  
-  <hr />
-  
   <div id="user_data">
-    {% include "admin/user/userdata.html" %}
+    {% include "admin/activity/activity_data.html" %}
   </div>
   
   <hr />
   
-  <div id='admin_productbuttons'>
-    <label>Groot Snoep           </label> <input class="valuefield" type="number" min='0' name="candybigvalue"   id="CANDYBIG"    value="0" /> 
+  <div >
+    <label>Groot Snoep           </label> <input class="valuefield" type="text" min='0' name="candybigvalue"   id="CANDYBIG"    value="0" /> 
     <label>Klein Snoep           </label> <input class="valuefield" type="number" min='0' name="candysmallvalue" id="CANDYSMALL"  value="0" />
     <label>Bier                  </label> <input class="valuefield" type="number" min='0' name="beervalue"       id="BEER"        value="0" /> 
     <label>Blikje                </label> <input class="valuefield" type="number" min='0' name="canvalue"        id="CAN"         value="0" /> 
@@ -62,7 +62,7 @@
     <label>Broodje met beleg     </label> <input class="valuefield" type="number" min='0' name="breadvalue"      id="BREAD"       value="0" /> 
     <label>Rookworst             </label> <input class="valuefield" type="number" min='0' name="sausagevalue"    id="SAUSAGE"     value="0" /> 
     <label>Broodje Bapao         </label> <input class="valuefield" type="number" min='0' name="bapaovalue"      id="BAPAO"       value="0" /> 
-    <button class='fullwidebutton' id="commit_purchase">Select an Activity</button>
+    <button class='fullwidebutton' id="commit_difference">Boek in als verschil</button>
   </div>
 
 
@@ -71,6 +71,6 @@
 
 <script type='text/javascript'>
   $(function() {
-      user_tab.user_options.setup();
+      activity_tab.activity_options.setup();
   });
 </script>

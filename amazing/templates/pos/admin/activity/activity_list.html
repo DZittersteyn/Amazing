@@ -1,5 +1,18 @@
+<p>Incomplete</p>
+{%for activity in invalid%}       
+    <input class="activitybutton-input" type="radio" id="activity-{{activity.pk}}" name="activitybutton" />
+    <label class="userbuttonstyle activitybutton" for="activity-{{activity.pk}}">{{activity.name}}</label>
+{%endfor%}
+<hr/>
+<p>Active</p>
+{%for activity in active%}       
+    <input class="activitybutton-input" type="radio" id="activity-{{activity.pk}}" name="activitybutton" />
+    <label class="userbuttonstyle activitybutton" for="activity-{{activity.pk}}">{{activity.name}}</label>
+{%endfor%}
+<hr/>
+<p>Done</p>
 
-{%for activity in activities%}       
+{%for activity in done%}       
     <input class="activitybutton-input" type="radio" id="activity-{{activity.pk}}" name="activitybutton" />
     <label class="userbuttonstyle activitybutton" for="activity-{{activity.pk}}">{{activity.name}}</label>
 {%endfor%}

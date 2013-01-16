@@ -109,21 +109,20 @@ def field_consistent(request):
     field = request.REQUEST['field']
     value = None
 
-    # TODO: Fix nonetype on empty field
-
-    if "_date" in request.REQUEST['field']:
-        field = field[:field.find('_date')]
-        value = getattr(obj, field).strftime('%d/%m/%Y')
-        print('a')
-    elif "_time" in request.REQUEST['field']:
-        field = field[:field.find('_time')]
-        value = getattr(obj, field).strftime('%H:%M')
-        print('b')
-    else:
-        value = getattr(obj, field)
-        print('c')
-
-    print(value)
+    try:
+        if "_date" in request.REQUEST['field']:
+            field = field[:field.find('_date')]
+            value = getattr(obj, field).strftime('%d/%m/%Y')
+            print('a')
+        elif "_time" in request.REQUEST['field']:
+            field = field[:field.find('_time')]
+            value = getattr(obj, field).strftime('%H:%M')
+            print('b')
+        else:
+            value = getattr(obj, field)
+            print('c')
+    except AttributeError:
+        value = ""
 
     if value == request.REQUEST['value']:
         return HttpResponse(status=200, content="True")
@@ -331,7 +330,9 @@ def admin_user_options(request):
     activities = Activity.objects.all().order_by('-date')
 
     activities = list(chain(
-                                Activity.objects.filter(end=None).order_by('-start'),
+                                Activity.objects.filter(end=None).filter(start=None).exclude(pk=Activity.get_normal_sale().pk),
+                                Activity.objects.filter(end=None).exclude(start=None).order_by('-start'),
+                                [Activity.get_normal_sale()],
                                 Activity.objects.exclude(end=None).order_by('-end')))
 
     resp = admin_user_data_dict(request)
@@ -377,6 +378,7 @@ def admin_user_reset(request):
     user.save()
     return HttpResponse(status=200, content="User passcode reset")
 
+
 @ajax_required
 @permission_required('pos.admin')
 def admin_user_data(request):
@@ -390,6 +392,12 @@ def admin_user_data_dict(request):
 
     purchases = purchases.filter(valid=True)
 
+    res = admin_purchase_qset_to_dict(purchases)
+    res['user'] = user
+    return res
+
+
+def admin_purchase_qset_to_dict(purchase_qset):
     vals = {'CANDYBIG':    0,
             'CANDYSMALL':  0,
             'BEER':        0,
@@ -398,13 +406,12 @@ def admin_user_data_dict(request):
             'BREAD':       0,
             'SAUSAGE':     0,
             'BAPAO':       0,
-            'DIGITAL':      0,
+            'DIGITAL':     0,
     }
-    for purchase in purchases:
+    for purchase in purchase_qset:
         vals[purchase.product] += purchase.price
 
-    return {'user': user,
-            'candybigcount':     vals['CANDYBIG'],
+    return {'candybigcount':     vals['CANDYBIG'],
             'candysmallcount':   vals['CANDYSMALL'],
             'beercount':         vals['BEER'],
             'cancount':          vals['CAN'],
@@ -413,21 +420,64 @@ def admin_user_data_dict(request):
             'sausagecount':      vals['SAUSAGE'],
             'bapaocount':        vals['BAPAO'],
 
-            'kruisjes': -vals['DIGITAL'],
-            'price': -vals['DIGITAL'] * EXCHANGE,
+            'kruisjes': -vals['DIGITAL']
             }
 
 
 @permission_required('pos.admin')
 @ajax_required
 def admin_activity_list(request):
-    activities = Activity.objects.all().order_by('-start')
-    return render_to_response('admin/activity/activity_list.html', {'activities': activities}, context_instance=RequestContext(request))
+    invalid = Activity.objects.filter(end=None).filter(start=None).exclude(pk=Activity.get_normal_sale().pk)
+    active = list(chain(Activity.objects.filter(end=None).exclude(start=None).order_by('-start'), [Activity.get_normal_sale()]))
+    done = Activity.objects.exclude(end=None).order_by('-end')
+
+    return render_to_response('admin/activity/activity_list.html', {'invalid': invalid, 'active': active, 'done': done}, context_instance=RequestContext(request))
+
+
+@permission_required('pos.admin')
+@ajax_required
+def admin_activity_edit(request):
+    regsale = Activity.get_normal_sale()
+    act = Activity.objects.get(pk=request.POST['id'])
+
+    if act.pk == regsale.pk:
+        return HttpResponse(status=409, content='Changing regular sale is not permitted')
+
+    act.name = request.POST['name']
+    act.responsible = request.POST['responsible']
+    act.note = request.POST['note']
+    if request.POST['start'] != ' ':
+        act.start = datetime.datetime.strptime(request.POST['start'], '%d/%m/%Y %H:%M')
+    else:
+        act.start = None
+
+    if request.POST['end'] != ' ':
+        act.end = datetime.datetime.strptime(request.POST['end'], '%d/%m/%Y %H:%M')
+    else:
+        act.end = None
+
+    act.save()
+    return HttpResponse(status=200)
+
+
+@permission_required('pos.admin')
+@ajax_required
+def admin_activity_delete(request):
+    activity = Activity.objects.get(pk=request.POST['id'])
+    if Purchase.objects.filter(activity=activity).exists():
+        return HttpResponse(status=409, content="Can't delete activity with purchases.")
+    activity.delete()
+    return HttpResponse(status=200)
+
 
 
 @permission_required('pos.admin')
 @ajax_required
 def admin_activity_list_new(request):
+    if request.POST['name'] == "":
+        return HttpResponse(status=409, content="Name must not be empty")
+        #TODO: [a-z0-9][a-z0-9 ]*[a-z0-9] match.
+
     Activity(name=request.POST['name']).save()
     return HttpResponse(status=200)
 
@@ -436,7 +486,10 @@ def admin_activity_list_new(request):
 @permission_required('pos.admin')
 def admin_activity_options(request):
     activity = Activity.objects.get(pk=request.GET['activity'])
-    return render_to_response('admin/activity/activity_content.html', {'activity': activity}, context_instance=RequestContext(request))
+    purchases = Purchase.objects.filter(activity=activity).filter(valid=True)
+    params = admin_purchase_qset_to_dict(purchases)
+    params['activity'] = activity
+    return render_to_response('admin/activity/activity_content.html', params, context_instance=RequestContext(request))
 
 
 @permission_required('pos.admin')
@@ -445,7 +498,7 @@ def admin_undo_dialog(request):
     user_id = request.GET['user']
     purchases = Purchase.objects.filter(user=user_id).order_by('-date')
     user_name = User.objects.get(pk=user_id).name
-    return render_to_response("undodialog.html", {'user_name': user_name, 'user_id': user_id, 'purchases': purchases, 'purchases_old': purchases_old}, context_instance=RequestContext(request))
+    return render_to_response("undodialog.html", {'user_name': user_name, 'user_id': user_id, 'purchases': purchases, 'purchases_old': None, 'admin': True}, context_instance=RequestContext(request))
 
 
 @permission_required('pos.admin')

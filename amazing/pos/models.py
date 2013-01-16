@@ -128,7 +128,7 @@ class Activity(models.Model):
 
     @staticmethod
     def get_active():
-        acts = Activity.objects.exclude(end__lt=datetime.datetime.now()).order_by('-start')
+        acts = Activity.objects.exclude(end__lt=datetime.datetime.now()).exclude(start=None).order_by('-start')
         if acts.exists():  # return the running activity that was started last
             return acts[0]
         else:
@@ -144,7 +144,7 @@ class Activity(models.Model):
         normal.end = None
         normal.save()
 
-    name = models.CharField(max_length=255)
+    name = models.CharField(max_length=255, blank=False)
     responsible = models.CharField(max_length=255, blank=True)
     note = models.CharField(max_length=255, blank=True)
     start = models.DateTimeField(null=True, blank=True)

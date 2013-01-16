@@ -61,7 +61,7 @@ HR{
 }
 
 .halfwidebutton{
-    width: 102px;
+    width: 100px;
     margin: 0;
 }
 
@@ -92,6 +92,18 @@ HR{
 .rightdetail label{
 	width:150px;
 	display:inline-block;
+}
+
+#activityselect p{
+    padding: 3px;
+    width: 90%;
+    text-align: center;
+    font-size: 15px;
+    font-weight: bold;
+}
+
+#activity_tab ul{
+    margin-bottom: 0;
 }
 
 label[for="activate"], label[for="deactivate"]{
