@@ -1,18 +1,34 @@
-<p>Incomplete</p>
+<p>&dArr; Incomplete &dArr;</p>
+{%if invalid%}
 {%for activity in invalid%}       
     <input class="activitybutton-input" type="radio" id="activity-{{activity.pk}}" name="activitybutton" />
     <label class="userbuttonstyle activitybutton" for="activity-{{activity.pk}}">{{activity.name}}</label>
 {%endfor%}
+{%else%}
+<p> { none } </p>
+{%endif%}
+
 <hr/>
-<p>Active</p>
+
+<p>&dArr; Active &dArr;</p>
+{%if active%}
 {%for activity in active%}       
     <input class="activitybutton-input" type="radio" id="activity-{{activity.pk}}" name="activitybutton" />
     <label class="userbuttonstyle activitybutton" for="activity-{{activity.pk}}">{{activity.name}}</label>
 {%endfor%}
-<hr/>
-<p>Done</p>
+{%else%}
+<p> { none } </p>
+{%endif%}
 
+<hr/>
+
+<p>&dArr; Done &dArr;</p>
+
+{%if done%}
 {%for activity in done%}       
     <input class="activitybutton-input" type="radio" id="activity-{{activity.pk}}" name="activitybutton" />
     <label class="userbuttonstyle activitybutton" for="activity-{{activity.pk}}">{{activity.name}}</label>
 {%endfor%}
+{%else%}
+<p> { none } </p>
+{%endif%}

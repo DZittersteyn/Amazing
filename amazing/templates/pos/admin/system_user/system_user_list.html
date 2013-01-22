@@ -1,0 +1,5 @@
+
+{%for user in systemusers%}		
+	<input class="systemuserbutton-input" type="radio" id="systemuser-{{user.pk}}" name="userbutton" />
+    <label class="systemuserbutton userbuttonstyle" for="systemuser-{{user.pk}}">{{user.username}}</label>
+{%endfor%}

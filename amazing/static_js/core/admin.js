@@ -280,7 +280,7 @@ activity_tab = {
 				activity['start'] = $('#activity_start_date').val() + " " +$('#activity_start_time').val();
 				activity['end'] = $('#activity_end_date').val() + " " +$('#activity_end_time').val();
 				$.post('activity/edit', activity, function(){
-					activity_tab.reload_activitylist();
+					activity_tab.reload_activitylist(true);
 					activity_tab.activity_options.load(activity_tab.selected_activity());
 				}).error(function(jqXHR){
 					alert(jqXHR.responseText);
@@ -325,8 +325,8 @@ activity_tab = {
 	},
 
 
-	reload_activitylist: function(refresh){
-		refresh = typeof refresh !== 'undefined' ? refresh : false;
+	reload_activitylist: function(reclick){
+		reclick = typeof reclick !== 'undefined' ? reclick : false;
 
 		var selected = activity_tab.selected_activity();
 
@@ -334,7 +334,7 @@ activity_tab = {
 			$('#activityselect').html(data);
 		}).success(function(){
 			$('.activitybutton-input').button();
-			if(refresh){
+			if(reclick){
 				$('#activity-' +selected).button().click();
 			}
 		});
@@ -358,6 +358,113 @@ inventory_tab = {
 
 system_user_tab = {
 	setup: function(){
+
+		$('#system_user_tab').on('click', '.systemuserbutton-input', function(){
+			system_user_tab.system_user_options.load($(this).prop('id').split('-')[1]);
+		});
+		system_user_tab.reload_system_user_list();
+		$('#add_system_user').button().click(function(e){
+			e.preventDefault();
+			$.post('system_user/new', {'name': $('#new_system_user_name').val(), 'password': $('#new_system_user_password').val()}, function(){
+				$('#new_system_user_name').val('');
+				$('#new_system_user_password').val('');
+				system_user_tab.reload_system_user_list();
+			}).error(function(jqXHR){
+				alert(jqXHR.responseText);
+			});
+		});
+	},
+
+	selected_system_user: function(){
+		if ($('.systemuserbutton-input:checked').length){
+			return $('.systemuserbutton-input:checked').prop('id').split('-')[1];
+		}
+	},
+
+	reload_system_user_list: function(reclick){
+		reclick = typeof reclick !== 'undefined' ? reclick : false;
+
+		var selected = system_user_tab.selected_system_user();
+
+		$.get('system_user/list', function(data){
+			$('#systemuserselect').html(data);
+		}).success(function(){
+			$('.systemuserbutton-input').button();
+			if(reclick){
+				$('#systemuser-' +selected).button().click();
+			}
+		});
+	},
+
+	system_user_options: {
+
+		load: function(id){
+			$.get('system_user/user', {'user': id}, function(data){
+				$('#system_user_options').html(data);
+			});
+		},
+
+
+		setup: function(){
+
+			$('#system_user_tab').on('keyup', '.leftpane input[type=password]', function(){
+				var field = $(this);
+				if( $(this).val() === ""){
+					field.removeClass('ui-state-highlight');
+					field.next().addClass('hidden');
+				}else{
+					field.addClass('ui-state-highlight');
+					field.next().removeClass('hidden');
+				}
+			});
+
+			$('#system_user_tab').on('keyup', '.leftpane input[type=text]', function(){
+				var field = $(this);
+
+				activity = {'system_user' : system_user_tab.selected_system_user()};
+				activity['field'] = field.attr('name');
+				activity['value'] = field.val();
+
+				$.get('consistent', activity, function(data){
+					if(data == "True"){
+						field.removeClass('ui-state-highlight');
+						field.next().addClass('hidden');
+					}else{
+						field.addClass('ui-state-highlight');
+						field.next().removeClass('hidden');
+					}
+				});
+
+			});
+
+			$('#delete_system_user').button().click(function(){
+				$.post('system_user/delete',{'system_user': system_user_tab.selected_system_user()}, function(){
+					system_user_tab.reload_system_user_list(false);
+					$('#system_user_options').html("");
+				}).error(function(jqXHR){
+					alert(jqXHR.responseText);
+				});
+			});
+
+			$('#revertchanges_system_user').button().click(function(){
+				system_user_tab.reload_system_user_list(true);
+			});
+			$('#submitchanges_system_user').button().click(function(){
+				$.post('system_user/edit',{'system_user': system_user_tab.selected_system_user(),
+					'name': $('#system_user_name').val(),
+					'password': $('#system_user_password').val(),
+					'email': $('#system_user_email').val(),
+					'admin': $('#is_admin').is(':checked'),
+					'su': $('#is_su').is(':checked')
+				},
+					function(){
+					system_user_tab.reload_system_user_list(true);
+				}).error(function(jqXHR){
+					alert(jqXHR.responseText);
+				});
+			});
+
+		}
 
 	}
 };

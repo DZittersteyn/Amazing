@@ -47,6 +47,11 @@ urlpatterns = patterns('pos.views',
     url(r'^activity/edit$',      'admin_activity_edit'),
     url(r'^activity/delete$',    'admin_activity_delete'),
 
+    url(r'^system_user/list$',   'admin_system_user_list'),
+    url(r'^system_user/user$',   'admin_system_user_options'),
+    url(r'^system_user/new$',    'admin_system_user_new'),
+    url(r'^system_user/delete$', 'admin_system_user_delete'),
+    url(r'^system_user/edit$',   'admin_system_user_edit'),
 
     url(r'^adminexportcontent$', 'admin_exportcontent'),
     url(r'^adminmanageexport$',  'admin_manage_export'),

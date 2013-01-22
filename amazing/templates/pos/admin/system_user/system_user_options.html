@@ -1,0 +1,32 @@
+<div class="leftpane">
+
+  <p><label>User name:        </label> <input type="text"     name="username"  id="system_user_name"      value="{{systemuser.username}}" />          
+  <img class='hidden changedalert' src='{{STATIC_URL}}/exclaim.png'/> </p>
+  <p><label>Password:         </label> <input type="password" name="password"  id="system_user_password"  value="" placeholder="New password?" />   
+  <img class='hidden changedalert' src='{{STATIC_URL}}/exclaim.png'/> </p>
+  <p><label>Email:            </label> <input type="text"     name="email"     id="system_user_email"     value="{{systemuser.email}}" />          
+  <img class='hidden changedalert' src='{{STATIC_URL}}/exclaim.png'/> </p>
+  
+  <p><label>Is admin:         </label> <input type="checkbox" name="admin" id="is_admin" name="is_admin" {% if is_admin %} checked="checked"{%endif%} />  </p>
+  
+
+  <hr />
+  <p>Staff rights are enough to use all options of the system, please only enable this if you know what you are doing.</p>
+  <p><label>Is superuser:     </label> <input type="checkbox" name="su" id="is_su" name="is_su" {% if is_su %} checked="checked"{%endif%} />  </p>
+
+  <hr/>
+  
+  <label>&nbsp;           </label> <button class='widebutton ui-state-error' id="delete_system_user">Delete</button> 
+  
+  <hr/>
+  <label>&nbsp;           </label> <button class='halfwidebutton' id="revertchanges_system_user">Revert</button> <button class='halfwidebutton' id="submitchanges_system_user">Save</button>
+
+
+</div>
+
+
+<script type='text/javascript'>
+  $(function() {
+      system_user_tab.system_user_options.setup();
+  });
+</script>

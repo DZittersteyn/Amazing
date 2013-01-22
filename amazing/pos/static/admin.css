@@ -13,7 +13,7 @@ label{
 }
 
 
-.rightdetail input[type=text], .rightdetail input[type=number], .rightdetail select{
+.rightdetail input[type=text], .rightdetail input[type=number], .rightdetail input[type=password], .rightdetail select{
 	margin: 1px;
 	width: 200px;
     height: 18px;

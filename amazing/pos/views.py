@@ -9,6 +9,7 @@ from django.http import HttpResponseRedirect
 from django.contrib import auth
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth.decorators import permission_required
+from django.contrib.admin.views.decorators import staff_member_required
 
 from django.core.servers.basehttp import FileWrapper
 
@@ -33,7 +34,7 @@ def ajax_required(f):
 
 def user_auth_required(f):
     def wrap(request, *args, **kwargs):
-        if(request.user.has_perm('pos.admin')):
+        if(request.user.is_staff):
             return f(request, *args, **kwargs)
         if 'user' in request.REQUEST:
             user = User.objects.get(pk=request.REQUEST['user'])
@@ -103,8 +104,10 @@ def field_consistent(request):
         obj = User.objects.get(pk=request.REQUEST['user'])
     elif 'activity' in request.REQUEST:
         obj = Activity.objects.get(pk=request.REQUEST['activity'])
+    elif 'system_user' in request.REQUEST:
+        obj = auth.models.User.objects.get(pk=request.REQUEST['system_user'])
     else:
-        return HttpResponse(status=405, content='only user and activity are supported in field_consistent')
+        return HttpResponse(status=405, content='only user, system_user and activity are supported in field_consistent')
 
     field = request.REQUEST['field']
     value = None
@@ -113,14 +116,11 @@ def field_consistent(request):
         if "_date" in request.REQUEST['field']:
             field = field[:field.find('_date')]
             value = getattr(obj, field).strftime('%d/%m/%Y')
-            print('a')
         elif "_time" in request.REQUEST['field']:
             field = field[:field.find('_time')]
             value = getattr(obj, field).strftime('%H:%M')
-            print('b')
         else:
             value = getattr(obj, field)
-            print('c')
     except AttributeError:
         value = ""
 
@@ -315,7 +315,7 @@ def user(request):
                 return HttpResponse(status=409, content='Insufficient credit')
 
 
-@permission_required('pos.admin')
+@staff_member_required
 def admin(request):
     print(Export.objects.all())
     print(Activity.objects.all())
@@ -323,7 +323,7 @@ def admin(request):
 
 
 @ajax_required
-@permission_required('pos.admin')
+@staff_member_required
 def admin_user_options(request):
     user = User.objects.get(pk=request.REQUEST['user'])
 
@@ -345,7 +345,7 @@ def admin_user_options(request):
 
 
 @ajax_required
-@permission_required('pos.admin')
+@staff_member_required
 def admin_user_deactivate(request):
     user = User.objects.get(pk=request.REQUEST['user'])
     user.active = False
@@ -354,7 +354,7 @@ def admin_user_deactivate(request):
 
 
 @ajax_required
-@permission_required('pos.admin')
+@staff_member_required
 def admin_user_activate(request):
     user = User.objects.get(pk=request.REQUEST['user'])
     user.active = True
@@ -363,14 +363,14 @@ def admin_user_activate(request):
 
 
 @ajax_required
-@permission_required('pos.admin')
+@staff_member_required
 def admin_user_list(request):
     users = User.objects.all().extra(select={'lower_name': 'lower(name)'}).order_by('lower_name')
     return render_to_response('admin/user/user_list.html', {'users': users}, context_instance=RequestContext(request))
 
 
 @ajax_required
-@permission_required('pos.admin')
+@staff_member_required
 def admin_user_reset(request):
     user = User.objects.get(pk=request.REQUEST['user'])
     user.has_passcode = False
@@ -380,7 +380,7 @@ def admin_user_reset(request):
 
 
 @ajax_required
-@permission_required('pos.admin')
+@staff_member_required
 def admin_user_data(request):
     return render_to_response('admin/user/userdata.html', admin_user_data_dict(request), context_instance=RequestContext(request))
 
@@ -424,7 +424,7 @@ def admin_purchase_qset_to_dict(purchase_qset):
             }
 
 
-@permission_required('pos.admin')
+@staff_member_required
 @ajax_required
 def admin_activity_list(request):
     invalid = Activity.objects.filter(end=None).filter(start=None).exclude(pk=Activity.get_normal_sale().pk)
@@ -434,7 +434,7 @@ def admin_activity_list(request):
     return render_to_response('admin/activity/activity_list.html', {'invalid': invalid, 'active': active, 'done': done}, context_instance=RequestContext(request))
 
 
-@permission_required('pos.admin')
+@staff_member_required
 @ajax_required
 def admin_activity_edit(request):
     regsale = Activity.get_normal_sale()
@@ -460,18 +460,17 @@ def admin_activity_edit(request):
     return HttpResponse(status=200)
 
 
-@permission_required('pos.admin')
+@staff_member_required
 @ajax_required
 def admin_activity_delete(request):
     activity = Activity.objects.get(pk=request.POST['id'])
-    if Purchase.objects.filter(activity=activity).exists():
+    if Purchase.objects.filter(activity=activity).filter(valid=True).exists():
         return HttpResponse(status=409, content="Can't delete activity with purchases.")
     activity.delete()
     return HttpResponse(status=200)
 
 
-
-@permission_required('pos.admin')
+@staff_member_required
 @ajax_required
 def admin_activity_list_new(request):
     if request.POST['name'] == "":
@@ -483,7 +482,7 @@ def admin_activity_list_new(request):
 
 
 @ajax_required
-@permission_required('pos.admin')
+@staff_member_required
 def admin_activity_options(request):
     activity = Activity.objects.get(pk=request.GET['activity'])
     purchases = Purchase.objects.filter(activity=activity).filter(valid=True)
@@ -492,7 +491,56 @@ def admin_activity_options(request):
     return render_to_response('admin/activity/activity_content.html', params, context_instance=RequestContext(request))
 
 
-@permission_required('pos.admin')
+@staff_member_required
+@ajax_required
+def admin_system_user_list(request):
+    systemusers = auth.models.User.objects.all()
+    return render_to_response('admin/system_user/system_user_list.html', {'systemusers': systemusers}, context_instance=RequestContext(request))
+
+
+@staff_member_required
+@ajax_required
+def admin_system_user_options(request):
+    user = auth.models.User.objects.get(pk=request.GET['user'])
+    return render_to_response('admin/system_user/system_user_options.html', {'systemuser': user, 'is_admin': user.is_staff, 'is_su': user.is_superuser}, context_instance=RequestContext(request))
+
+
+@staff_member_required
+@ajax_required
+def admin_system_user_new(request):
+    if request.POST['name'] != '' and request.POST['password'] != '':
+        user = auth.models.User.objects.create_user(username=request.POST['name'], password=request.POST['password'])
+        user.save()
+        return HttpResponse(status=200)
+    else:
+        return HttpResponse(status=409, content='Username or password was empty')
+
+
+@staff_member_required
+@ajax_required
+def admin_system_user_edit(request):
+    user = auth.models.User.objects.get(pk=request.POST['system_user'])
+    user.username = request.POST['name']
+    user.email = request.POST['email']
+    user.set_password(request.POST['password'])
+    user.is_staff =  request.POST['admin'] == 'true'
+    user.is_superuser = request.POST['su'] == 'true'
+    user.save()
+    return HttpResponse(status=200)
+
+
+@staff_member_required
+@ajax_required
+def admin_system_user_delete(request):
+    user = auth.models.User.objects.get(pk=request.POST['system_user'])
+    if user == request.user:
+        return HttpResponse(status=409, content='You can not delete yourself')
+    else:
+        user.delete()
+        return HttpResponse(status=200)
+
+
+@staff_member_required
 @ajax_required
 def admin_undo_dialog(request):
     user_id = request.GET['user']
@@ -501,7 +549,7 @@ def admin_undo_dialog(request):
     return render_to_response("undodialog.html", {'user_name': user_name, 'user_id': user_id, 'purchases': purchases, 'purchases_old': None, 'admin': True}, context_instance=RequestContext(request))
 
 
-@permission_required('pos.admin')
+@staff_member_required
 @ajax_required
 def admin_exportcontent(request):
     purchases = Purchase.objects.all()
@@ -520,7 +568,7 @@ def admin_exportcontent(request):
     return render_to_response('admin/export/export_content.html', {'exports': Export.objects.all()}, context_instance=RequestContext(request))
 
 
-@permission_required('pos.admin')
+@staff_member_required
 @ajax_required
 def admin_manage_export(request):
     export = Export.objects.get(pk=request.REQUEST['export'])
@@ -542,7 +590,7 @@ def admin_manage_export(request):
             return HttpResponse(status=200, content='<button class="downloadbutton" id="export-' + str(export.pk) + '">Download</button>')
 
 
-@permission_required('pos.admin')
+@staff_member_required
 def get_export(request, pk):
     export = Export.objects.get(pk=pk)
     response = HttpResponse(FileWrapper(open(export.filename, 'r')), content_type='text/csv', mimetype='application/x-download')
@@ -550,6 +598,7 @@ def get_export(request, pk):
     return response
 
 
+@staff_member_required
 def generate_export(export):
     num_todo = Purchase.objects.all().count()
     num_done = 0
@@ -589,3 +638,9 @@ def generate_export(export):
         pass
     export.done = True
     export.save()
+
+
+@staff_member_required
+@ajax_required
+def systemuser(request):
+    pass
