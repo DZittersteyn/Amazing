@@ -6,7 +6,7 @@ urlpatterns = patterns('pos.views',
 
     url(r'^$', 'index'),
     url(r'^index.html$',         'index'),
-    url(r'^login.html$',         'login'),
+    url(r'login.html$',         'login'),
     url(r'^logout.html$',        'logout'),
     url(r'^filtereduserlist$',   'filtereduserlist'),
     url(r'^userlist.html$',      'userlist'),

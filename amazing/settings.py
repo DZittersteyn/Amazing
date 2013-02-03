@@ -10,14 +10,14 @@ ADMINS = (
 MANAGERS = ADMINS
 
 DATABASES = {
-'default': {
-'ENGINE': 'django.db.backends.sqlite3', # Add 'postgresql_psycopg2', 'postgresql', 'mysql', 'sqlite3' or 'oracle'.
-'NAME': '/Users/dirk/Documents/Amazing/amazing/database',                      # Or path to database file if using sqlite3.
-'USER': '',                 # Not used with sqlite3.
-'PASSWORD': '',             # Not used with sqlite3.
-'HOST': '',                 # Set to empty string for localhost. Not used with sqlite3.
-'PORT': '',                      # Set to empty string for default. Not used with sqlite3.
-}
+    'default': {
+        'ENGINE': 'django.db.backends.sqlite3',  # Add 'postgresql_psycopg2', 'postgresql', 'mysql', 'sqlite3' or 'oracle'.
+        'NAME': '/Users/dirk/Documents/Amazing/amazing/database',                      # Or path to database file if using sqlite3.
+        'USER': '',                 # Not used with sqlite3.
+        'PASSWORD': '',             # Not used with sqlite3.
+        'HOST': '',                 # Set to empty string for localhost. Not used with sqlite3.
+        'PORT': '',                      # Set to empty string for default. Not used with sqlite3.
+    }
 }
 
 # Local time zone for this installation. Choices can be found here:
@@ -58,21 +58,21 @@ MEDIA_URL = ''
 ADMIN_MEDIA_PREFIX = '/media/'
 
 # Make this unique, and don't share it with anybody.
+# TODO: Change this before going into production. Obviously.
 SECRET_KEY = 'dtd=w6l^12%e6$=#3qqf1!z$r3eqv3zij-ayhmum#ddflw2-qk'
 
 # List of callables that know how to import templates from various sources.
 TEMPLATE_LOADERS = (
-'django.template.loaders.filesystem.Loader',
-'django.template.loaders.app_directories.Loader',
-#     'django.template.loaders.eggs.Loader',
+#'django.template.loaders.filesystem.Loader',
+    'django.template.loaders.app_directories.Loader',
 )
 
 MIDDLEWARE_CLASSES = (
-'django.middleware.common.CommonMiddleware',
-'django.contrib.sessions.middleware.SessionMiddleware',
-'django.middleware.csrf.CsrfViewMiddleware',
-'django.contrib.auth.middleware.AuthenticationMiddleware',
-'django.contrib.messages.middleware.MessageMiddleware',
+    'django.middleware.common.CommonMiddleware',
+    'django.contrib.sessions.middleware.SessionMiddleware',
+    'django.middleware.csrf.CsrfViewMiddleware',
+    'django.contrib.auth.middleware.AuthenticationMiddleware',
+    'django.contrib.messages.middleware.MessageMiddleware',
 )
 TEMPLATE_CONTEXT_PROCESSORS = (
     'django.core.context_processors.debug',
@@ -85,10 +85,7 @@ TEMPLATE_CONTEXT_PROCESSORS = (
 ROOT_URLCONF = 'amazing.urls'
 
 TEMPLATE_DIRS = (
-'/Users/dirk/Documents/Amazing/amazing',
-'/Users/dirk/Documents/Amazing/amazing/templates',
-'/Users/dirk/Documents/Amazing/amazing/templates/pos',
-
+    '/Users/dirk/Documents/Amazing/amazing/',
 )
 
 LOGIN_URL = 'login.html'
@@ -98,22 +95,22 @@ STATIC_ROOT = "/Users/dirk/Documents/Amazing/amazing/static/"
 STATIC_URL = "/static/"
 
 STATICFILES_DIRS = (
-	'/Users/dirk/Documents/Amazing/amazing/static_css',
-	'/Users/dirk/Documents/Amazing/amazing/static_js',
-	'/Users/dirk/Documents/Amazing/amazing/static_img',
+    '/Users/dirk/Documents/Amazing/amazing/static_css',
+    '/Users/dirk/Documents/Amazing/amazing/static_js',
+    '/Users/dirk/Documents/Amazing/amazing/static_img',
 )
 
 
 INSTALLED_APPS = (
-'pos',
-'django.contrib.staticfiles',
-'django.contrib.auth',
-'django.contrib.contenttypes',
-'django.contrib.sessions',
-'django.contrib.sites',
-'django.contrib.messages',
-# Uncomment the next line to enable the admin:
-#'django.contrib.admin',
-# Uncomment the next line to enable admin documentation:
-# 'django.contrib.admindocs',
+    'pos',
+    'django.contrib.staticfiles',
+    'django.contrib.auth',
+    'django.contrib.contenttypes',
+    'django.contrib.sessions',
+    'django.contrib.sites',
+    'django.contrib.messages',
+    # Uncomment the next line to enable the admin:
+    #'django.contrib.admin',
+    # Uncomment the next line to enable admin documentation:
+    # 'django.contrib.admindocs',
 )

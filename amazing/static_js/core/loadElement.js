@@ -164,7 +164,14 @@ edit_user_dialog = {
 			autoOpen: false,
 			minWidth: 740,
 			title: 'Wijzig gebruiker',
-			buttons: [{
+			buttons: [
+			{
+				text: "Annuleer",
+				click: function(){
+					edit_user_dialog.unload();
+				}
+			},
+			{
 				text: "Sla op",
 				click: function(){
 					if(user_dialog.check_fields()){
@@ -190,13 +197,9 @@ edit_user_dialog = {
 						});
 					}
 				}
-			},
-			{
-				text: "Annuleer",
-				click: function(){
-					edit_user_dialog.unload();
-				}
-			}]
+			}
+
+			]
 		});
 
 		site_gui.init_on_screen_keyboards();
@@ -227,7 +230,9 @@ undo_dialog = {
 				site_user.update_user();
 			}else if($('#user_data').size()){ //admin panel
 				user = user_tab.selected_user();
-				$('#user_data').load('admin_userdata', {'user': user, 'activity': $('#activities').val()});
+
+				user_tab.user_options.reload_user();
+				//$('#user_data').load('admin_userdata', {'user': user, 'activity': $('#activities').val()});
 			}
 
 			$('#purchaseli-'+purchaseid).html(data);
@@ -339,6 +344,9 @@ buy_line_dialog = {
 					buy_line_dialog.unload();
 				},
 				buttons: {
+					Annuleer: function(){
+						buy_line_dialog.unload();
+					},
 					Machtiging: function(){
 						$.post('user/', { 'user'       : site_user.selected_user_id(),
 															'passcode'   : site_user.selected_user_pc(),
@@ -351,9 +359,6 @@ buy_line_dialog = {
 							site_user.update_user();
 							buy_line_dialog.unload();
 						});
-					},
-					Annuleer: function(){
-						buy_line_dialog.unload();
 					}
 				}
 			}).dialog('open');

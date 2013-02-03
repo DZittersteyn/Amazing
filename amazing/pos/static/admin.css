@@ -12,11 +12,25 @@ label{
     height: 29px;
 }
 
-
 .rightdetail input[type=text], .rightdetail input[type=number], .rightdetail input[type=password], .rightdetail select{
 	margin: 1px;
 	width: 200px;
     height: 18px;
+}
+
+input[disabled]{
+    background-color: #ddd;
+}
+
+
+.rightdetail .smallfield{
+    display:inline-block;
+    width: 30px !important;
+}
+
+.rightdetail .smallcomp{
+    display: inline-block;
+    width: 120px !important;
 }
 
 thead th{

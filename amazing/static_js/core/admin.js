@@ -87,24 +87,51 @@ user_tab = {
 	user_options : {
 
 		reload_user: function(){
-			$.get('adminoptions', {'user': user_tab.selected_user()}, function(data){
+			var user = user_tab.selected_user();
+			var act = $('#activities').val();
+
+			$.get('adminoptions', {'user': user}, function(data){
 				$('#useroptions').html(data);
+				$('#activities').val(act);
+				$('#activities').change();
 			});
 		},
 
 		setup: function(){
 			$('#commit_purchase').button().button('disable').click(function(){
 				purchase = user_tab.get_auth();
-				purchase['type'] = 'product';
 				purchase['activity'] = $('#activities').val();
 				purchase['admin'] = 'admin';
-				$('.valuefield').each(function(){
+				
+				purchase['type'] = 'product';
+				$('.valuefield.product').each(function(){
 					purchase['productID'] = this.id;
 					purchase['amount'] = this.value;
+					this.value = 0;
+					$.post('user/', purchase);
+				});
+				
+				purchase['type'] = 'credit';
+				$('.valuefield.credit').each(function(){
+					purchase['credittype'] = this.id;
+					purchase['amount'] = this.value;
+					this.value = 0;
 					$.post('user/', purchase);
 				});
 			});
-		
+			
+			$('#user_data').on('keyup', '.valuefield', function(){
+				var field = $(this);
+
+				if(field.val() === "0"){
+					field.removeClass('ui-state-highlight');
+					field.next().addClass('hidden');
+				}else{
+					field.addClass('ui-state-highlight');
+					field.next().removeClass('hidden');
+				}
+			
+			});
 
 			$('#setactive').buttonset();
 			$('#activate').click(function(){
@@ -132,8 +159,14 @@ user_tab = {
 				$('#user_data').load('admin_userdata', {'user': user, 'activity': $('#activities').val()}, function(){
 					if($('#activities').val() == 'all'){
 						$('#commit_purchase').button('disable').children().html('Select an activity');
+						$('.valuefield').each(function(){
+							this.disabled=true;
+						});
 					}else{
 						$('#commit_purchase').button('enable').children().html('Purchase in activity "<span class="actlabel"></span>"');
+						$('.valuefield').each(function(){
+							this.disabled=false;
+						});
 					}
 					$('.actlabel').html($('#activities option:selected').text());
 				});
@@ -358,6 +391,7 @@ inventory_tab = {
 
 system_user_tab = {
 	setup: function(){
+		
 
 		$('#system_user_tab').on('click', '.systemuserbutton-input', function(){
 			system_user_tab.system_user_options.load($(this).prop('id').split('-')[1]);

@@ -3,10 +3,10 @@ import datetime
 import os
 import json
 
-
 from django.db import models
 from django.core.exceptions import ObjectDoesNotExist
 from django.core import serializers
+
 
 EXCHANGE = 0.55  # Price of one credit in Euros. Positive float.
 
@@ -19,14 +19,12 @@ PRODUCTS = {  # price is in CREDITS! always a positive integer
             'SAUSAGE':    {'price': 1, 'desc': 'Broodje rookworst'},
             'BAPAO':      {'price': 1, 'desc': 'Bapao'},
             'BREAD':      {'price': 1, 'desc': 'Broodje beleg'},
-            'ADMIN':      {'price': 1, 'desc': 'Door admin gezet'},
             }
 
 
 CREDITS = {  # price is in CREDITS! always a negative integer.
              # editor beware, -2 means a user gets 2 credits per EXCHANGE euro.
              # Don't know why you would want this, but it's in there anyways ;)
-            'CASH':    {'price': -1, 'desc': 'Cash kruisje'},
             'DIGITAL': {'price': -1, 'desc': 'Gemachtigd kruisje'},
             'ADMIN':   {'price': -1, 'desc': 'Admin kruisje'},
             }
@@ -42,49 +40,54 @@ class User(models.Model):
         data[0]['fields']['pk'] = data[0]['pk']
         return data[0]['fields']
 
-    def buy_credit(self, type, amount):
-        if type in CREDITS:
-            if type == 'DIGITAL':
+    def buy_credit(self, type, amount, activity, admin=False):
+        if amount > 0:
+            if type in CREDITS:
+                price = CREDITS[type]['price']
+                if type == 'DIGITAL':
+                    filename = " ".join([self.name, datetime.datetime.now().strftime("%Y %m %d-%H %M %S")]).replace(" ", "_") + ".pdf"
+                    # url = "http://www.svcover.nl/incasso/api"
+                    # dataDict = {
+                    #            'app': 'awesome',
+                    #            'bedrag': amount * EXCHANGE,
+                    #            'omschrijving': str(amount) + " kruisjes kopen via amazing",
+                    #            'naam': self.name,
+                    #            'adres': self.address,
+                    #            'woonplaats': self.city,
+                    #            'rekeningnummer': self.bank_account,
+                    #            }
+                    #if self.email != "":
+                    #    dataDict['email'] = self.email
+                    #data = urllib.urlencode(dataDict)
 
-                filename = " ".join([self.name, datetime.datetime.now().strftime("%Y %m %d-%H %M %S")]).replace(" ", "_") + ".pdf"
-                # url = "http://www.svcover.nl/incasso/api"
-                # dataDict = {
-                #            'app': 'awesome',
-                #            'bedrag': amount * EXCHANGE,
-                #            'omschrijving': str(amount) + " kruisjes kopen via amazing",
-                #            'naam': self.name,
-                #            'adres': self.address,
-                #            'woonplaats': self.city,
-                #            'rekeningnummer': self.bank_account,
-                #            }
-                #if self.email != "":
-                #    dataDict['email'] = self.email
-                #data = urllib.urlencode(dataDict)
+                    #print(data)
 
-                #print(data)
+                    #outfile = open(filename, 'wb')
+                    #try:
+                    #    infile = urllib2.urlopen(url,data)
+                    #except URLError:
+                    #    print ("urlerror")
+                    #    return False
+                    #shutil.copyfileobj(infile.fp, outfile)
+                    #outfile.close()
+                    #infile.close()
 
-                #outfile = open(filename, 'wb')
-                #try:
-                #    infile = urllib2.urlopen(url,data)
-                #except URLError:
-                #    print ("urlerror")
-                #    return False
-                #shutil.copyfileobj(infile.fp, outfile)
-                #outfile.close()
-                #infile.close()
+                    # TODO: Print
 
-                # TODO: Print
+                    Purchase(date=datetime.datetime.now(), user=self, product=type, price=price * amount, activity=activity, assoc_file=filename).save()
 
-                Purchase(date=datetime.datetime.now(), user=self, product=type, price=CREDITS[type]['price'] * amount, activity=Activity.get_active(), assoc_file=filename).save()
-
-                return True
+                    return True
+                elif type == 'ADMIN':
+                    Purchase(date=datetime.datetime.now(), user=self, product=type, price=price * amount, activity=activity, admin=True).save()
+                    return True
+                else:
+                    return False
             else:
                 return False
         else:
-            return False
+            return True
 
     def buy_item(self, item, amount, activity, admin=False):
-        print(admin)
         if item != None and self.get_credit() >= PRODUCTS[item]['price'] * amount or admin == True:
             for i in range(amount):
                 Purchase(date=datetime.datetime.now(), user=self, product=item, price=PRODUCTS[item]['price'], activity=activity, admin=admin).save()
@@ -161,7 +164,7 @@ class Purchase(models.Model):
         elif self.product in CREDITS:
             return CREDITS[self.product]['desc']
         else:
-            return "UNKNOWN!"
+            return "Unknown ID: " + self.product + "."
 
     @staticmethod
     def csvheader():
@@ -196,9 +199,22 @@ class Purchase(models.Model):
     assoc_file = models.CharField(max_length=255)
 
 
-class Inventory(models.Model):
-    choices = [[PRODUCTS[a]['desc'], a] for a in PRODUCTS.keys()]
-    #item = models.CharField(max_length=30, choices)
+class Product(models.Model):
+    description = models.CharField(max_length=255)
+    barcode = models.CharField(max_length=255)
+    category = models.CharField(max_length=255)
+    # Not a choicefield, as the catagories may change. Were I to do design this from scratch, PRODUCTS and CREDITS would be a database, fixing this issue.
+    amount = models.IntegerField(default=0)
+
+
+class Inventory(models.Model): 
+    # inventory entries modify the current inventory count. 
+    # this can consist of new purchases, or accounting for stock.
+    # A normal sale is also considered a change in inventory, but is not entered
+    # as an Inventory object.
+    description = models.CharField(max_length=255)
+    catagory = models.CharField(max_length=255)
+    modification = models.IntegerField()
 
 
 class Export(models.Model):

@@ -68,31 +68,31 @@ def login(request):
 @login_required
 def logout(request):
     auth.logout(request)
-    return HttpResponseRedirect("login.html")
+    return HttpResponseRedirect('login.html')
 
 
 @login_required
 def index(request):
-    return render_to_response("pos/userselect.html",
-        {'activity': Activity.get_active(), 'mainuser': request.user.username, 'admin': request.user.has_perm('pos.admin')}, context_instance=RequestContext(request))
+    return render_to_response("userselect.html",
+        {'activity': Activity.get_active(), 'mainuser': request.user.username, 'admin': request.user.is_staff}, context_instance=RequestContext(request))
 
 
 @login_required
 @ajax_required
 def passcode(request):
-    return render_to_response("pos/passcode.html", context_instance=RequestContext(request))
+    return render_to_response("passcode.html", context_instance=RequestContext(request))
 
 
 @login_required
 @ajax_required
 def noCredit(request):
-    return render_to_response("pos/noCredit.html", context_instance=RequestContext(request))
+    return render_to_response("noCredit.html", context_instance=RequestContext(request))
 
 
 @login_required
 @ajax_required
 def buyLine(request):
-    return render_to_response("pos/buyLine.html", {'pieceprice': EXCHANGE}, context_instance=RequestContext(request))
+    return render_to_response("buyLine.html", {'pieceprice': EXCHANGE}, context_instance=RequestContext(request))
 
 
 @user_auth_required
@@ -141,7 +141,7 @@ def purchase(request):
 
         if request.POST['valid'] == 'true':
             if purchase.valid == 0:
-                if purchase.user.get_credit() >= price or request.user.has_perm('pos.admin'):
+                if purchase.user.get_credit() >= price or request.user.is_staff:
                     purchase.valid = 1
                     purchase.save()
 
@@ -152,7 +152,7 @@ def purchase(request):
                 return HttpResponse(status=400, content='trying to redo a valid purchase')
         elif request.POST['valid'] == 'false':
             if purchase.valid == 1:
-                if purchase.user.get_credit() >= -price or request.user.has_perm('pos.admin'):
+                if purchase.user.get_credit() >= -price or request.user.is_staff:
                     purchase.valid = 0
                     purchase.save()
 
@@ -171,7 +171,7 @@ def purchase(request):
 @login_required
 @ajax_required
 def purchaselist(request):
-    purchases = Purchase.objects.filter(user=request.REQUEST['user']).order_by('-date')[:20]
+    purchases = Purchase.objects.filter(user=request.REQUEST['user']).order_by('-date')[:40]
     return render_to_response("userdetails.html", {'purchases': purchases, 'map': PRODUCTS}, context_instance=RequestContext(request))
 
 
@@ -180,7 +180,7 @@ def purchaselist(request):
 @ajax_required
 def undo_dialog(request):
     user_id = request.GET['user']
-    if(request.user.has_perm('pos.admin')):
+    if(request.user.is_staff):
         purchases = Purchase.objects.filter(user=user_id).order_by('-date')
         purchases_old = None
         if 'activity' in request.REQUEST and not request.REQUEST['activity'] == 'all':
@@ -196,7 +196,7 @@ def undo_dialog(request):
 @login_required
 @ajax_required
 def newUser(request):
-    return render_to_response("pos/newUser.html", context_instance=RequestContext(request))
+    return render_to_response("newUser.html", context_instance=RequestContext(request))
 
 
 @login_required
@@ -207,7 +207,7 @@ def filtereduserlist(request):
     for char in beginswith:
         users.extend(User.objects.filter(name__startswith=char).extra(select={'lower_name': 'lower(name)'}).order_by('lower_name').filter(active=True))
 
-    return render_to_response("pos/filtereduserlist.html", {'filter': beginswith, 'users': users})
+    return render_to_response("filtereduserlist.html", {'filter': beginswith, 'users': users})
 
 
 @login_required
@@ -219,7 +219,7 @@ def userlist(request):
     for l in range(0, 25, 2):
         filters.append("".join((chr(l + a), chr(l + a + 1))))
 
-    return render_to_response("pos/userlist.html", {'filters': filters}, context_instance=RequestContext(request))
+    return render_to_response("userlist.html", {'filters': filters}, context_instance=RequestContext(request))
 
 
 @login_required
@@ -297,29 +297,31 @@ def user(request):
         data = json.dumps(data)
         return HttpResponse(data, mimetype='application/json')
     elif request.method == 'POST':
+
+        activity = Activity.get_active()
+        if 'activity' in request.POST:
+            activity = Activity.objects.get(pk=request.POST['activity'])
+        amount = 1
+        if 'amount' in request.POST:
+            amount = int(request.POST['amount'])
+
         if request.POST['type'] == 'credit':
-            if user.buy_credit(request.POST['credittype'], int(request.POST['amount'])):
+            if user.buy_credit(request.POST['credittype'], amount, activity, request.user.is_staff):
                 return HttpResponse(status=200)
             else:
                 return HttpResponse(status=500, content='Incassomatic returned an error')
         elif request.POST['type'] == 'product':
-            amount = 1
-            if 'amount' in request.POST:
-                amount = int(request.POST['amount'])
-            activity = Activity.get_active()
-            if 'activity' in request.POST:
-                activity = Activity.objects.get(pk=request.POST['activity'])
-            if user.buy_item(request.POST['productID'], amount, activity, request.user.has_perm('pos.admin')):
+            if user.buy_item(request.POST['productID'], amount, activity, request.user.is_staff):
                 return HttpResponse(status=200)
             else:
                 return HttpResponse(status=409, content='Insufficient credit')
 
 
-@staff_member_required
 def admin(request):
-    print(Export.objects.all())
-    print(Activity.objects.all())
-    return render_to_response('admin.html', context_instance=RequestContext(request))
+    if request.user.is_staff:
+        return render_to_response('admin.html', context_instance=RequestContext(request))
+    else:
+        return HttpResponse(status=401, content="You are not admin. Log in via /pos/login.html")
 
 
 @ajax_required
@@ -391,37 +393,32 @@ def admin_user_data_dict(request):
         purchases = purchases.filter(activity=request.REQUEST['activity'])
 
     purchases = purchases.filter(valid=True)
-
-    res = admin_purchase_qset_to_dict(purchases)
-    res['user'] = user
+    res = {}
+    [p, c] = admin_purchase_qset_to_dict(purchases)
+    res['products'] = p
+    res['credits'] = c
+    res['user'] = request.REQUEST['user']
+    print res
     return res
 
 
 def admin_purchase_qset_to_dict(purchase_qset):
-    vals = {'CANDYBIG':    0,
-            'CANDYSMALL':  0,
-            'BEER':        0,
-            'CAN':         0,
-            'SOUP':        0,
-            'BREAD':       0,
-            'SAUSAGE':     0,
-            'BAPAO':       0,
-            'DIGITAL':     0,
-    }
+    p = {}
+
+    for prod in PRODUCTS.keys():
+        p[prod] = {'number': 0, 'desc': PRODUCTS[prod]['desc']}
+
+    c = {}
+    for cred in CREDITS.keys():
+        c[cred] = {'number': 0, 'desc': CREDITS[cred]['desc']}
+
     for purchase in purchase_qset:
-        vals[purchase.product] += purchase.price
+        if purchase.product in PRODUCTS:
+            p[purchase.product]['number'] += purchase.price
+        if purchase.product in CREDITS:
+            c[purchase.product]['number'] -= purchase.price
 
-    return {'candybigcount':     vals['CANDYBIG'],
-            'candysmallcount':   vals['CANDYSMALL'],
-            'beercount':         vals['BEER'],
-            'cancount':          vals['CAN'],
-            'soupcount':         vals['SOUP'],
-            'breadcount':        vals['BREAD'],
-            'sausagecount':      vals['SAUSAGE'],
-            'bapaocount':        vals['BAPAO'],
-
-            'kruisjes': -vals['DIGITAL']
-            }
+    return [p, c]
 
 
 @staff_member_required
@@ -486,9 +483,8 @@ def admin_activity_list_new(request):
 def admin_activity_options(request):
     activity = Activity.objects.get(pk=request.GET['activity'])
     purchases = Purchase.objects.filter(activity=activity).filter(valid=True)
-    params = admin_purchase_qset_to_dict(purchases)
-    params['activity'] = activity
-    return render_to_response('admin/activity/activity_content.html', params, context_instance=RequestContext(request))
+    [p, c] = admin_purchase_qset_to_dict(purchases)
+    return render_to_response('admin/activity/activity_content.html', {'activity': activity, 'products': p, 'credits': c}, context_instance=RequestContext(request))
 
 
 @staff_member_required
@@ -522,8 +518,9 @@ def admin_system_user_edit(request):
     user = auth.models.User.objects.get(pk=request.POST['system_user'])
     user.username = request.POST['name']
     user.email = request.POST['email']
-    user.set_password(request.POST['password'])
-    user.is_staff =  request.POST['admin'] == 'true'
+    if request.POST['password'] != "":
+        user.set_password(request.POST['password'])
+    user.is_staff = request.POST['admin'] == 'true'
     user.is_superuser = request.POST['su'] == 'true'
     user.save()
     return HttpResponse(status=200)

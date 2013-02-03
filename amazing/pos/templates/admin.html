@@ -68,10 +68,10 @@
 			<div class="content">
 				<div class="tabs">
 					<ul>
+						<li><a href="#inventory_tab">Inventory</a></li>
+						<li><a href="#user_tab">Users</a></li>
 						<li><a href="#system_user_tab">System users</a></li>
 						<li><a href="#activity_tab">Activities</a></li>
-						<li><a href="#user_tab">Users</a></li>
-						<li><a href="#inventory_tab">Inventory</a></li>
 						<li><a href="#export_tab">Export</a></li>
 					</ul>
 					<div id="user_tab">
@@ -81,7 +81,7 @@
 						{% include "admin/activity/activity_tab.html" %}
 					</div>
 					<div id="inventory_tab">
-						<p>Inventory</p>
+						{% include "admin/inventory/inventory_tab.html" %}
 					</div>
 					<div id="system_user_tab">
 						{% include "admin/system_user/system_user_tab.html" %}
