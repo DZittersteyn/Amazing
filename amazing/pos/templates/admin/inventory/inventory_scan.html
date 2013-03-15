@@ -1,0 +1,29 @@
+<div id="inventory_scan">     
+    <label>Barcode:</label><input id='inventory_barcode' type='text' placeholder="Barcode" />
+
+    <div class="hidden" id="inventory_new_prod_div">
+        <hr/>
+        <p>This barcode is unknown. Please enter the details below.</p>
+        <label>Product name:</label><input type="text" id="inventory_newprod_name" value="" placeholder="Product name"/>
+        <label>Amount of credits:</label><input type="text" id="inventory_newprod_amount" value="" placeholder="Amount of credits"/>
+        <label>Prouct Type:</label><select id="inventory_newprod_type">
+        </select>
+        <button class="fullwidebutton" id="inventory_create_new_prod">Create new</button>
+
+    </div>
+
+
+
+
+    <hr/>
+    <ul id="inventory_current_scan">
+
+    </ul>
+</div>
+<p>Description:</p>
+<input type='text' id='inventory_purchase_note'/>
+<button class='fullwidebutton' id="inventory_commit_purchase">Commit (Creates a new 'Purchase' entry)</button>
+<hr/>
+
+<label>Delete a barcode</label><input type='text' id='inventory_delete_barcode' class='ui-state-error' placeholder='Barcode' />
+<button id='inventory_commit_delete_barcode' class="fullwidebutton">Delete</button>

@@ -13,6 +13,7 @@ urlpatterns = patterns('pos.views',
     url(r'^newUser.html$',       'newUser'),
     url(r'^buyLine.html$',       'buyLine'),
     url(r'^noCredit.html$',      'noCredit'),
+    url(r'^spinner$',            'spinner'),
 
     # functions that require user authentication
 
@@ -24,7 +25,7 @@ urlpatterns = patterns('pos.views',
     url(r'^user/undodialog$',    'undo_dialog'),
     url(r'^user/new$',           'new_user'),
     url(r'^user/edit$',          'edit_user'),
-    url(r'^consistent$',    'field_consistent'),
+    url(r'^consistent$',         'field_consistent'),
 
     url(r'^purchase$',           'transaction'),
     url(r'^passcode$',           'passcode'),
@@ -52,6 +53,18 @@ urlpatterns = patterns('pos.views',
     url(r'^system_user/new$',    'admin_system_user_new'),
     url(r'^system_user/delete$', 'admin_system_user_delete'),
     url(r'^system_user/edit$',   'admin_system_user_edit'),
+
+    url(r'^inventory/list$',     'admin_inventory_list'),
+    url(r'^inventory/total$',    'admin_inventory_total'),
+    url(r'^inventory/balance$',  'admin_inventory_balance'),
+    url(r'^inventory/purchase$', 'admin_inventory_purchase'),
+    url(r'^inventory/product$',  'admin_inventory_product'),
+    url(r'^inventory/types$',    'admin_inventory_types'),
+    url(r'^inventory/delete$',   'admin_inventory_delete'),
+    url(r'^inventory/edit$',     'admin_inventory_edit'),
+
+    url(r'^totals/list$',        'admin_totals_list'),
+    url(r'^totals/result$',      'admin_totals_result'),
 
     url(r'^adminexportcontent$', 'admin_exportcontent'),
     url(r'^adminmanageexport$',  'admin_manage_export'),

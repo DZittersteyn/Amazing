@@ -12,7 +12,6 @@
     <label>{{product.desc}}:             </label> 
     <span class='smallcomp' id="act_{{id|lower}}count">  {{product.number}}      </span>
     <span  class='smallfield'>+</span>
-    <input class='valuefield smallfield' type="number" min='0' name="act_{{id|lower}}value"   id="{{id}}"    value="0" /> 
+    <input class='valuefield smallfield' type="number" min='0' name="act_{{id|lower}}value"   id="act_{{id}}"    value="0" /> 
     <img class='hidden changedalert' src='{{STATIC_URL}}/exclaim.png'/> 
   {% endfor %}
-  <hr />

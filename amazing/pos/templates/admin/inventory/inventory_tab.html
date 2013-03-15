@@ -1,9 +1,25 @@
+<div class='leftselect' id="inventory_list">
 
-<div>
-<ul>
- <li>test</li>
-</ul>
+</div>
 
+
+<div class='rightdetail' id="activityoptions">
+    <div class='leftpane'>
+        <button class="fullwidebutton" id='admin_load_inventory'>(Re)load inventory</button>
+        <hr/>   
+        <div id='inventory'>
+            Press the button above to load the current state of the inventory.
+
+        </div>
+    </div>
+    <div class='rightpane'>
+        {% include "admin/inventory/inventory_scan.html" %}
+    </div>
+
+    <script type='text/javascript'>
+       export_tab.setup();
+    </script>
 
 
 </div>
+

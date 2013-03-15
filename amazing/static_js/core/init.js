@@ -63,16 +63,20 @@ site_gui = {
 		$('#SAUSAGE').button(enableString);
 		$('#BAPAO').button(enableString);
 	},
-	
-	set_gui_user: function(user){
+
+	set_gui_user: function(user, settab){
+		settab = typeof settab !== 'undefined' ? settab : false;
+
 		if(user){
 			$('#username').html(user.name);
 			$('#credit').html(user.credit);
 			$('#barcode').html(user.barcode);
 			$('#user_id').html(user.pk);
-			$('#usertabs').tabs("select", (user.name.toLowerCase().charCodeAt(0)-'a'.charCodeAt(0))/2 +1);
+			if(settab){
+				$('#usertabs').tabs("select", (user.name.toLowerCase().charCodeAt(0)-'a'.charCodeAt(0))/2 +1);
+			}
 			$('#user-'+user.pk).addClass('ui-selected');
-			
+
 			$.get("user/purchases",{
 					'user'     : site_user.selected_user_id(),
 					'passcode' : site_user.selected_user_pc(),
@@ -81,7 +85,7 @@ site_gui = {
 				$('#purchases').html(data);
 				site_gui.init_expandables();
 			});
-			
+
 			site_gui.set_user_spec_buttons(true);
 		}
 	},
@@ -289,12 +293,11 @@ site_gui = {
 	},
 
 	init_timer: function(){
-		/* TODO: Enable me!
+		$.idleTimer('destroy');
 		$.idleTimer(10 * 1000);
 		$(document).bind("idle.idleTimer", function(){
 			reset();
 		});
-		*/
 	},
 
 	init_csrf_token: function(){
@@ -338,18 +341,64 @@ site_gui = {
 	},
 
 	init_barcode_submit: function(){
+
+		$(window).keydown(function(e){
+			$('#productselect').focus();
+			$('#barcodeselect').focus();
+		});
+
+		$('#reset').button().click(function(){
+			reset();
+		});
+
+
+		$('#productselect').keypress(function(e){
+			if(e.which == 13){
+				var code = $('#productselect').val();
+				$('#productselect').val('');
+				e.preventDefault();
+				$.post('user/', {
+					'user'     : site_user.selected_user_id(),
+					'passcode' : site_user.selected_user_pc(),
+					'barcode'  : site_user.selected_user_bc(),
+					'type': 'product',
+					'product_barcode': code
+				}, function(){
+					site_user.update_user();
+					$.idleTimer(3 * 1000);
+					$(document).bind("idle.idleTimer", function(){
+						$.idleTimer(10*1000);
+						$(document).bind("idle.idleTimer", function(){
+							reset();
+						});
+
+					});
+				}).error(function(jqxhr, txtstatus, error){
+					if(jqxhr.status==409){
+						no_credit_dialog.load();
+					}else{
+						alert(jqxhr.textStatus);
+					}
+
+				});
+			}
+		});
+
+
 		$('#barcodeselect').keypress(function(e){
 			if(e.which == 13){
-				$('#barcodeselect').removeClass('error');
+				$('#barcodeselect').removeClass('ui-state-error');
 				e.preventDefault();
 				var barcode = $('#barcodeselect').val();
 				if(barcode === ''){
 					return;
 				}
 
-				$('#barcodeselect').val('');
 				$.getJSON('user/barcode', {'barcode': barcode}, function(user){
-					site_gui.set_gui_user(user);
+					site_gui.set_gui_user(user, false);
+					$('#product_scan').slideDown();
+					$('#productselect').focus();
+					$('#barcodeselect').prop('disabled',true);
 				})
 				.error(function(jqxhr,txtstatus, error){
 					if(jqxhr.status == 404){ //no such user
@@ -360,6 +409,8 @@ site_gui = {
 				});
 			}
 		});
+
+
 	},
 	
 	setup: function(){

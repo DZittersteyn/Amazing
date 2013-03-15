@@ -25,8 +25,8 @@ PRODUCTS = {  # price is in CREDITS! always a positive integer
 CREDITS = {  # price is in CREDITS! always a negative integer.
              # editor beware, -2 means a user gets 2 credits per EXCHANGE euro.
              # Don't know why you would want this, but it's in there anyways ;)
-            'DIGITAL': {'price': -1, 'desc': 'Gemachtigd kruisje'},
-            'ADMIN':   {'price': -1, 'desc': 'Admin kruisje'},
+            'DIGITAL': {'price': -1, 'desc': 'Kruisje'},
+            #'ADMIN':   {'price': -1, 'desc': 'Admin kruisje'},
             }
 
 
@@ -91,7 +91,6 @@ class User(models.Model):
         if item != None and self.get_credit() >= PRODUCTS[item]['price'] * amount or admin == True:
             for i in range(amount):
                 Purchase(date=datetime.datetime.now(), user=self, product=item, price=PRODUCTS[item]['price'], activity=activity, admin=admin).save()
-
             return True
         else:
             return False
@@ -207,19 +206,41 @@ class Product(models.Model):
     amount = models.IntegerField(default=0)
 
 
-class Inventory(models.Model): 
-    # inventory entries modify the current inventory count. 
-    # this can consist of new purchases, or accounting for stock.
-    # A normal sale is also considered a change in inventory, but is not entered
-    # as an Inventory object.
-    description = models.CharField(max_length=255)
-    catagory = models.CharField(max_length=255)
-    modification = models.IntegerField()
+class Inventory_balance(models.Model):
+    description = models.CharField(max_length=255)  # e.g. "Inventory check Feb 18 2013"
+    date = models.DateTimeField(auto_now_add=True)
+    activity = models.ForeignKey(Activity, blank=True, null=True)
+
+
+class Inventory_balance_product(models.Model):
+    # inventory_balance entries set the current inventory count.
+    # an inv_bal is declarative, i.e. the amounts entered *replace* what we currently think
+    # is in our inventory.
+    # this is used to account for differences in real and registered stock, due
+    # to theft, loss, etc
+    inventory = models.ForeignKey(Inventory_balance)
+    category = models.CharField(max_length=255)     # e.g. "CANDYBIG"
+    modification = models.IntegerField()            # e.g. 20 (count is in *credits*, not number of items)
+
+
+class Inventory_purchase(models.Model):
+    description = models.CharField(max_length=255)  # e.g. "Inventory check Feb 18 2013"
+    date = models.DateTimeField(auto_now_add=True)
+    activity = models.ForeignKey(Activity, blank=True, null=True)
+
+
+class Inventory_purchase_product(models.Model):
+    # inventory_purchase entries change the current inventory count by a certain amount.
+    # an inv_purc is incremental, i.e. the amounts are *added* to what we currently think is
+    # our inventory
+    inventory = models.ForeignKey(Inventory_purchase)
+    category = models.CharField(max_length=255)    # e.g. "CANDYBIG"
+    modification = models.IntegerField()           # e.g. +5 or -3 (in *credits*, not number of items)
 
 
 class Export(models.Model):
-    start = models.DateField()
-    end = models.DateField()
+    start = models.DateTimeField()
+    end = models.DateTimeField()
     running = models.BooleanField(default=False)
     done = models.BooleanField(default=False)
     progress = models.IntegerField(default=0)

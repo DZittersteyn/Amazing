@@ -7,9 +7,50 @@ admin = {
 		activity_tab.setup();
 		inventory_tab.setup();
 		system_user_tab.setup();
+		totals_tab.setup();
 
 		site_gui.init_csrf_token();
 	}
+
+};
+
+totals_tab = {
+	setup: function(){
+		$.get('totals/list', function(data){
+			$('#totals_settings').html(data);
+			$('#compute_totals').button().click(function(){
+				$.get('totals/result', {'from': $('#total_from').val(), 'to': $('#total_to').val() }, function(data){
+					$('#total_overview').html(data);
+				});
+			});
+		});
+
+
+		$('#totals_tab').on('change', '#total_select > select', function(){
+			if($('#total_to').val() !== null && $('#total_from').val() !== null && $('#total_to').val() > $('#total_from').val()){
+				$('#compute_totals').fadeIn();
+			}else{
+				$('#compute_totals').fadeOut();
+			}
+
+			var select = $(this);
+			var details = select.next();
+			$.get('totals/list', {'pk': select.val()}, function(data){
+				details.slideUp(function(){
+					details.html('');
+					for(var item in data){
+						var line = $('<p/>');
+						$('<span/>').html(data[item].description).addClass('desc').appendTo(line);
+						$('<span/>').html(data[item].modification).addClass('nums').appendTo(line);
+						line.appendTo(details);
+					}
+					select.next().slideDown();
+				});
+			});
+		});
+
+	},
+
 
 };
 
@@ -249,6 +290,7 @@ activity_tab = {
 		});
 
 
+
 		$('#activity_tab').on('keyup', '.leftpane input[type=text]', function(){
 			var field = $(this);
 
@@ -301,7 +343,21 @@ activity_tab = {
 			});
 
 
+			$('#commit_difference').button().click(function(){
+				var diffs = {};
+				$('#user_data input.valuefield').each(function(){
+					if ($(this).val() !== '0'){
+						diffs[$(this).prop('id').replace('act_','')] = -$(this).val();
+						$(this).val("0");
+					}
+				});
+				diffs.description = "Losses during activity: " + $('#activity_name').val();
+				diffs.activity = activity_tab.selected_activity();
+				$.post('inventory/purchase', diffs, function(){
+					activity_tab.reload_activitylist(true);
 
+				});
+			});
 
 
 			$('#submitchanges_activity').button().click(function(){
@@ -384,8 +440,272 @@ activity_tab = {
 };
 
 inventory_tab = {
-	setup: function(){
 
+	new_inventory: [],
+
+	setup: function(){
+		inventory_tab.reload_inventory_list();
+		$('#inventory_tab').on('click', '.inventory', function(){
+			$(this).children('.detail').slideToggle();
+		});
+
+		$('#inventory_tab').on('click', '.inventorynote', function(event){
+			event.stopPropagation();
+			var match = $(this).prop('id').split('_');
+			var type = match[1];
+			var pk = match[2];
+			var popup = $('<div/>').html('<input type="text" id="new_note"/>').dialog({
+				close: function(){
+					$(this).dialog('destroy').remove();
+				},
+				resizable: false,
+				height:150,
+				width: 200,
+				title:"New Note",
+				modal: true,
+				buttons: {
+					"Cancel": function(){
+						$(this).dialog('destroy').remove();
+					},
+					"OK": function(){
+						$('#inventory_balance_5 > div > p:first').html($('#new_note').val());
+						var dialog = $(this);
+						$.post('inventory/edit',{'pk':pk, 'type': type, 'new_desc': $('#new_note').val()})
+						.error(function(jqXHR){
+							alert(jqXHR.textStatus);
+						})
+						.complete(function(){
+							dialog.dialog( "destroy" ).remove();
+						});
+
+						$(this).dialog('destroy').remove();
+					}
+				}
+			});
+
+		});
+
+		$('#inventory_tab').on('click', '.inventorydelete', function(event){
+			
+			event.stopPropagation();
+			var match = $(this).prop('id').split('_');
+			var type = match[1];
+			var pk = match[2];
+
+			$( '<div/>' ).html("Do you really want to delete this inventory entry? This action can not be undone. If you delete an item that has already been used to generate an export, this is DEFINITELY not a good idea.").dialog({
+				close: function(){
+					$(this).dialog('destroy').remove();
+				},
+				resizable: false,
+				height:190,
+				width: 500,
+				title:"Are you sure?",
+				modal: true,
+				buttons: {
+					"Delete!": function() {
+						var dialog = $(this);
+						$.post('inventory/delete',{'pk':pk, 'type': type},function(){
+							inventory_tab.reload_inventory_list();
+						})
+						.error(function(jqXHR){
+							alert(jqXHR.textStatus);
+						})
+						.complete(function(){
+							dialog.dialog( "destroy" ).remove();
+						});
+					},
+					Cancel: function() {
+						$( this ).dialog( "destroy" ).remove();
+					}
+				}
+			});
+
+
+		});
+
+		$('#inventory_current_scan').on('click', 'button', function(){
+			var rem = $(this).prop('id').replace('inventory_list_remove_','');
+
+			inventory_tab.new_inventory.splice(rem,1);
+			inventory_tab.redraw_current_scan();
+		});
+
+		$('#inventory_barcode').keydown( function(e) {
+			var key = e.charCode ? e.charCode : e.keyCode ? e.keyCode : 0;
+			if(key == 13) {
+				e.preventDefault();
+				var barcode = $(this).val();
+				inventory_tab.submit_barcode(barcode);
+			}
+		});
+
+		$('#inventory_newprod_type').load('inventory/types');
+		$('#inventory_create_new_prod').button().click(function(){
+			$.post('inventory/product', {
+				'mode': 'add',
+				'barcode': $('#inventory_barcode').val(),
+				'amount': $('#inventory_newprod_amount').val(),
+				'description': $('#inventory_newprod_name').val(),
+				'category': $('#inventory_newprod_type').val()
+			}).error(function(jqXHR, textStatus, errorThrown){
+				alert(jqXHR.responseText);
+			}).complete(function(){
+				$('#inventory_newprod_amount').val('');
+				$('#inventory_newprod_name').val('');
+				$('#inventory_barcode').focus();
+				$('#inventory_new_prod_div').slideUp();
+				inventory_tab.submit_barcode($('#inventory_barcode').val());
+
+			});
+		});
+
+		$('#inventory_commit_delete_barcode').button().click(function(){
+			$.post('inventory/product', {
+				'mode': 'delete',
+				'barcode': $('#inventory_delete_barcode').val()
+			}).error(function(data, resp, jqXHR){
+				alert(jqXHR.responseText);
+			}).success(function(data, resp, jqXHR){
+				alert(jqXHR.responseText);
+				$('#inventory_delete_barcode').val('');
+			});
+		});
+
+		$('#inventory_commit_purchase').button().click(function(){
+			purchases = {};
+			purchases['description'] = $('#inventory_purchase_note').val();
+			$('#inventory_purchase_note').val('');
+			inventory_tab.new_inventory.forEach(function(purchase){
+				if(!purchases[purchase.category]){
+					purchases[purchase.category] = 0;
+				}
+				purchases[purchase.category] += purchase.num;
+			});
+			console.log(purchases);
+			$.post('inventory/purchase', purchases, function(){
+				inventory_tab.new_inventory = [];
+				inventory_tab.redraw_current_scan();
+				inventory_tab.reload_inventory_list();
+				inventory_tab.reload_totals();
+
+			}).error(function(jqXHR){
+				alert(jqXHR.responseText);
+			});
+		});
+
+
+
+		$('#inventory_tab').on('keyup', '.leftpane .valuefield', function(){
+			var now = $(this).val();
+			var ori = $('#' + $(this).prop('id').replace("balance", "original")).val();
+			var field = $(this);
+			var diff = now - ori;
+			if(now === '' || isNaN(now) || diff === 0){
+				diff = "&rArr;";
+			}else if (diff>0){
+				diff = "+" + diff;
+				console.log(diff);
+			}
+			field.siblings('.numchanged').html(diff);
+
+			if(ori == now){
+				field.removeClass('ui-state-highlight');
+				field.removeClass('ui-state-error');
+				field.siblings('.numchanged').addClass('hidden');
+				field.siblings('.changedalert').addClass('hidden');
+			}else if(now.match(/^-?[0-9]+$/)){
+				field.removeClass('ui-state-error');
+				field.addClass('ui-state-highlight');
+				field.siblings('.changedalert').addClass('hidden');
+				field.siblings('.numchanged').removeClass('hidden');
+			}else{
+				field.removeClass('ui-state-highlight');
+				field.addClass('ui-state-error');
+				field.siblings('.numchanged').addClass('hidden');
+				field.siblings('.changedalert').removeClass('hidden');
+			}
+		});
+
+		$('#admin_load_inventory').button().click(function(){
+			inventory_tab.reload_totals();
+		});
+	},
+
+	redraw_current_scan: function(){
+		$('#inventory_current_scan').html('');
+
+		for(var i = inventory_tab.new_inventory.length-1; i >=0; i--){
+			var entry = $('<li/>');
+			var content = $('<p/>').appendTo(entry);
+			$('<span/>', {class:'inventory_description'}).html(inventory_tab.new_inventory[i].desc).appendTo(content);
+			$('<span/>', {class:'inventory_amount'}).html(inventory_tab.new_inventory[i].num).appendTo(content);
+			$('<span/>', {class:'inventory_cat_description'}).html(inventory_tab.new_inventory[i].categorydesc).appendTo(content);
+			$('<button>', {id:'inventory_list_remove_' + i}).html('x').button().appendTo(content);
+
+			entry.appendTo($('#inventory_current_scan'));
+
+		}
+	},
+
+	submit_barcode: function(barcode){
+		var jqXHR = $.getJSON('inventory/product', {'barcode': barcode}, function(data) {
+			$('#inventory_new_prod_div').slideUp();
+
+			inventory_tab.new_inventory.push(data);
+			inventory_tab.redraw_current_scan();
+			$('#inventory_barcode').val('');
+
+
+		}).error(function(jqXHR, textStatus, errorThrown){
+			if(jqXHR.status == 404){
+				$('#inventory_new_prod_div').slideDown();
+				$('#inventory_newprod_name').focus();
+			}else{
+				alert(jqXHR.responseText);
+			}
+		});
+	},
+
+	reload_inventory_list: function(){
+		$.get('inventory/list', function(data){
+			$('#inventory_list').html(data);
+			$('.inventorydelete').button();
+			$('.inventorynote').button();
+
+		});
+	},
+
+	reload_totals: function(){
+		$('#inventory').load('spinner', function(){
+			$.get('inventory/total', function(data){
+				$('#inventory').html(data);
+				$('#commit_balance').button().click(function(){
+					var vals = {};
+					var correct = true;
+					var error = "";
+					vals['description'] = $('#inventory_balance_note').val()
+					$('#inventory_tab .leftpane .valuefield').each(function(idx, value){
+						var field = $(value);
+						var name = field.prop('id').replace('_balance','').toUpperCase();
+						if (field.val().match(/^-?[0-9]+$/)){
+							vals[name] = parseInt(field.val(), 10);
+						}else{
+							error += 'Incorrect value: ' + $('#' + name.toLowerCase() + '_description').html() + ' ' + field.val() + '\n';
+							correct = false;
+						}
+					});
+
+					if(!correct){
+						alert(error);
+					}else{
+						$.post('inventory/balance', vals, function(){
+							inventory_tab.reload_inventory_list();
+							inventory_tab.reload_totals();
+						});
+					}
+				});
+			});
+		});
 	}
 };
 

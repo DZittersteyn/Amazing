@@ -14,9 +14,11 @@ from django.contrib.admin.views.decorators import staff_member_required
 from django.core.servers.basehttp import FileWrapper
 
 from itertools import chain
+from operator import itemgetter
 import datetime
 import json
 import threading
+import HTMLParser
 
 from pos.models import *
 
@@ -24,7 +26,7 @@ from pos.models import *
 def ajax_required(f):
     def wrap(request, *args, **kwargs):
         if not request.is_ajax():
-            return HttpResponseBadRequest()
+            return HttpResponseBadRequest(content='Request was not AJAX.')
         return f(request, *args, **kwargs)
 
     wrap.__doc__ = f.__doc__
@@ -38,7 +40,10 @@ def user_auth_required(f):
             return f(request, *args, **kwargs)
         if 'user' in request.REQUEST:
             user = User.objects.get(pk=request.REQUEST['user'])
-            bcauth = 'barcode' in request.REQUEST and user.barcode != "" and request.REQUEST['barcode'] == user.barcode
+            bcauth = False
+            if 'barcode' in request.REQUEST:
+                barcode = HTMLParser.HTMLParser().unescape(request.REQUEST['barcode'])  # fix inconsistency in sending special characters through different browsers
+                bcauth = user.barcode != "" and barcode == user.barcode
             pcauth = (not user.has_passcode) or (user.passcode == "") or ('passcode' in request.REQUEST and request.REQUEST['passcode'] == user.passcode)
             if bcauth or pcauth:
                 return f(request, *args, **kwargs)
@@ -75,6 +80,9 @@ def logout(request):
 def index(request):
     return render_to_response("userselect.html",
         {'activity': Activity.get_active(), 'mainuser': request.user.username, 'admin': request.user.is_staff}, context_instance=RequestContext(request))
+
+def spinner(request):
+    return render_to_response("spinner.html", context_instance=RequestContext(request))
 
 
 @login_required
@@ -289,7 +297,7 @@ def get_user_by_barcode(request):
 def user(request):
 
     user = User.objects.get(pk=request.REQUEST['user'])
-    if user == None:
+    if user is None:
         return HttpResponse(status=404, content="user does not exist")
     if request.method == 'GET':
         data = user.as_dict()
@@ -301,6 +309,7 @@ def user(request):
         activity = Activity.get_active()
         if 'activity' in request.POST:
             activity = Activity.objects.get(pk=request.POST['activity'])
+
         amount = 1
         if 'amount' in request.POST:
             amount = int(request.POST['amount'])
@@ -311,7 +320,19 @@ def user(request):
             else:
                 return HttpResponse(status=500, content='Incassomatic returned an error')
         elif request.POST['type'] == 'product':
-            if user.buy_item(request.POST['productID'], amount, activity, request.user.is_staff):
+            category = None
+            if 'productID' in request.POST:
+                category = request.POST['productID']
+            else:
+                try:
+                    prod = Product.objects.get(barcode=request.POST['product_barcode'])
+                    amount = prod.amount
+                    category = prod.category
+                except Product.DoesNotExist:
+                    return HttpResponse(status=404, content='This barcode is not known. Please contact an admin.')
+                except Product.MultipleObjectsReturned:
+                    return HttpResponse(status=409, content='This barcode is associated with more than one product. Please contact an admin.')
+            if user.buy_item(category, amount, activity, request.user.is_staff):
                 return HttpResponse(status=200)
             else:
                 return HttpResponse(status=409, content='Insufficient credit')
@@ -332,10 +353,10 @@ def admin_user_options(request):
     activities = Activity.objects.all().order_by('-date')
 
     activities = list(chain(
-                                Activity.objects.filter(end=None).filter(start=None).exclude(pk=Activity.get_normal_sale().pk),
-                                Activity.objects.filter(end=None).exclude(start=None).order_by('-start'),
-                                [Activity.get_normal_sale()],
-                                Activity.objects.exclude(end=None).order_by('-end')))
+        Activity.objects.filter(end=None).filter(start=None).exclude(pk=Activity.get_normal_sale().pk),
+        Activity.objects.filter(end=None).exclude(start=None).order_by('-start').exclude(pk=Activity.get_normal_sale().pk),
+        [Activity.get_normal_sale()],
+        Activity.objects.exclude(end=None).order_by('-end')))
 
     resp = admin_user_data_dict(request)
 
@@ -343,7 +364,7 @@ def admin_user_options(request):
     resp['activities'] = activities
 
     return render_to_response('admin/user/user_options.html', resp,
-        context_instance=RequestContext(request))
+                              context_instance=RequestContext(request))
 
 
 @ajax_required
@@ -425,9 +446,8 @@ def admin_purchase_qset_to_dict(purchase_qset):
 @ajax_required
 def admin_activity_list(request):
     invalid = Activity.objects.filter(end=None).filter(start=None).exclude(pk=Activity.get_normal_sale().pk)
-    active = list(chain(Activity.objects.filter(end=None).exclude(start=None).order_by('-start'), [Activity.get_normal_sale()]))
+    active = list(chain(Activity.objects.filter(end=None).exclude(start=None).order_by('-start').exclude(pk=Activity.get_normal_sale().pk), [Activity.get_normal_sale()]))
     done = Activity.objects.exclude(end=None).order_by('-end')
-
     return render_to_response('admin/activity/activity_list.html', {'invalid': invalid, 'active': active, 'done': done}, context_instance=RequestContext(request))
 
 
@@ -539,6 +559,388 @@ def admin_system_user_delete(request):
 
 @staff_member_required
 @ajax_required
+def admin_totals_list(request):
+    if 'pk' in request.REQUEST:
+        items = Inventory_balance_product.objects.filter(inventory=Inventory_balance.objects.get(pk=request.GET['pk']))
+        response_data = {}
+        for item in items:
+            description = dict(PRODUCTS.items() + CREDITS.items())[item.category]['desc']
+            response_data[item.category] = {'modification': item.modification, 'description': description}
+        return HttpResponse(json.dumps(response_data), content_type="application/json")
+    else:
+        balances = Inventory_balance.objects.all()
+        return render_to_response('admin/totals/totals_select.html', {'balances': balances})
+
+
+@staff_member_required
+@ajax_required
+def admin_totals_result(request):
+    # Yes. This is freaking long and complicated. I screwed up, sorry. It works though, and I'm not going to screw with it for now.
+    # Have a bunny to cheer you up:
+
+    # (~\       _
+    #  \ \     / \   Sorry!
+    #   \ \___/ /\\  /
+    #    | , , |  ~
+    #    ( =v= )
+    #     ` ^ '
+
+    start = Inventory_balance.objects.get(pk=request.GET['from'])
+    end = Inventory_balance.objects.get(pk=request.GET['to'])
+    relevant_balances = Inventory_balance.objects.filter(date__range=(start.date, end.date)).order_by('date')
+
+    balance = {}
+    balance[start.date] = sum([a.modification for a in Inventory_balance_product.objects.filter(inventory=start).filter(category__in=PRODUCTS)])
+    loss = {}
+    loss[start.date] = 0
+
+    credits = {}
+    credits[start.date] = sum([a.modification for a in Inventory_balance_product.objects.filter(inventory=start).filter(category__in=CREDITS)])
+    unsigned = {}
+    unsigned[start.date] = 0
+
+    labels = []
+
+    current_bala = balance[start.date]
+    current_loss = 0
+    current_cred = credits[start.date]
+    current_unsi = 0
+    for balance_ind in range(0, len(relevant_balances)-1):
+
+        labels.append({
+            'series': 'Inventory',
+            'x': relevant_balances[balance_ind].date.strftime("%Y-%m-%d %H:%M:%S"),
+            'shortText': 'B',
+            'text': relevant_balances[balance_ind].description
+        })
+
+        product_changes = {}
+        credit_changes = {}
+        relevant_user_purchases = Purchase.objects.filter(date__gte=relevant_balances[balance_ind].date).exclude(date__gte=relevant_balances[balance_ind+1].date)
+
+        for user_purchase in relevant_user_purchases:
+            if user_purchase.valid:
+                if user_purchase.product in PRODUCTS:
+                    if not user_purchase.date in product_changes:
+                        product_changes[user_purchase.date] = -user_purchase.price
+                    else:
+                        product_changes[user_purchase.date] -= user_purchase.price
+                elif user_purchase.product in CREDITS:
+                    if not user_purchase.date in credit_changes:
+                        credit_changes[user_purchase.date] = -user_purchase.price
+                    else:
+                        credit_changes[user_purchase.date] -= user_purchase.price
+
+        relevant_purchases = Inventory_purchase.objects.filter(date__gte=relevant_balances[balance_ind].date).exclude(date__gte=relevant_balances[balance_ind+1].date)
+
+        for inventory in relevant_purchases:
+            relevant_purchase_producs = Inventory_purchase_product.objects.filter(inventory=inventory)
+            for purchase in relevant_purchase_producs:
+                if not inventory.date in product_changes:
+                    product_changes[inventory.date] = purchase.modification
+                else:
+                    product_changes[inventory.date] += purchase.modification
+
+        for key in sorted(product_changes.keys()):
+            current_bala += product_changes[key]
+            balance[key] = current_bala
+            loss[key] = current_loss
+
+        new_bala = sum([a.modification for a in Inventory_balance_product.objects.filter(inventory=relevant_balances[balance_ind+1]).filter(category__in=PRODUCTS)])
+        current_loss += current_bala - new_bala
+        current_bala = new_bala
+
+        loss[relevant_balances[balance_ind+1].date] = current_loss
+        balance[relevant_balances[balance_ind+1].date] = current_bala
+
+        for key in sorted(credit_changes.keys()):
+            current_cred += credit_changes[key]
+            credits[key] = current_cred
+            unsigned[key] = current_unsi
+
+        new_cred = sum([a.modification for a in Inventory_balance_product.objects.filter(inventory=relevant_balances[balance_ind+1]).filter(category__in=CREDITS)])
+        current_unsi += current_cred - new_cred
+        current_cred = new_cred
+
+        credits[relevant_balances[balance_ind+1].date] = current_cred
+        unsigned[relevant_balances[balance_ind+1].date] = current_unsi
+
+    labels.append({
+        'series': 'Inventory',
+        'x': relevant_balances[len(relevant_balances)-1].date.strftime("%Y-%m-%d %H:%M:%S"),
+        'shortText': 'B',
+        'text': relevant_balances[len(relevant_balances)-1].description
+    })
+
+
+    purchase_keys = sorted(set(balance.keys() + loss.keys()))
+    purchase_graph = ['"Date,Inventory,Loss \\n"']
+    for key in purchase_keys:
+        print key
+        balance_val = balance[key] if key in balance else ''
+        loss_val = loss[key] if key in loss else ''
+        purchase_graph += ['"' + (', '.join([key.strftime("%Y-%m-%d %H:%M:%S"), str(balance_val), str(loss_val)])) + '\\n"']
+
+    credit_keys = sorted(set(credits.keys() + unsigned.keys()))
+    credit_graph = ['"Date,Credits,Unsigned \\n"']
+    for key in credit_keys:
+        balance_val = credits[key] if key in credits else ''
+        loss_val = unsigned[key] if key in unsigned else ''
+        credit_graph += ['"' + (', '.join([key.strftime("%Y-%m-%d %H:%M:%S"), str(balance_val), str(loss_val)])) + '\\n"']
+
+    print json.dumps(labels)
+    return render_to_response('admin/totals/totals_detail.html', {
+        'purchase_graph': '+ \n'.join(purchase_graph),
+        'credit_graph': '+\n'.join(credit_graph),
+        'labels': json.dumps(labels)
+    }, context_instance=RequestContext(request))
+
+
+
+
+
+
+
+@staff_member_required
+@ajax_required
+def admin_inventory_total(request):
+    prods, creds, unkns = inventory_totals()
+    return render_to_response('admin/inventory/inventory_total.html', {'products': prods, 'credits': creds, 'unknown': unkns}, context_instance=RequestContext(request))
+
+
+def inventory_totals():
+    last_balance = None
+    try:
+        last_balance = Inventory_balance.objects.latest(field_name='date')
+    except Inventory_balance.DoesNotExist:
+        last_balance = Inventory_balance(description='Initial empty balance')
+        last_balance.save()
+        for product in PRODUCTS:
+            Inventory_balance_product(inventory=last_balance, category=product, modification=0).save()
+        for credit in CREDITS:
+            Inventory_balance_product(inventory=last_balance, category=credit, modification=0).save()
+    last_balance_items = Inventory_balance_product.objects.filter(inventory=last_balance)
+    relevant_purchases = Inventory_purchase.objects.filter(date__gte=last_balance.date)
+    relevant_user_purchases = Purchase.objects.filter(date__gte=last_balance.date)
+
+    prods = {}
+    creds = {}
+    unkns = {}
+
+    for item in PRODUCTS:
+        prods[item] = {'desc': PRODUCTS[item]['desc'], 'val': 0}
+    for item in CREDITS:
+        creds[item] = {'desc': CREDITS[item]['desc'], 'val': 0}
+
+    for entry in last_balance_items:
+        print entry
+        if entry.category in PRODUCTS:
+            prods[entry.category] = {'desc': PRODUCTS[entry.category]['desc'], 'val': entry.modification}
+        elif entry.category in CREDITS:
+            creds[entry.category] = {'desc': CREDITS[entry.category]['desc'], 'val': entry.modification}
+        else:
+            unkns[entry.category] = {'desc': entry.category, 'val': entry.modification}
+
+    for entry in relevant_purchases:
+        relevant_purchase_entries = Inventory_purchase_product.objects.filter(inventory=entry)
+        for purchase in relevant_purchase_entries:
+            if purchase.category in prods:
+                prods[purchase.category]['val'] += purchase.modification
+            elif purchase.category in creds:
+                creds[purchase.category]['val'] += purchase.modification
+            else:
+                if not purchase.category in unkns:
+                    unkns[purchase.category]['val'] = 0
+                unkns[purchase.category]['val'] += purchase.modification
+
+    for user_purchase in relevant_user_purchases:
+        if user_purchase.valid:
+            if user_purchase.product in prods:
+                prods[user_purchase.product]['val'] -= user_purchase.price
+            elif user_purchase.product in creds:
+                creds[user_purchase.product]['val'] -= user_purchase.price
+            else:
+                if not user_purchase.product in unkns:
+                    unkns[user_purchase.product]['val'] = 0
+                    unkns[user_purchase.product]['desc'] = user_purchase.product
+                unkns[user_purchase.product]['val'] -= user_purchase.price
+
+    print prods
+    print creds
+    print unkns
+    return prods, creds, unkns
+
+
+@staff_member_required
+@ajax_required
+def admin_inventory_list(request):
+    balance = Inventory_balance.objects.all()
+    purchase = Inventory_purchase.objects.all()
+
+    inventories = sorted(
+        list(chain(balance, purchase)),
+        key=lambda instance: instance.date)
+
+    invdict = {}
+    entrynum = 0
+    for inventory in inventories:
+        entry = {}
+        entry['pk'] = inventory.pk
+        invtype = 'purchase' if isinstance(inventory, Inventory_purchase) else 'balance'
+        entry['type'] = invtype
+        entry['date'] = inventory.date
+        entry['desc'] = invtype.title()
+        entry['description'] = inventory.description
+        print inventory.description
+        entry['sign'] = '+' if invtype == 'purchase' else '='
+        entry['total'] = 0
+        entry['changes'] = {}
+
+        this_change = {}
+        if isinstance(inventory, Inventory_purchase):
+            this_change = Inventory_purchase_product.objects.filter(inventory=inventory)
+        elif isinstance(inventory, Inventory_balance):
+            this_change = Inventory_balance_product.objects.filter(inventory=inventory)
+
+        for inv_change in this_change:
+            if not inv_change.category in entry['changes']:
+                entry['changes'][inv_change.category] = {}
+                if inv_change.category in PRODUCTS:
+                    entry['changes'][inv_change.category]['desc'] = PRODUCTS[inv_change.category]['desc']
+                elif inv_change.category in CREDITS:
+                    entry['changes'][inv_change.category]['desc'] = CREDITS[inv_change.category]['desc']
+                else:
+                    entry['changes'][inv_change.category]['desc'] = inv_change.category
+                entry['changes'][inv_change.category]['num'] = 0
+            entry['changes'][inv_change.category]['num'] += inv_change.modification
+            entry['total'] += inv_change.modification
+        entrynum += 1
+        if invtype == 'purchase':
+            if entry['total'] < 0:
+                entry['desc'] = 'Loss'
+            entry['total'] = '%+d' % entry['total']
+            for change in entry['changes']:
+                entry['changes'][change]['num'] = '%+d' % entry['changes'][change]['num']
+        else:
+            entry['total'] = ''
+        invdict[entrynum] = entry
+
+    return render_to_response('admin/inventory/inventory_list.html', {'inventory': invdict}, context_instance=RequestContext(request))
+
+
+@staff_member_required
+@ajax_required
+def admin_inventory_product(request):
+    if request.method == 'GET':
+        try:
+            prod = Product.objects.get(barcode=request.GET['barcode'])
+        except Product.DoesNotExist:
+            return HttpResponse(status=404, content='Product matching barcode does not exist.')
+        except Product.MultipleObjectsReturned:
+            return HttpResponse(status=509, content='More than one product has the same barcode, please delete this barcode.')
+        proddict = {}
+        proddict['desc'] = prod.description
+        proddict['num'] = prod.amount
+        proddict['category'] = prod.category
+        proddict['categorydesc'] = PRODUCTS[prod.category]['desc']
+        return HttpResponse(status=200, content=json.dumps(proddict), mimetype='application/json')
+    else:
+        mode = request.POST['mode']
+        if mode == 'delete':
+            product = Product.objects.filter(barcode=request.POST['barcode'])
+            desc = " ".join([p.description for p in product])
+            product.delete()
+            return HttpResponse(status=200, content='Deleted product: ' + desc)
+        elif mode == 'add':
+            if not Product.objects.filter(barcode=request.POST['barcode']).exists():
+                Product(barcode=request.POST['barcode'],
+                        category=request.POST['category'],
+                        amount=int(request.POST['amount']),
+                        description=request.POST['description']).save()
+                return HttpResponse(status=200, content='Created product successfully')
+            else:
+                return HttpResponse(status=509, content='product with this barcode already exists')
+        else:
+            return HttpResponseBadRequest(content='Only "delete" and "add" are permitted modes')
+
+
+@staff_member_required
+@ajax_required
+def admin_inventory_delete(request):
+    if request.POST['type'] == 'balance':
+        Inventory_balance.objects.get(pk=request.POST['pk']).delete()
+    elif request.POST['type'] == 'purchase':
+        Inventory_purchase.objects.get(pk=request.POST['pk']).delete()
+    return HttpResponse(status=200, content='Inventory successfully deleted')
+
+
+@staff_member_required
+@ajax_required
+def admin_inventory_edit(request):
+    if request.POST['type'] == 'balance':
+        new = Inventory_balance.objects.get(pk=request.POST['pk'])
+        new.description = request.POST['new_desc']
+        new.save()
+    elif request.POST['type'] == 'purchase':
+        new = Inventory_purchase.objects.get(pk=request.POST['pk'])
+        new.description = request.POST['new_desc']
+        new.save()
+    return HttpResponse(status=200, content='Inventory successfully deleted')
+
+
+@staff_member_required
+@ajax_required
+def admin_inventory_balance(request):
+    description = request.POST.get('description', '')
+    inv = None
+    if 'activity' in request.POST:
+        inv = Inventory_balance(description=description, activity=Activity.objects.get(pk=request.POST['activity']))
+    else:
+        inv = Inventory_balance(description=description)
+    inv.save()
+
+    prods, creds, unkns = inventory_totals()
+
+    for product in prods:
+        if product in request.POST:
+            mod = int(request.POST[product]) - prods[product]['val']
+            if mod != 0:
+                Inventory_balance_product(inventory=inv, category=product, modification=mod).save()
+    for credit in creds:
+        if credit in request.POST:
+            mod = int(request.POST[credit]) - creds[credit]['val']
+            if mod != 0:
+                Inventory_balance_product(inventory=inv, category=credit, modification=mod).save()
+    for unknown in unkns:
+        if unknown in request.POST:
+            mod = int(request.POST[unknown]) - unkns[unknown]['val']
+            if mod != 0:
+                Inventory_balance_product(inventory=inv, category=product, modification=mod).save()
+
+    return HttpResponse(status=200, content='New balance created')
+
+
+@staff_member_required
+@ajax_required
+def admin_inventory_purchase(request):
+    description = request.POST.get('description', '')
+    inv = Inventory_purchase(description=description)
+    inv.save()
+    for product in PRODUCTS:
+        if product in request.POST:
+            Inventory_purchase_product(inventory=inv, category=product, modification=int(request.POST[product])).save()
+    inv.save()
+    return HttpResponse(status=200, content='Purchase successful.')
+
+
+@staff_member_required
+@ajax_required
+def admin_inventory_types(request):
+    return render_to_response('admin/inventory/inventory_types.html', {'products': PRODUCTS}, context_instance=RequestContext(request))
+
+
+@staff_member_required
+@ajax_required
 def admin_undo_dialog(request):
     user_id = request.GET['user']
     purchases = Purchase.objects.filter(user=user_id).order_by('-date')
@@ -549,18 +951,10 @@ def admin_undo_dialog(request):
 @staff_member_required
 @ajax_required
 def admin_exportcontent(request):
-    purchases = Purchase.objects.all()
-    for purchase in purchases:
-        # i hate date arithmetic.
-
-        # equals (purchase.date.month + 1) - 1 % 12 + 1.
-        nextmonth = purchase.date.month % 12 + 1
-
-        # if month = 1 we passed the year border.
-        nextyear = purchase.date.year + (1 if nextmonth == 1 else 0)
-
-        start = datetime.date(year=purchase.date.year, month=purchase.date.month, day=1)
-        end = datetime.date(year=nextyear, month=nextmonth, day=1)
+    balances = Inventory_balance.objects.all().order_by('date')
+    for i in range(0, len(balances)-1):
+        start = balances[i].date
+        end = balances[i+1].date
         Export.objects.get_or_create(start=start, end=end, filename=start.strftime("%Y-%m-%d") + "_to_" + end.strftime("%Y-%m-%d") + ".csv")
     return render_to_response('admin/export/export_content.html', {'exports': Export.objects.all()}, context_instance=RequestContext(request))
 
@@ -576,7 +970,7 @@ def admin_manage_export(request):
         t.start()
         return HttpResponse(status=200, content='export started')
     else:
-        if export.end > datetime.date.today():
+        if export.end > datetime.datetime.now():
             return HttpResponse(status=200, content="Can't export current month")
         if not export.done:
             if not export.running:
@@ -595,7 +989,6 @@ def get_export(request, pk):
     return response
 
 
-@staff_member_required
 def generate_export(export):
     num_todo = Purchase.objects.all().count()
     num_done = 0
@@ -635,9 +1028,3 @@ def generate_export(export):
         pass
     export.done = True
     export.save()
-
-
-@staff_member_required
-@ajax_required
-def systemuser(request):
-    pass

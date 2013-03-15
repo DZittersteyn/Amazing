@@ -1,0 +1,29 @@
+<div id='totals_chart'>
+
+</div>
+
+<div id='credits_chart'>
+</div>
+
+<script type="text/javascript" src="{{STATIC_URL}}dygraph/dygraph-combined.js"></script>
+<script type="text/javascript">
+    var totals = new Dygraph(
+        document.getElementById("totals_chart"),
+        {{purchase_graph|safe}}, // path to CSV file
+        {'connectSeparatedPoints': true}          // options
+    );
+
+    totals.setAnnotations({{labels|safe}});
+
+
+
+    new Dygraph(
+        document.getElementById("credits_chart"),
+        {{credit_graph|safe}}, // path to CSV file
+        {'connectSeparatedPoints': true}          // options
+    );
+
+
+
+
+</script>

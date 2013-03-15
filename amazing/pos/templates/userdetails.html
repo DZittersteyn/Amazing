@@ -3,7 +3,8 @@
 	<tr class='test' id='exp_{{purchase.pk}}'>
 		<td class='expandable'>
 			<div>
-				<span class='purcdate'> {{purchase.date}} </span><span class='purcdesc'> {{purchase.desc}} </span><img class='purcstatus' id="status_{{purchase.pk}}" 
+				{%load humanize%}
+				<span class='purcdate'> {{purchase.date|naturalday}} @ {{purchase.date|time}} </span><span class='purcdesc'> {{purchase.desc}} </span><img class='purcstatus' id="status_{{purchase.pk}}" 
 					{%if purchase.valid != 1%}
 						src="{{STATIC_URL}}cross_t.png" title="Undone" 
 					{%elif purchase.admin != 0%}
@@ -17,9 +18,10 @@
 		
 			</div>
 			<div class='hidden'>
+				<span class='moreinfo'> Date/Time </span><span>{{purchase.date}} </span> <br />
 				<span class='moreinfo'> Activity: </span><span>{{purchase.activity}} </span> <br />
-				<span class='moreinfo'> By: </span><span>{%if purchase.admin%}Admin{%else%}{{purchase.user.name}}{%endif%}</span><br \>
-				<span class='moreinfo'> Valid: </span><span>{{purchase.valid|yesno:"Yes,No"}}</span><br \>
+				<span class='moreinfo'> By: </span><span>{%if purchase.admin%}Admin{%else%}{{purchase.user.name}}{%endif%}</span><br />
+				<span class='moreinfo'> Valid: </span><span>{{purchase.valid|yesno:"Yes,No"}}</span><br />
 				<span class='moreinfo'> Cost: </span><span>{{purchase.price}}</span>
 			</div>
 		</td>

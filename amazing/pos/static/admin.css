@@ -22,7 +22,17 @@ input[disabled]{
     background-color: #ddd;
 }
 
+button:disabled{
+    color: #ddd;
+}
 
+.alignright{
+    text-align: right;
+}
+
+.aligncenter{
+    text-align: center;
+}
 .rightdetail .smallfield{
     display:inline-block;
     width: 30px !important;
@@ -31,6 +41,10 @@ input[disabled]{
 .rightdetail .smallcomp{
     display: inline-block;
     width: 120px !important;
+}
+.rightdetail .rightlabel{
+    width:150px;
+    display: inline-block;
 }
 
 thead th{
@@ -192,6 +206,145 @@ label[for="activate"], label[for="deactivate"]{
     margin-bottom: -4px;
 }
 
-.changedalert:after{
-    content: 'Unsaved';
+.numchanged{
+    width: 30px;
+}
+
+.inventory{
+    margin-bottom: 10px;
+}
+
+.inventory .sign{
+    display:inline-block;
+    text-align: center;
+    font-size: 25px;
+    width: 35px;
+    height:35px;
+    background: #aaa transparent;
+    background: rgba(0,0,0,0.1);
+}
+.inventory .desc{
+    display: inline-block;
+    width: 95px;
+    font-size: 15px;
+    margin-left: 15px;
+}
+.inventory .total{
+    display: inline-block;
+    width:30px;
+    font-size: 15px;
+}
+.inventory .detail{
+    padding: 10px;
+
+}
+.inventory .label{
+    display: inline-block;
+    width: 115px;
+}
+.inventory ul{
+    list-style: none;
+    padding:0;
+    margin:0;
+}
+
+.inventory li:before{
+    content: '»';
+    margin-right: 5px;
+}
+
+.invtype_purchase{
+    background-color: #afa;
+}
+
+.invtype_balance{
+    background-color: #ffa;
+}
+
+.invtype_loss{
+    background-color: #faa;
+}
+
+#inventory_balance_note, #inventory_purchase_note{
+    width:100%;
+}
+
+#inventory_current_scan li:nth-child(2n){
+    background: none repeat scroll 0 0 #fee;
+}
+
+#inventory_scan{
+    max-height: 500px;
+    min-height: 300px;
+    overflow-y:scroll;
+}
+
+#inventory_current_scan{
+    list-style: none;
+}
+
+.inventory_description{
+    width: 140px;
+    display: inline-block;
+}
+
+.inventory_cat_description{
+    width: 110px;
+    display: inline-block;
+}
+
+.inventory_amount{
+    width: 30px;
+    display: inline-block;
+}
+
+#inventory_current_scan button, #inventory_current_scan p {
+    height: 30px;
+    vertical-align: middle;
+}
+
+.totaldetails{
+    background-color: #eee;
+    padding: 5px;
+}
+
+#totals_settings{
+    float: left;
+    padding-right: 15px;
+    border-right:1px solid #DDD;
+}
+#total_overview{
+    float: left;
+    padding-left: 15px;
+}
+
+#total_select button{
+    width: 100%;
+}
+
+.totaldetails .desc{
+    display: inline-block;
+    width: 200px;
+}
+
+.totaldetails .nums{
+    display: inline-block;
+    width: 20px;
+}
+
+#totals_settings{
+    width: 320px;
+}
+
+#total_select > select{
+    width: 100%;
+}
+
+#totals_chart{
+    width: 700px;
+    height: 300px;
+}
+#credits_chart{
+    width: 700px;
+    height: 300px;
 }

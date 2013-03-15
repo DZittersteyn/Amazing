@@ -26,6 +26,9 @@
 
 /* main */
 
+input:disabled{
+	background-color: #ddd;
+}
 
 #usertabs-0{
 	text-align:center;

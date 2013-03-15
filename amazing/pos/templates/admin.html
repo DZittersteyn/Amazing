@@ -13,10 +13,10 @@
 <link type='text/css' href='{{STATIC_URL}}jquery/blitzer/jquery-ui-1.8.17.custom.css' rel='stylesheet' />
 
 
-
 <link rel='stylesheet' href='{{STATIC_URL}}content.css' type='text/css' media='screen'>
 <link rel='stylesheet' href='{{STATIC_URL}}admin.css' type='text/css' media='screen'>
 <link rel='stylesheet' href='{{STATIC_URL}}undodialog.css' type='text/css' media='screen'>
+
 
 
 <!-- Core functions -->
@@ -68,12 +68,16 @@
 			<div class="content">
 				<div class="tabs">
 					<ul>
+						<li><a href="#totals_tab">Totals</a></li>
 						<li><a href="#inventory_tab">Inventory</a></li>
 						<li><a href="#user_tab">Users</a></li>
 						<li><a href="#system_user_tab">System users</a></li>
 						<li><a href="#activity_tab">Activities</a></li>
 						<li><a href="#export_tab">Export</a></li>
 					</ul>
+					<div id="totals_tab">
+						{% include "admin/totals/totals_tab.html" %}
+					</div>
 					<div id="user_tab">
 						{% include "admin/user/user_tab.html" %}
 					</div>

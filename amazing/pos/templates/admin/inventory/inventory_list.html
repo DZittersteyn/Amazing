@@ -1,0 +1,17 @@
+{% for inv_id,inventory in inventory.items reversed%}
+    <div id='inventory_{{inventory.type}}_{{inv_id}}' class="inventory invtype_{{inventory.desc|lower}}">
+        <p><span class='sign'>{{inventory.sign}}</span><span class='desc'>{{inventory.desc}}</span><span class='total'>{{inventory.total}}</span></p>
+        <div class='detail hidden'>
+            <p>{{inventory.description}}</p>
+            <p>{{inventory.date}}</p>
+            <ul>
+            {% for change_id, inv_change in inventory.changes.items %}
+                <li><span class='label'>{{inv_change.desc}}:</span> {{inv_change.num}} </li>
+            {% endfor %}
+            </ul>
+            <hr/>
+            <button class='inventorynote' id='note_{{inventory.type}}_{{inventory.pk}}'>Edit Note</button>
+            <button class='inventorydelete ui-state-error' id='delete_{{inventory.type}}_{{inventory.pk}}'>Delete</button>
+        </div>
+    </div>
+{% endfor %}

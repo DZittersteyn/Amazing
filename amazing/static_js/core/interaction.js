@@ -8,16 +8,17 @@ function button_click(productID){
 			'type':'product',
 			'productID': productID})
 		.success(function(){
-			/* TODO: enable me :D
+			$.idleTimer('destroy');
 			$.idleTimer(3 * 1000);
 			$(document).bind("idle.idleTimer", function(){
+				reset();
+				$.idleTimer('destroy');
 				$.idleTimer(10*1000);
-				$(document).bind("idle.idleTimer", function(){
+				$(document).bind('idle.idleTimer', function(){
 					reset();
 				});
-
 			});
-			*/
+			
 		})
 		.error(function(){
 			no_credit_dialog.load();
