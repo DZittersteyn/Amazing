@@ -451,6 +451,7 @@ inventory_tab = {
 
 		$('#inventory_tab').on('click', '.inventorynote', function(event){
 			event.stopPropagation();
+			var id = $(this).prop('id');
 			var match = $(this).prop('id').split('_');
 			var type = match[1];
 			var pk = match[2];
@@ -468,7 +469,8 @@ inventory_tab = {
 						$(this).dialog('destroy').remove();
 					},
 					"OK": function(){
-						$('#inventory_balance_5 > div > p:first').html($('#new_note').val());
+						alert('#inventory_'+ type +'_'+ pk + ' > div > p:first');
+						$('#inventory_'+ type +'_'+ pk + ' > div > p:first').html($('#new_note').val());
 						var dialog = $(this);
 						$.post('inventory/edit',{'pk':pk, 'type': type, 'new_desc': $('#new_note').val()})
 						.error(function(jqXHR){

@@ -607,12 +607,20 @@ def admin_totals_result(request):
     current_unsi = 0
     for balance_ind in range(0, len(relevant_balances)-1):
 
-        labels.append({
-            'series': 'Inventory',
+        label = {
             'x': relevant_balances[balance_ind].date.strftime("%Y-%m-%d %H:%M:%S"),
             'shortText': 'B',
             'text': relevant_balances[balance_ind].description
-        })
+        }
+        
+        label['series'] = 'Inventory'
+        labels.append(dict(label))
+        label['series'] = 'Loss'
+        labels.append(dict(label))
+        label['series'] = 'Credits'
+        labels.append(dict(label))
+        label['series'] = 'Unsigned'
+        labels.append(dict(label))
 
         product_changes = {}
         credit_changes = {}
@@ -634,6 +642,22 @@ def admin_totals_result(request):
         relevant_purchases = Inventory_purchase.objects.filter(date__gte=relevant_balances[balance_ind].date).exclude(date__gte=relevant_balances[balance_ind+1].date)
 
         for inventory in relevant_purchases:
+
+            label = {
+                'x': inventory.date.strftime("%Y-%m-%d %H:%M:%S"),
+                'shortText': 'P',
+                'text': inventory.description
+            }
+
+            label['series'] = 'Inventory'
+            labels.append(dict(label))
+            label['series'] = 'Loss'
+            labels.append(dict(label))
+            label['series'] = 'Credits'
+            labels.append(dict(label))
+            label['series'] = 'Unsigned'
+            labels.append(dict(label))
+
             relevant_purchase_producs = Inventory_purchase_product.objects.filter(inventory=inventory)
             for purchase in relevant_purchase_producs:
                 if not inventory.date in product_changes:
@@ -665,16 +689,23 @@ def admin_totals_result(request):
         credits[relevant_balances[balance_ind+1].date] = current_cred
         unsigned[relevant_balances[balance_ind+1].date] = current_unsi
 
-    labels.append({
-        'series': 'Inventory',
+    label = {
         'x': relevant_balances[len(relevant_balances)-1].date.strftime("%Y-%m-%d %H:%M:%S"),
         'shortText': 'B',
         'text': relevant_balances[len(relevant_balances)-1].description
-    })
+    }
 
+    label['series'] = 'Inventory'
+    labels.append(dict(label))
+    label['series'] = 'Loss'
+    labels.append(dict(label))
+    label['series'] = 'Credits'
+    labels.append(dict(label))
+    label['series'] = 'Unsigned'
+    labels.append(dict(label))
 
     purchase_keys = sorted(set(balance.keys() + loss.keys()))
-    purchase_graph = ['"Date,Inventory,Loss \\n"']
+    purchase_graph = ['"Date,Inventory,Loss\\n"']
     for key in purchase_keys:
         print key
         balance_val = balance[key] if key in balance else ''
@@ -682,7 +713,7 @@ def admin_totals_result(request):
         purchase_graph += ['"' + (', '.join([key.strftime("%Y-%m-%d %H:%M:%S"), str(balance_val), str(loss_val)])) + '\\n"']
 
     credit_keys = sorted(set(credits.keys() + unsigned.keys()))
-    credit_graph = ['"Date,Credits,Unsigned \\n"']
+    credit_graph = ['"Date,Credits,Unsigned\\n"']
     for key in credit_keys:
         balance_val = credits[key] if key in credits else ''
         loss_val = unsigned[key] if key in unsigned else ''

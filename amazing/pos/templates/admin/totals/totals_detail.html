@@ -17,11 +17,13 @@
 
 
 
-    new Dygraph(
+    var credits = new Dygraph(
         document.getElementById("credits_chart"),
         {{credit_graph|safe}}, // path to CSV file
         {'connectSeparatedPoints': true}          // options
     );
+
+    credits.setAnnotations({{labels|safe}});
 
 
 
