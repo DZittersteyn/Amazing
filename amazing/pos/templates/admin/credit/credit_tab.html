@@ -1,0 +1,145 @@
+<div id='credit_import_left'>
+    <h3>Import debit .csv</h3>
+    <input type='file' id='credit_file'>
+    <p>Note: This uses the exchange rate of &euro;<span class='exchange_rate'></span> per credit. If this is not correct, please change the exchange rate in models.py</p>
+    <button id='credit_parse_file'>Submit</button>
+
+    <div id='credit_overview'>
+        
+    </div>
+    <hr/>
+    <h3>Show batch</h3>
+    <select id='credit_batch_select' size=10>
+    </select>
+
+    <button id='credit_load_batch'>Load</button>
+    
+</div>
+
+
+<div id='credit_overviews'>
+    <div id='credit_user_overview' > 
+        <div>
+        <button id='credit_status_reload'>(Re)load credit status of active users</button>
+        </div>
+    </div>
+    <hr class='half'/><button id="credit_toggle_overview">&uarr; Show batch overview &uarr;</button><hr class='half'/>
+    <div id='credit_batch_overview' class='hidden'>
+
+        <p>Insert batch status here!</p>
+
+    </div>
+</div>
+
+
+
+<script type="text/javascript">
+
+    draw_batch = function(batch){
+        $.getJSON('credit/batch/', {'batch': batch}, function(data){
+
+            var table = $('<table/>');
+            
+            var head = $('<thead/>');
+            $('<th/>').html('User').appendTo(head);
+            $('<th/>').html('Date').appendTo(head);
+            $('<th/>').html('Credits').appendTo(head);
+            $('<th/>').html('Debit ID').appendTo(head);
+            $('<th/>').html('Key').appendTo(head);
+            $('<th/>').html('Valid').appendTo(head);
+            head.appendTo(table);
+
+            var body = $('<tbody/>');
+            for(var index in data){
+                var debit = data[index];
+                var entry = $('<tr/>');
+                $('<td/>').html(debit.user).appendTo(entry);
+                $('<td/>').html(debit.date).appendTo(entry);
+                $('<td/>').html(debit.credits).appendTo(entry);
+                $('<td/>').html(debit.debit_id).appendTo(entry);
+                $('<td/>').html(debit.key).appendTo(entry);
+                
+                console.log(debit)
+                var invalid = $('<button/>').html(debit.valid ? 'Make invalid' : 'Make valid');
+                invalid.prop('id', 'credit_toggle_' + debit.pk + '_' + !debit.valid);
+
+
+                invalid.button().click(function(){
+                    var self = $(this);
+                    var flags = self.prop('id').replace('credit_toggle_','').split('_');
+                    $.post('credit/invalidate',{'debit': flags[0],'valid': flags[1]},function(data){
+                        var data = $.parseJSON(data);
+                        var newid = 'credit_toggle_' + flags[0] + '_' + data.valid;
+                        self.prop('id', newid);
+                        self.contents().html(data.textstatus);
+                    })
+                });
+                
+                $('<td/>').html(invalid).appendTo(entry);
+                entry.appendTo(body);
+            }
+            body.appendTo(table);
+            $('#credit_batch_overview').html(table);
+            show_batch();
+        });
+    };
+
+
+    $('#credit_batch_select').load('credit/batch/list');
+    $('#credit_load_batch').button().click(function(){
+        draw_batch($('#credit_batch_select').val());
+    });
+    show_user = function(){
+        $('#credit_batch_overview').slideUp();
+        $('#credit_user_overview').slideDown();
+        $('#credit_toggle_overview span').html('&uarr; Show batch overview &uarr;');
+    };
+    show_batch = function(batch){
+        if(typeof batch !== 'undefined'){
+            // Load batch
+            console.log('batch ' + batch);
+            show_batch();
+        }else{
+            $('#credit_user_overview').slideUp();
+            $('#credit_batch_overview').slideDown();
+            $('#credit_toggle_overview span').html('&darr; Show user overview &darr;');
+        }
+    };
+
+    $('#credit_toggle_overview').button().click(function(){
+        if($('#credit_user_overview').is(':visible')){
+            show_batch();
+        }else{
+            show_user();
+        }
+    });
+    $('.exchange_rate').load('exchange');
+    $('#credit_selected_debit_remove').button().click(function(){
+        //TODO
+    })
+
+    $('#credit_status_reload').button().click(function(){
+        $('#credit_user_overview > div').load('credit/load_status');
+    });
+
+
+
+    if( window.FormData === undefined){
+        $('#credit_file').remove();
+        $('#credit_parse_file').remove();
+        $('#credit_content').html('Sorry, HTML5 file upload not supported. Please use and updated browser.')
+    }
+
+    $('#credit_parse_file').button().click(function(){
+        var selected_file = $('#credit_file').get(0).files[0];
+        var reader = new FileReader();
+
+        reader.onload = function(e){
+            $.post('credit/commit_batch', {'file': e.target.result}, function(data){
+                alert(data);
+            });
+
+        }
+        reader.readAsText(selected_file);
+    });
+</script>

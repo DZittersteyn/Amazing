@@ -1,5 +1,7 @@
 
 <div id='total_select'>
+    <button id='reload_totals'>Reload</button>
+
     <p> from: </p>
     <select id='total_from' size=6>
         {% for balance in balances reversed %}
@@ -21,6 +23,19 @@
     <div id='total_to_detail' class='hidden totaldetails'>
 
     </div>
+    <hr/>
 
     <button id='compute_totals' class='hidden'>Compute</button>
+
+
+    
+</div>
+
+
+<div id='total_summary' class='hidden'>
+    <button id='total_clear'>Clear</button>
+    <hr/>
+    <p id='total_summary_list'></p>
+
+
 </div>

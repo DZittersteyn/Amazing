@@ -15,15 +15,32 @@ admin = {
 };
 
 totals_tab = {
-	setup: function(){
+	
+	reload_totals: function(){
 		$.get('totals/list', function(data){
 			$('#totals_settings').html(data);
+			$('#reload_totals').button().click(function(){
+				totals_tab.reload_totals();
+			});
+
+			$('#total_clear').button().click(function(){
+				totals_tab.reload_totals();
+				$('#total_overview').html('');
+			});
 			$('#compute_totals').button().click(function(){
 				$.get('totals/result', {'from': $('#total_from').val(), 'to': $('#total_to').val() }, function(data){
 					$('#total_overview').html(data);
+					$('#total_select').slideUp();
+					$('#total_summary').slideDown();
 				});
+
 			});
 		});
+	},
+
+	setup: function(){
+
+		totals_tab.reload_totals();
 
 
 		$('#totals_tab').on('change', '#total_select > select', function(){
@@ -49,8 +66,7 @@ totals_tab = {
 			});
 		});
 
-	},
-
+	}
 
 };
 

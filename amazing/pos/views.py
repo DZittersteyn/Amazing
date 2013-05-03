@@ -19,6 +19,7 @@ import datetime
 import json
 import threading
 import HTMLParser
+import re
 
 from pos.models import *
 
@@ -83,6 +84,10 @@ def index(request):
 
 def spinner(request):
     return render_to_response("spinner.html", context_instance=RequestContext(request))
+
+
+def exchange_rate(request):
+    return HttpResponse(status=200, content=EXCHANGE)
 
 
 @login_required
@@ -360,6 +365,9 @@ def admin_user_options(request):
 
     resp = admin_user_data_dict(request)
 
+    debits = Purchase.objects.filter(user=user).filter(product__in=CREDITS)
+    signed_debits = Signed_debit.objects.filter(user=user)
+
     resp['user'] = user.as_dict()
     resp['activities'] = activities
 
@@ -572,16 +580,76 @@ def admin_totals_list(request):
         return render_to_response('admin/totals/totals_select.html', {'balances': balances})
 
 
+def add_or_create(purcs, date, category, value):
+    if date not in purcs:
+        purcs[date] = {}
+    if category in purcs[date]:
+        purcs[date][category] += value
+    else:
+        purcs[date][category] = value
+
+
+def compute_absolutes(start, end=None):
+    """computes the absolute inventory numbers between inventory_balances start and end, excluding end."""
+    inventory_purchases = Inventory_purchase.objects.filter(date__gte=start.date)
+    user_purchases = Purchase.objects.filter(date__gte=start.date)
+    if end is not None:
+        inventory_purchases = inventory_purchases.filter(date__lte=end.date)
+        user_purchases = user_purchases.filter(date__lte=end.date)
+
+    #  merge user purchases and inventory purchases
+
+    purchases = {}
+    for up in user_purchases:
+        add_or_create(purchases, up.date, up.product, -up.price)
+    for ip in inventory_purchases:
+        products = Inventory_purchase_product.objects.filter(inventory=ip)
+        for product in products:
+            add_or_create(purchases, ip.date, product.category, product.modification)
+
+    #  set up values for absolutes
+    start_prods = Inventory_balance_product.objects.filter(inventory=start)
+
+    purc_cats = []
+    for key in purchases.keys():
+        for item in purchases[key]:
+                purc_cats.append(item)
+
+    categories = set([prod.category for prod in start_prods] +
+                     purc_cats)  # TODO: there has to be a better way to do this.
+
+    absolutes = {}
+    absolutes[start.date] = {}
+    for category in categories:
+        if category in [prod.category for prod in start_prods]:
+            absolutes[start.date][category] = start_prods.get(category=category).modification
+        else:
+            absolutes[start.date][category] = 0
+
+    #  calculate absolutes
+    dates = sorted(purchases.keys())
+    curdate = start.date
+    for date in dates:
+        absolutes[date] = {}
+        for category in absolutes[curdate]:
+            absolutes[date][category] = absolutes[curdate][category]
+        for category in purchases[date]:
+            absolutes[date][category] += purchases[date][category]
+        curdate = date
+
+    return (absolutes, absolutes[curdate])
+
+
+
 @staff_member_required
 @ajax_required
 def admin_totals_result(request):
-    # Yes. This is freaking long and complicated. I screwed up, sorry. It works though, and I'm not going to screw with it for now.
-    # Have a bunny to cheer you up:
+    # Fixed, killed off the bunny. Will clean up the bunny in the next commit.
 
     # (~\       _
-    #  \ \     / \   Sorry!
-    #   \ \___/ /\\  /
-    #    | , , |  ~
+    #  \ \     / \
+    #   \ \___/ /\\
+    #    | X X |  ~
     #    ( =v= )
     #     ` ^ '
 
@@ -589,145 +657,90 @@ def admin_totals_result(request):
     end = Inventory_balance.objects.get(pk=request.GET['to'])
     relevant_balances = Inventory_balance.objects.filter(date__range=(start.date, end.date)).order_by('date')
 
-    balance = {}
-    balance[start.date] = sum([a.modification for a in Inventory_balance_product.objects.filter(inventory=start).filter(category__in=PRODUCTS)])
+    absolutes = {}
     loss = {}
-    loss[start.date] = 0
+    loss[relevant_balances[0].date] = {}
 
-    credits = {}
-    credits[start.date] = sum([a.modification for a in Inventory_balance_product.objects.filter(inventory=start).filter(category__in=CREDITS)])
-    unsigned = {}
-    unsigned[start.date] = 0
+    for i in range(0, len(relevant_balances)-1):
+        current = relevant_balances[i]
+        next = None
+        next_prods = {}
+        if i != len(relevant_balances) - 1:
+            next = relevant_balances[i + 1]
+            next_prods = Inventory_balance_product.objects.filter(inventory=next)
 
-    labels = []
+        (new_abs, last) = compute_absolutes(start=current, end=next)
 
-    current_bala = balance[start.date]
-    current_loss = 0
-    current_cred = credits[start.date]
-    current_unsi = 0
-    for balance_ind in range(0, len(relevant_balances)-1):
+        if next is not None:
+            bala = set([next_prod.category for next_prod in next_prods])
+            prev = set(last.keys())
 
-        label = {
-            'x': relevant_balances[balance_ind].date.strftime("%Y-%m-%d %H:%M:%S"),
-            'shortText': 'B',
-            'text': relevant_balances[balance_ind].description
-        }
-        
-        label['series'] = 'Inventory'
-        labels.append(dict(label))
-        label['series'] = 'Loss'
-        labels.append(dict(label))
-        label['series'] = 'Credits'
-        labels.append(dict(label))
-        label['series'] = 'Unsigned'
-        labels.append(dict(label))
+            loss[next.date] = {}
 
-        product_changes = {}
-        credit_changes = {}
-        relevant_user_purchases = Purchase.objects.filter(date__gte=relevant_balances[balance_ind].date).exclude(date__gte=relevant_balances[balance_ind+1].date)
+            for category in bala | prev:
+                bala_val = next_prods.get(category=category).modification if category in bala else 0
+                prev_val = last[category] if category in prev else 0
+                currloss = loss[current.date][category] if category in loss[current.date] else 0
 
-        for user_purchase in relevant_user_purchases:
-            if user_purchase.valid:
-                if user_purchase.product in PRODUCTS:
-                    if not user_purchase.date in product_changes:
-                        product_changes[user_purchase.date] = -user_purchase.price
-                    else:
-                        product_changes[user_purchase.date] -= user_purchase.price
-                elif user_purchase.product in CREDITS:
-                    if not user_purchase.date in credit_changes:
-                        credit_changes[user_purchase.date] = -user_purchase.price
-                    else:
-                        credit_changes[user_purchase.date] -= user_purchase.price
+                loss[next.date][category] = currloss + bala_val - prev_val
 
-        relevant_purchases = Inventory_purchase.objects.filter(date__gte=relevant_balances[balance_ind].date).exclude(date__gte=relevant_balances[balance_ind+1].date)
+            absolutes[next.date] = {}
+            for category in bala:
+                absolutes[next.date][category] = next_prods.get(category=category).modification
 
-        for inventory in relevant_purchases:
+        absolutes.update(new_abs)
 
-            label = {
-                'x': inventory.date.strftime("%Y-%m-%d %H:%M:%S"),
-                'shortText': 'P',
-                'text': inventory.description
-            }
+    print '-----------------------'
+    for key in sorted(absolutes.keys()):
+        print absolutes[key]
+    print '-----------------------'
+    for key in sorted(loss.keys()):
+        print loss[key]
+    print '-----------------------'
 
-            label['series'] = 'Inventory'
-            labels.append(dict(label))
-            label['series'] = 'Loss'
-            labels.append(dict(label))
-            label['series'] = 'Credits'
-            labels.append(dict(label))
-            label['series'] = 'Unsigned'
-            labels.append(dict(label))
-
-            relevant_purchase_producs = Inventory_purchase_product.objects.filter(inventory=inventory)
-            for purchase in relevant_purchase_producs:
-                if not inventory.date in product_changes:
-                    product_changes[inventory.date] = purchase.modification
-                else:
-                    product_changes[inventory.date] += purchase.modification
-
-        for key in sorted(product_changes.keys()):
-            current_bala += product_changes[key]
-            balance[key] = current_bala
-            loss[key] = current_loss
-
-        new_bala = sum([a.modification for a in Inventory_balance_product.objects.filter(inventory=relevant_balances[balance_ind+1]).filter(category__in=PRODUCTS)])
-        current_loss += current_bala - new_bala
-        current_bala = new_bala
-
-        loss[relevant_balances[balance_ind+1].date] = current_loss
-        balance[relevant_balances[balance_ind+1].date] = current_bala
-
-        for key in sorted(credit_changes.keys()):
-            current_cred += credit_changes[key]
-            credits[key] = current_cred
-            unsigned[key] = current_unsi
-
-        new_cred = sum([a.modification for a in Inventory_balance_product.objects.filter(inventory=relevant_balances[balance_ind+1]).filter(category__in=CREDITS)])
-        current_unsi += current_cred - new_cred
-        current_cred = new_cred
-
-        credits[relevant_balances[balance_ind+1].date] = current_cred
-        unsigned[relevant_balances[balance_ind+1].date] = current_unsi
-
-    label = {
-        'x': relevant_balances[len(relevant_balances)-1].date.strftime("%Y-%m-%d %H:%M:%S"),
-        'shortText': 'B',
-        'text': relevant_balances[len(relevant_balances)-1].description
-    }
-
-    label['series'] = 'Inventory'
-    labels.append(dict(label))
-    label['series'] = 'Loss'
-    labels.append(dict(label))
-    label['series'] = 'Credits'
-    labels.append(dict(label))
-    label['series'] = 'Unsigned'
-    labels.append(dict(label))
-
-    purchase_keys = sorted(set(balance.keys() + loss.keys()))
-    purchase_graph = ['"Date,Inventory,Loss\\n"']
-    for key in purchase_keys:
-        print key
-        balance_val = balance[key] if key in balance else ''
-        loss_val = loss[key] if key in loss else ''
-        purchase_graph += ['"' + (', '.join([key.strftime("%Y-%m-%d %H:%M:%S"), str(balance_val), str(loss_val)])) + '\\n"']
-
-    credit_keys = sorted(set(credits.keys() + unsigned.keys()))
+    # split purchases and losses in two different graphs, and create the .csv we need for the graph.
+    # TODO: Implement this as actual request with JSON response, as the library supports it.
+    product_graph = ['"Date,Inventory,Loss\\n"']
     credit_graph = ['"Date,Credits,Unsigned\\n"']
-    for key in credit_keys:
-        balance_val = credits[key] if key in credits else ''
-        loss_val = unsigned[key] if key in unsigned else ''
-        credit_graph += ['"' + (', '.join([key.strftime("%Y-%m-%d %H:%M:%S"), str(balance_val), str(loss_val)])) + '\\n"']
 
-    print json.dumps(labels)
+    graph_dates = absolutes.keys() + loss.keys()
+    graph_dates = sorted(set(graph_dates))
+
+    for date in graph_dates:
+
+        product_val = {'val': 0, 'edited': False}
+        product_loss = {'val': 0, 'edited': False}
+        credit_val = {'val': 0, 'edited': False}
+        credit_loss = {'val': 0, 'edited': False}
+        if date in absolutes:
+            for category in set(absolutes[date].keys()) & set(PRODUCTS.keys()):
+                product_val['val'] += absolutes[date][category]
+            product_val['edited'] = True
+            for category in set(absolutes[date].keys()) & set(CREDITS.keys()):
+                credit_val['val'] += absolutes[date][category]
+            credit_val['edited'] = True
+        if date in loss:
+            for category in set(loss[date].keys()) & set(PRODUCTS.keys()):
+                product_loss['val'] -= loss[date][category]
+            product_loss['edited'] = True
+            for category in set(loss[date].keys()) & set(CREDITS.keys()):
+                credit_loss['val'] -= loss[date][category]
+            credit_loss['edited'] = True
+
+        product_val = str(product_val['val']) if product_val['edited'] else ''
+        product_loss = str(product_loss['val']) if product_loss['edited'] else ''
+        product_graph += ['"' + (', '.join([date.strftime("%Y-%m-%d %H:%M:%S"), product_val, product_loss])) + '\\n"']
+        credit_val = str(credit_val['val']) if credit_val['edited'] else ''
+        credit_loss = str(credit_loss['val']) if credit_loss['edited'] else ''
+        credit_graph += ['"' + (', '.join([date.strftime("%Y-%m-%d %H:%M:%S"), credit_val, credit_loss])) + '\\n"']
+
     return render_to_response('admin/totals/totals_detail.html', {
-        'purchase_graph': '+ \n'.join(purchase_graph),
+        'startdate': int(unix_time_millis(start.date - datetime.timedelta(days=1))),
+        'enddate': int(unix_time_millis(end.date + datetime.timedelta(days=1))),
+        'purchase_graph': '+ \n'.join(product_graph),
         'credit_graph': '+\n'.join(credit_graph),
-        'labels': json.dumps(labels)
+        'loss': loss[end.date],
     }, context_instance=RequestContext(request))
-
-
-
 
 
 
@@ -740,16 +753,9 @@ def admin_inventory_total(request):
 
 
 def inventory_totals():
-    last_balance = None
-    try:
-        last_balance = Inventory_balance.objects.latest(field_name='date')
-    except Inventory_balance.DoesNotExist:
-        last_balance = Inventory_balance(description='Initial empty balance')
-        last_balance.save()
-        for product in PRODUCTS:
-            Inventory_balance_product(inventory=last_balance, category=product, modification=0).save()
-        for credit in CREDITS:
-            Inventory_balance_product(inventory=last_balance, category=credit, modification=0).save()
+    Inventory_balance.init()
+    last_balance = Inventory_balance.objects.latest(field_name='date')
+
     last_balance_items = Inventory_balance_product.objects.filter(inventory=last_balance)
     relevant_purchases = Inventory_purchase.objects.filter(date__gte=last_balance.date)
     relevant_user_purchases = Purchase.objects.filter(date__gte=last_balance.date)
@@ -954,6 +960,9 @@ def admin_inventory_balance(request):
 @staff_member_required
 @ajax_required
 def admin_inventory_purchase(request):
+    if not Inventory_balance.objects.all().exists():
+        Inventory_balance.init()
+
     description = request.POST.get('description', '')
     inv = Inventory_purchase(description=description)
     inv.save()
@@ -1044,9 +1053,10 @@ def generate_export(export):
 
                 purchases.delete()
                 activity, created = Activity.objects.get_or_create(
-                    name='Merged ' + export.start.strftime("%m-%y"),
-                    start=datetime.datetime.combine(export.start, datetime.time()),
-                    end=datetime.datetime.combine(export.end, datetime.time()))
+                    name='Merged set',
+                    note='Merged set between ' + export.start.strftime("%d-%m-%Y @ %H:%M") + ' and ' + export.end.strftime("%d-%m-%Y @ %H:%M"),
+                    start=export.start,
+                    end=export.end)
 
                 for product, price in merged.items():
                     purchase = Purchase(
@@ -1059,3 +1069,109 @@ def generate_export(export):
         pass
     export.done = True
     export.save()
+
+@ajax_required
+@staff_member_required
+def admin_credit_commit_batch(request):
+    batch = request.POST['file']
+    newentries = 0
+    oldentries = 0
+    nonkast = 0
+    for line in batch.split('\n'):
+        if line == '':
+            continue
+        items = re.findall(r'"(.*?)"[,$]*', line)
+        #"3901","2013-03-12 12:12:04","2013-03-27 16:28:39","0691557066990","550","Incassobatch Maart 2013","1 kruisje kopen via kast","Foetsie","Sander Feringa","Verlengde Hereweg 61A","Groningen","8859903","26"
+        #0           1                       2                   3            4              5                           6                   7           8               9                   10          11      12
+        print items
+        #            'omschrijving': str(amount) + " kruisjes, key:" + credit_key,
+        print items[6]
+        note = re.match(r'^[0-9]+ kruisjes, key:(([0-9]+):[0-9]+)$', items[6])
+        if (not note) or (not items[7] == 'Foetsie'):
+            nonkast += 1
+            continue
+        else:
+            debit_id = items[0]
+            date = datetime.datetime.strptime(items[1], "%Y-%m-%d %H:%M:%S")
+            credit = -(int(items[4])*100) / int(EXCHANGE*100)
+            credit /= 100
+            name = items[8]
+            bank_account = items[11]
+            batch = int(items[12])
+
+            user = User.objects.filter(name=name).filter(bank_account=bank_account)
+            if (len(user) == 0):
+                return HttpResponse(status=409, content='Error: User with name ' + name + ' and bank account ' + bank_account + ' was not found. Check for errors and retry. I have successfully imported ' + str(newentries) + ', ignored ' + str(nonkast) + ' non-kast entries,  and skipped ' + str(oldentries) + ' entries that were previously imported.')
+            elif (len(user) > 1):
+                return HttpResponse(status=409, content='Error: Multiple users with name ' + name + ' and bank account ' + bank_account + ' were found. Check for errors and retry. I have successfully imported ' + str(newentries) + ', ignored ' + str(nonkast) + ' non-kast entries,  and skipped ' + str(oldentries) + ' entries that were previously imported.')
+            else:
+                if Signed_debit.objects.filter(purchase__credit_key=note.group(1)).exists():
+                    oldentries += 1
+                    continue
+                else:
+                    newentries += 1
+                    if note.group(2) == str(user[0].pk):
+                        try:
+                            print user[0]
+                            print note.group(1)
+                            purchase = Purchase.objects.filter(user=user[0]).get(credit_key=note.group(1))
+                            if purchase.price != credit:
+                                return HttpResponse(status=409, content='Error, number of credits does not match. Expected: ' + str(purchase.price) + ', got: ' + str(credit))
+                            Signed_debit(debit_id=debit_id, user=user[0], date=date, batchnumber=batch, purchase=purchase).save()
+                        except Purchase.MultipleObjectsReturned:
+                            return HttpResponse(status=409, content='Error, multiple purchases with the id ' + note.group(1) + ' exist. This should never happen and indicates multiple instantaneous purchases by a single user ' + user[0].name + '.')
+                    else:
+                        return HttpResponse(status=409, content='Error: User PK does not match, found: ' + note.group(2) + ', expected ' + str(user[0].pk) + '(' + user[0].name + ')' + '.')
+    return HttpResponse(status=200, content='Successfully imported ' + str(newentries) + ' entries. Skipped ' + str(oldentries) + ' that were previously imported, ignored ' + str(nonkast) + ' entries not from kast.')
+
+
+@ajax_required
+@staff_member_required
+def admin_credit_batch_list(request):
+    batches = set()
+    debits = Signed_debit.objects.all()
+    for debit in debits:
+        batches.add(debit.batchnumber)
+
+    return render_to_response('admin/credit/batch_options.html', {'batches': batches}, context_instance=RequestContext(request))
+
+
+@ajax_required
+@staff_member_required
+def admin_credit_batch(request):
+    debits = Signed_debit.objects.filter(batchnumber=request.GET['batch'])
+    resp = []
+    for debit in debits:
+        resp.append({
+            'pk': debit.pk,
+            'debit_id': debit.debit_id,
+            'user': debit.user.name,
+            'credits': debit.purchase.price,
+            'key': debit.purchase.credit_key,
+            'date': debit.date.strftime('%d/%m/%Y %H:%M'),
+            'valid': debit.valid,
+        })
+
+    resp = list(reversed(sorted(resp, key=lambda debit: debit['debit_id'])))
+
+    return HttpResponse(status=200, content=json.dumps(resp))
+
+
+@ajax_required
+@staff_member_required
+def admin_credit_load_status(request):
+    for user in User.objects.filter(active=True):
+        signed = Signed_debit.objects.filter(user=user)
+    return HttpResponseBadRequest(content='Not yet implemented')
+
+
+@ajax_required
+@staff_member_required
+def admin_credit_invalidate(request):
+    req = Signed_debit.objects.get(pk=request.POST['debit'])
+    print request.POST['valid']
+    req.valid = True if request.POST['valid'] == True else False
+    req.save()
+    resp = {'debit': request.POST['debit'], 'valid': 'false' if request.POST['valid'] == 'true' else 'true'}
+    resp['textstatus'] = 'Make invalid' if resp['valid'] == 'false' else 'Make valid'
+    return HttpResponse(status=200, content=json.dumps(resp))

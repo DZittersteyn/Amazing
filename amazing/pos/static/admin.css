@@ -98,6 +98,10 @@ HR{
 	margin: 0;
 }
 
+#total_clear{
+    width:100%;
+}
+
 .fullwidebutton{
     width: 100%;
 }
@@ -110,10 +114,14 @@ HR{
 }
 
 .rightdetail{
-    width: 900px;
+    width: 950px;
     float:right;
     height: 100%;
-	padding-left: 10px;
+	
+}
+
+#user_tabs{
+    border:none;
 }
 
 
@@ -347,4 +355,37 @@ label[for="activate"], label[for="deactivate"]{
 #credits_chart{
     width: 700px;
     height: 300px;
+}
+
+#credit_import_left  button{
+    width: 100%;
+}
+
+#credit_import_left{
+    float: left;
+    width: 265px;
+    padding: 10px;    
+
+}
+
+#credit_overviews{
+    border-left:1px solid #DDD;
+    padding: 10px;
+    float:left;
+    width: 830px;
+    height: 600px;
+}
+#credit_overviews >div{
+    height: 600px;
+}
+
+#credit_batch_select{
+    width:100%;
+}
+
+hr.half{
+    width:35%;
+    margin-bottom: 5px;
+    clear: none;
+    display: inline-block;
 }

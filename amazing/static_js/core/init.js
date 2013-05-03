@@ -343,8 +343,12 @@ site_gui = {
 	init_barcode_submit: function(){
 
 		$(window).keydown(function(e){
-			$('#productselect').focus();
-			$('#barcodeselect').focus();
+			if(!$('input').is(':focus')){
+				console.log($('input').is(':focus'));
+				console.log('test');
+				$('#productselect').focus();
+				$('#barcodeselect').focus();
+			}
 		});
 
 		$('#reset').button().click(function(){

@@ -1,60 +1,35 @@
-<div class="leftpane">
-  <p><label>ID:              </label> <span id="pk" >{{user.pk}}</span></p>
-  <p><label>Name:            </label> <input type="text" name="name" id="name" value="{{user.name}}" />                          <img class='hidden changedalert' src='{{STATIC_URL}}/exclaim.png'/> </p>
-  <p><label>Address:         </label> <input type="text" name="address" id="address" value="{{user.address}}" />                 <img class='hidden changedalert' src='{{STATIC_URL}}/exclaim.png'/> </p>
-  <p><label>City:            </label> <input type="text" name="city" id="city" value="{{user.city}}" />                          <img class='hidden changedalert' src='{{STATIC_URL}}/exclaim.png'/> </p>
-  <p><label>Bank Account:    </label> <input type="text" name="bank_account" id="bank_account" value="{{user.bank_account}}" />  <img class='hidden changedalert' src='{{STATIC_URL}}/exclaim.png'/> </p>
-  <p><label>E-mail:          </label> <input type="text" name="email" id="email" value="{{user.email}}" />                       <img class='hidden changedalert' src='{{STATIC_URL}}/exclaim.png'/> </p>
-  <p><label>Barcode:         </label> <input type="text" name="barcode" id="barcode" value="{{user.barcode}}" />                 <img class='hidden changedalert' src='{{STATIC_URL}}/exclaim.png'/> </p>
-  <p><label>Credit:          </label> <span                             id="credit">        {{user.credit}}                                                         </span></p>
 
-  <label>&nbsp;           </label> <button class='halfwidebutton' id="revertchanges">Revert</button> <button class='halfwidebutton' id="submitchanges">Save</button>
+<div id="user_tabs">
+  <ul>
+    <li><a href="#usertabs-1">Data and purchases</a></li>
+    <li><a href="#usertabs-2">Credit check</a></li>
+    <li><a href="#usertabs-3">Stats</a></li>
+  </ul>
+  <div id="usertabs-1">
 
+    {% include "admin/user/user_options_data.html"%}
 
-  <hr />
-
-  <label>Has Passcode:    </label> <span id="has_passcode" >{{user.has_passcode}}</span></p>
-  <label>Passcode:        </label> <button class='widebutton' id="resetpassword">Reset Passcode</button></p>
-  <label>Active:          </label>
-  <span id="setactive">
-  	<input type="radio" id="activate" name="actbutton" {{user.active|yesno:'checked,'}} /><label for="activate">active</label></input>
-  	<input type="radio" id="deactivate" name="actbutton" {{user.active|yesno:',checked'}} /><label for="deactivate">inactive</label></input>
-  </span></p>
-
-
-
-
-
-</div>
-
-<div class="rightpane">
-  <label>Select Activity</label>
-  <select id="activities">
-    <option value="all">Alle Activiteiten</option>
-    {% for activity in activities %}
-      <option value="{{activity.pk}}">{{activity.name}}</option>
-    {% endfor %}
-
-  </select>
-
-  <button class='fullwidebutton' id="admin_undo">Undo from activity "<span class='actlabel'>Alle Activiteiten</span>"</button>
-  
-  <hr />
-  
-  <div id="user_data">
-    {% include "admin/user/userdata.html" %}
   </div>
-      <button class='fullwidebutton' id="commit_purchase">Select an Activity</button>
-
-  <hr />
-  
+  <div id="usertabs-2">
 
 
+
+
+  </div>
+  <div id="usertabs-3">
+
+    PLACEHOLDER FOR STATS
+
+  </div>
 </div>
+
+
+
 
 
 <script type='text/javascript'>
   $(function() {
       user_tab.user_options.setup();
+      $('#user_tabs').tabs();
   });
 </script>

@@ -1,33 +1,41 @@
 import datetime
-# import urllib
+import urllib
 import os
 import json
 
+from math import floor
 from django.db import models
-from django.core.exceptions import ObjectDoesNotExist
 from django.core import serializers
 
 
 EXCHANGE = 0.55  # Price of one credit in Euros. Positive float.
 
 PRODUCTS = {  # price is in CREDITS! always a positive integer
-            'CANDYBIG':   {'price': 1, 'desc': 'Groot Snoep'},
-            'CANDYSMALL': {'price': 1, 'desc': 'Klein Snoep'},
-            'SOUP':       {'price': 1, 'desc': 'Soep'},
-            'CAN':        {'price': 1, 'desc': 'Blikje'},
-            'BEER':       {'price': 1, 'desc': 'Bier'},
-            'SAUSAGE':    {'price': 1, 'desc': 'Broodje rookworst'},
-            'BAPAO':      {'price': 1, 'desc': 'Bapao'},
-            'BREAD':      {'price': 1, 'desc': 'Broodje beleg'},
-            }
+    'CANDYBIG':   {'price': 1, 'desc': 'Groot Snoep'},
+    'CANDYSMALL': {'price': 1, 'desc': 'Klein Snoep'},
+    'SOUP':       {'price': 1, 'desc': 'Soep'},
+    'CAN':        {'price': 1, 'desc': 'Blikje'},
+    'BEER':       {'price': 1, 'desc': 'Bier'},
+    'SAUSAGE':    {'price': 1, 'desc': 'Broodje rookworst'},
+    'BAPAO':      {'price': 1, 'desc': 'Bapao'},
+    'BREAD':      {'price': 1, 'desc': 'Broodje beleg'},
+}
 
 
-CREDITS = {  # price is in CREDITS! always a negative integer.
-             # editor beware, -2 means a user gets 2 credits per EXCHANGE euro.
-             # Don't know why you would want this, but it's in there anyways ;)
-            'DIGITAL': {'price': -1, 'desc': 'Kruisje'},
-            #'ADMIN':   {'price': -1, 'desc': 'Admin kruisje'},
-            }
+CREDITS = { 
+    # price is in CREDITS! always a negative integer.
+    # editor beware, -2 means a user gets 2 credits per EXCHANGE euro.
+    # Don't know why you would want this, but it's in there anyways ;)
+    'DIGITAL': {'price': -1, 'desc': 'Kruisje'},
+}
+
+def unix_time(dt):
+    epoch = datetime.datetime.utcfromtimestamp(0)
+    delta = dt - epoch
+    return delta.total_seconds()
+
+def unix_time_millis(dt):
+    return unix_time(dt) * 1000.0
 
 
 class User(models.Model):
@@ -45,22 +53,25 @@ class User(models.Model):
             if type in CREDITS:
                 price = CREDITS[type]['price']
                 if type == 'DIGITAL':
-                    filename = " ".join([self.name, datetime.datetime.now().strftime("%Y %m %d-%H %M %S")]).replace(" ", "_") + ".pdf"
-                    # url = "http://www.svcover.nl/incasso/api"
-                    # dataDict = {
-                    #            'app': 'awesome',
-                    #            'bedrag': amount * EXCHANGE,
-                    #            'omschrijving': str(amount) + " kruisjes kopen via amazing",
-                    #            'naam': self.name,
-                    #            'adres': self.address,
-                    #            'woonplaats': self.city,
-                    #            'rekeningnummer': self.bank_account,
-                    #            }
-                    #if self.email != "":
-                    #    dataDict['email'] = self.email
-                    #data = urllib.urlencode(dataDict)
+                    created = datetime.datetime.now()
+                    filename = " ".join([self.name, created.strftime("%Y %m %d-%H %M %S")]).replace(" ", "_") + ".pdf"
+                    credit_key = str(self.pk) + ':' + (format(floor(unix_time_millis(created)), 'f').rstrip('0').rstrip('.'))
 
-                    #print(data)
+                    url = "http://www.svcover.nl/incasso/api"
+                    dataDict = {
+                        'app': 'awesome',
+                        'bedrag': amount * EXCHANGE,
+                        'omschrijving': str(amount) + " kruisjes, key:" + credit_key,
+                        'naam': self.name,
+                        'adres': self.address,
+                        'woonplaats': self.city,
+                        'rekeningnummer': self.bank_account,
+                    }
+                    if self.email != "":
+                        dataDict['email'] = self.email
+                    data = urllib.urlencode(dataDict)
+
+                    print(dataDict)
 
                     #outfile = open(filename, 'wb')
                     #try:
@@ -74,11 +85,8 @@ class User(models.Model):
 
                     # TODO: Print
 
-                    Purchase(date=datetime.datetime.now(), user=self, product=type, price=price * amount, activity=activity, assoc_file=filename).save()
+                    Purchase(date=datetime.datetime.now(), user=self, product=type, price=price * amount, activity=activity, assoc_file=filename, credit_key=credit_key, admin=admin).save()
 
-                    return True
-                elif type == 'ADMIN':
-                    Purchase(date=datetime.datetime.now(), user=self, product=type, price=price * amount, activity=activity, admin=True).save()
                     return True
                 else:
                     return False
@@ -88,7 +96,7 @@ class User(models.Model):
             return True
 
     def buy_item(self, item, amount, activity, admin=False):
-        if item != None and self.get_credit() >= PRODUCTS[item]['price'] * amount or admin == True:
+        if item is not None and self.get_credit() >= PRODUCTS[item]['price'] * amount or admin is True:
             for i in range(amount):
                 Purchase(date=datetime.datetime.now(), user=self, product=item, price=PRODUCTS[item]['price'], activity=activity, admin=admin).save()
             return True
@@ -175,7 +183,7 @@ class Purchase(models.Model):
             "time",
             "valid",
             "admin"
-            ])
+        ])
 
     def csv(self):
         return ", ".join([
@@ -186,7 +194,7 @@ class Purchase(models.Model):
             self.date.time().isoformat(),
             str(self.valid),
             str(self.admin)
-            ])
+        ])
 
     activity = models.ForeignKey(Activity)
     user = models.ForeignKey(User)
@@ -196,6 +204,8 @@ class Purchase(models.Model):
     valid = models.BooleanField(default=True)
     admin = models.BooleanField(default=False)
     assoc_file = models.CharField(max_length=255)
+    credit_key = models.CharField(max_length=50, blank=True)  # A hack to alleviate a problem with Incassomatic-debits, where the ID is unknown.
+                                                              # Could be fixed by having Incassomatic return an ID when making a debit, but that's outside scope.
 
 
 class Product(models.Model):
@@ -210,6 +220,11 @@ class Inventory_balance(models.Model):
     description = models.CharField(max_length=255)  # e.g. "Inventory check Feb 18 2013"
     date = models.DateTimeField(auto_now_add=True)
     activity = models.ForeignKey(Activity, blank=True, null=True)
+    
+    @staticmethod
+    def init():
+        if not Inventory_balance.objects.all().exists():
+            Inventory_balance(description='Initial empty balance').save()
 
 
 class Inventory_balance_product(models.Model):
@@ -221,6 +236,10 @@ class Inventory_balance_product(models.Model):
     inventory = models.ForeignKey(Inventory_balance)
     category = models.CharField(max_length=255)     # e.g. "CANDYBIG"
     modification = models.IntegerField()            # e.g. 20 (count is in *credits*, not number of items)
+                                                    # If four bags of crisps are in stock, and one credit buys two bags of crisps,
+                                                    # this should have the value *2*
+
+
 
 
 class Inventory_purchase(models.Model):
@@ -245,3 +264,12 @@ class Export(models.Model):
     done = models.BooleanField(default=False)
     progress = models.IntegerField(default=0)
     filename = models.CharField(max_length=255)
+
+
+class Signed_debit(models.Model):
+    user = models.ForeignKey(User)
+    date = models.DateTimeField()
+    batchnumber = models.IntegerField()
+    valid = models.BooleanField(default=True)
+    purchase = models.ForeignKey(Purchase)
+    debit_id = models.IntegerField()

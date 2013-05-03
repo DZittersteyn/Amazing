@@ -1,30 +1,57 @@
 <div id='totals_chart'>
-
 </div>
+
 
 <div id='credits_chart'>
 </div>
 
+<p>Note: Any product that has not been bought between the selected balances will be omitted.</p>
+<button onclick='resetzoom()' id='resetzoom'>Reset Zoom</button>
 <script type="text/javascript" src="{{STATIC_URL}}dygraph/dygraph-combined.js"></script>
 <script type="text/javascript">
+    
+    synczoom = function(start, end, y){
+        totals.updateOptions({'dateWindow': [start,end]});
+        credits.updateOptions({'dateWindow': [start,end]});
+    }
+
+    resetzoom = function(){
+        totals.updateOptions({'dateWindow': [{{startdate}},{{enddate}}]});
+        credits.updateOptions({'dateWindow': [{{startdate}},{{enddate}}]});   
+    }
+
     var totals = new Dygraph(
         document.getElementById("totals_chart"),
-        {{purchase_graph|safe}}, // path to CSV file
-        {'connectSeparatedPoints': true}          // options
+        {{purchase_graph|safe}},
+        {'connectSeparatedPoints': true,
+        'dateWindow': [{{startdate}},{{enddate}}], 
+        'zoomCallback' : synczoom, 
+        'includeZero': true,
+        'drawAxesAtZero': true}          
     );
-
-    totals.setAnnotations({{labels|safe}});
 
 
 
     var credits = new Dygraph(
         document.getElementById("credits_chart"),
-        {{credit_graph|safe}}, // path to CSV file
-        {'connectSeparatedPoints': true}          // options
+        {{credit_graph|safe}},
+        {'connectSeparatedPoints': true,
+        'dateWindow': [{{startdate}},{{enddate}}],
+        'zoomCallback' : synczoom, 
+        'includeZero': true,
+        'drawAxesAtZero': true}          
     );
 
-    credits.setAnnotations({{labels|safe}});
+    var list = $('#total_summary_list');
 
+    {% for key,value in loss.items%}
+        {% if value != 0 %}
+            $('<label/>').html('{{key}}').appendTo(list);
+            $('<p/>').html('{{value}}').appendTo(list);
+        {% endif %}
+    {%endfor%}
+    console.log(list);
+    // Yes, a nasty hack.
 
 
 
