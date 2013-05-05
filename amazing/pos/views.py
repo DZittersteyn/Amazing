@@ -11,6 +11,7 @@ from django.contrib.auth.decorators import login_required
 from django.contrib.auth.decorators import permission_required
 from django.contrib.admin.views.decorators import staff_member_required
 
+from django.core.paginator import Paginator, EmptyPage, PageNotAnInteger
 from django.core.servers.basehttp import FileWrapper
 
 from itertools import chain
@@ -23,6 +24,7 @@ import re
 
 from pos.models import *
 
+# ugh, longfile is looooooooong. To my successor: sorry. It didn't make sense at the time either.
 
 def ajax_required(f):
     def wrap(request, *args, **kwargs):
@@ -365,14 +367,43 @@ def admin_user_options(request):
 
     resp = admin_user_data_dict(request)
 
-    debits = Purchase.objects.filter(user=user).filter(product__in=CREDITS)
-    signed_debits = Signed_debit.objects.filter(user=user)
+    debits = Signed_debit.objects.filter(user=user)
+    purcs = Purchase.objects.filter(user=user).filter(product__in=CREDITS)
+
+    # valid signed debits with corresponding valid purchases (correct)
+    correct_qset = debits.filter(valid=True).filter(purchase__valid=True)
+
+    signed_purcs = [debit.purchase for debit in debits]
+    # valid purchases without corresponding signed debit (paying too little)
+    unsigned_purcs = [p for p in purcs if p not in signed_purcs and p.valid]
+
+    invalid_debit = debits.filter(valid=False).filter(purchase__valid=True)
+
+    # invalid purchases without corresponding signed debit (correct)
+    unsigned_correct = debits.filter(valid=False).filter(purchase__valid=False)
+
+    # valid signed debits without corresponding purchase (paying too much)
+    wrongly_signed = debits.filter(valid=True).filter(purchase__valid=False)
+
+    debit_dict = []
+    for debit in correct_qset:
+        debit_dict.append({'batchnumber': debit.batchnumber, 'purcdate': debit.purchase.date, 'signdate': debit.date, 'value': debit.purchase.price, 'status': 'Valid purchase and signed debit', 'icon': 'check'})
+    for debit in invalid_debit:
+        debit_dict.append({'batchnumber': debit.batchnumber, 'purcdate': debit.purchase.date, 'signdate': debit.date, 'value': debit.purchase.price, 'status': 'Debit is invalid!', 'icon': 'cross'})
+    for purchase in unsigned_purcs:
+        debit_dict.append({'batchnumber': 'N/A', 'purcdate': purchase.date, 'signdate': 'N/A', 'value': purchase.price, 'status': 'No signed debit available! Might not yet have been imported.', 'icon': 'cross'})
+    for debit in unsigned_correct:
+        debit_dict.append({'batchnumber': debit.batchnumber, 'purcdate': debit.purchase.date, 'signdate': debit.date, 'value': debit.purchase.price, 'status': 'Both purchase and debit are invalid, no problem.', 'icon': 'check'})
+    for debit in wrongly_signed:
+        debit_dict.append({'batchnumber': debit.batchnumber, 'purcdate': debit.purchase.date, 'signdate': debit.date, 'value': debit.purchase.price, 'status': 'Debit was signed, but purchase is invalid. User is paying too much!', 'icon': 'exclaim'})
+
+    debit_dict = sorted(debit_dict, key=lambda instance: instance['purcdate'])
 
     resp['user'] = user.as_dict()
     resp['activities'] = activities
+    resp['debits'] = debit_dict
 
-    return render_to_response('admin/user/user_options.html', resp,
-                              context_instance=RequestContext(request))
+    return render_to_response('admin/user/user_options.html', resp, context_instance=RequestContext(request))
 
 
 @ajax_required
@@ -423,11 +454,9 @@ def admin_user_data_dict(request):
 
     purchases = purchases.filter(valid=True)
     res = {}
-    [p, c] = admin_purchase_qset_to_dict(purchases)
+    p = admin_purchase_qset_to_dict(purchases)
     res['products'] = p
-    res['credits'] = c
     res['user'] = request.REQUEST['user']
-    print res
     return res
 
 
@@ -437,17 +466,11 @@ def admin_purchase_qset_to_dict(purchase_qset):
     for prod in PRODUCTS.keys():
         p[prod] = {'number': 0, 'desc': PRODUCTS[prod]['desc']}
 
-    c = {}
-    for cred in CREDITS.keys():
-        c[cred] = {'number': 0, 'desc': CREDITS[cred]['desc']}
-
     for purchase in purchase_qset:
         if purchase.product in PRODUCTS:
             p[purchase.product]['number'] += purchase.price
-        if purchase.product in CREDITS:
-            c[purchase.product]['number'] -= purchase.price
 
-    return [p, c]
+    return p
 
 
 @staff_member_required
@@ -511,8 +534,8 @@ def admin_activity_list_new(request):
 def admin_activity_options(request):
     activity = Activity.objects.get(pk=request.GET['activity'])
     purchases = Purchase.objects.filter(activity=activity).filter(valid=True)
-    [p, c] = admin_purchase_qset_to_dict(purchases)
-    return render_to_response('admin/activity/activity_content.html', {'activity': activity, 'products': p, 'credits': c}, context_instance=RequestContext(request))
+    p = admin_purchase_qset_to_dict(purchases)
+    return render_to_response('admin/activity/activity_content.html', {'activity': activity, 'products': p}, context_instance=RequestContext(request))
 
 
 @staff_member_required
@@ -748,8 +771,8 @@ def admin_totals_result(request):
 @staff_member_required
 @ajax_required
 def admin_inventory_total(request):
-    prods, creds, unkns = inventory_totals()
-    return render_to_response('admin/inventory/inventory_total.html', {'products': prods, 'credits': creds, 'unknown': unkns}, context_instance=RequestContext(request))
+    prods = inventory_totals()
+    return render_to_response('admin/inventory/inventory_total.html', {'products': prods}, context_instance=RequestContext(request))
 
 
 def inventory_totals():
@@ -761,51 +784,27 @@ def inventory_totals():
     relevant_user_purchases = Purchase.objects.filter(date__gte=last_balance.date)
 
     prods = {}
-    creds = {}
-    unkns = {}
 
     for item in PRODUCTS:
         prods[item] = {'desc': PRODUCTS[item]['desc'], 'val': 0}
-    for item in CREDITS:
-        creds[item] = {'desc': CREDITS[item]['desc'], 'val': 0}
 
     for entry in last_balance_items:
         print entry
         if entry.category in PRODUCTS:
             prods[entry.category] = {'desc': PRODUCTS[entry.category]['desc'], 'val': entry.modification}
-        elif entry.category in CREDITS:
-            creds[entry.category] = {'desc': CREDITS[entry.category]['desc'], 'val': entry.modification}
-        else:
-            unkns[entry.category] = {'desc': entry.category, 'val': entry.modification}
 
     for entry in relevant_purchases:
         relevant_purchase_entries = Inventory_purchase_product.objects.filter(inventory=entry)
         for purchase in relevant_purchase_entries:
             if purchase.category in prods:
                 prods[purchase.category]['val'] += purchase.modification
-            elif purchase.category in creds:
-                creds[purchase.category]['val'] += purchase.modification
-            else:
-                if not purchase.category in unkns:
-                    unkns[purchase.category]['val'] = 0
-                unkns[purchase.category]['val'] += purchase.modification
 
     for user_purchase in relevant_user_purchases:
         if user_purchase.valid:
             if user_purchase.product in prods:
                 prods[user_purchase.product]['val'] -= user_purchase.price
-            elif user_purchase.product in creds:
-                creds[user_purchase.product]['val'] -= user_purchase.price
-            else:
-                if not user_purchase.product in unkns:
-                    unkns[user_purchase.product]['val'] = 0
-                    unkns[user_purchase.product]['desc'] = user_purchase.product
-                unkns[user_purchase.product]['val'] -= user_purchase.price
 
-    print prods
-    print creds
-    print unkns
-    return prods, creds, unkns
+    return prods
 
 
 @staff_member_required
@@ -936,24 +935,14 @@ def admin_inventory_balance(request):
         inv = Inventory_balance(description=description)
     inv.save()
 
-    prods, creds, unkns = inventory_totals()
+    prods = inventory_totals()
 
     for product in prods:
         if product in request.POST:
             mod = int(request.POST[product]) - prods[product]['val']
             if mod != 0:
                 Inventory_balance_product(inventory=inv, category=product, modification=mod).save()
-    for credit in creds:
-        if credit in request.POST:
-            mod = int(request.POST[credit]) - creds[credit]['val']
-            if mod != 0:
-                Inventory_balance_product(inventory=inv, category=credit, modification=mod).save()
-    for unknown in unkns:
-        if unknown in request.POST:
-            mod = int(request.POST[unknown]) - unkns[unknown]['val']
-            if mod != 0:
-                Inventory_balance_product(inventory=inv, category=product, modification=mod).save()
-
+    
     return HttpResponse(status=200, content='New balance created')
 
 
@@ -1109,17 +1098,19 @@ def admin_credit_commit_batch(request):
                     oldentries += 1
                     continue
                 else:
-                    newentries += 1
                     if note.group(2) == str(user[0].pk):
                         try:
                             print user[0]
                             print note.group(1)
-                            purchase = Purchase.objects.filter(user=user[0]).get(credit_key=note.group(1))
+                            purchase = Purchase.objects.filter(user=user[0]).get(credit_key=note.group(1)) # superfluous filter, ensures no funny business changing the user of a debit.
                             if purchase.price != credit:
                                 return HttpResponse(status=409, content='Error, number of credits does not match. Expected: ' + str(purchase.price) + ', got: ' + str(credit))
                             Signed_debit(debit_id=debit_id, user=user[0], date=date, batchnumber=batch, purchase=purchase).save()
+                            newentries += 1
                         except Purchase.MultipleObjectsReturned:
                             return HttpResponse(status=409, content='Error, multiple purchases with the id ' + note.group(1) + ' exist. This should never happen and indicates multiple instantaneous purchases by a single user ' + user[0].name + '.')
+                        except Purchase.DoesNotExist:
+                            return HttpResponse(status=409, content='Error, purchase with user ' + user[0].name + ' and key ' + note.group(1) + ' does not exist. Check for errors and retry. I have successfully imported ' + str(newentries) + ', ignored ' + str(nonkast) + ' non-kast entries,  and skipped ' + str(oldentries) + ' entries that were previously imported.')        
                     else:
                         return HttpResponse(status=409, content='Error: User PK does not match, found: ' + note.group(2) + ', expected ' + str(user[0].pk) + '(' + user[0].name + ')' + '.')
     return HttpResponse(status=200, content='Successfully imported ' + str(newentries) + ' entries. Skipped ' + str(oldentries) + ' that were previously imported, ignored ' + str(nonkast) + ' entries not from kast.')
@@ -1160,9 +1151,39 @@ def admin_credit_batch(request):
 @ajax_required
 @staff_member_required
 def admin_credit_load_status(request):
+    user_list = []
     for user in User.objects.filter(active=True):
-        signed = Signed_debit.objects.filter(user=user)
-    return HttpResponseBadRequest(content='Not yet implemented')
+        debits = Signed_debit.objects.filter(user=user)
+        purcs = Purchase.objects.filter(user=user).filter(product__in=CREDITS)
+
+        # valid signed debits with corresponding valid purchases
+        correct_qset = debits.exclude(valid=False).exclude(purchase__valid=False)
+
+        signed_purcs = [debit.purchase for debit in correct_qset]
+        # valid purchases without corresponding signed debit (paying too little)
+        unsigned_purcs = [p for p in purcs if p not in signed_purcs and p.valid]
+
+        # valid signed debits without corresponding purchase (paying too much)
+        wrongly_signed = debits.exclude(valid=False).filter(purchase__valid=False)
+
+        unsigned = -sum([p.price for p in unsigned_purcs])
+        wrongly = -sum([debit.purchase.price for debit in wrongly_signed])
+        total = unsigned - wrongly
+        user_list.append({'user': user.name, 'unsigned': unsigned, 'wrongly': wrongly, 'total': total})
+
+    user_list = sorted(user_list, key=lambda instance: instance['total'])
+    paginator = Paginator(user_list, 20)
+
+    users = None
+    try:
+        page = request.GET['page']
+        users = paginator.page(page)
+    except (PageNotAnInteger, KeyError):
+        users = paginator.page(1)
+    except EmptyPage:
+        users = paginator.page(paginator.num_pages)
+
+    return render_to_response('admin/credit/userlist.html', {"users": users})
 
 
 @ajax_required
@@ -1170,7 +1191,7 @@ def admin_credit_load_status(request):
 def admin_credit_invalidate(request):
     req = Signed_debit.objects.get(pk=request.POST['debit'])
     print request.POST['valid']
-    req.valid = True if request.POST['valid'] == True else False
+    req.valid = True if request.POST['valid'] == 'true' else False
     req.save()
     resp = {'debit': request.POST['debit'], 'valid': 'false' if request.POST['valid'] == 'true' else 'true'}
     resp['textstatus'] = 'Make invalid' if resp['valid'] == 'false' else 'Make valid'

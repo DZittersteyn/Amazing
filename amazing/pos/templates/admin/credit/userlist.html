@@ -1,0 +1,53 @@
+<table>
+    <thead>
+        <th>Name</th>
+        <th>Total missing</th>
+        <th>Unsigned</th>
+        <th>Wrongly signed</th>
+    </thead>
+    <tbody>
+    {% for user in users reversed %}
+        <tr>
+        <td>{{user.user}}</td>
+        <td>{{user.total}}</td>
+        <td>{{user.unsigned}}</td>
+        <td> {{user.wrongly}}</td>
+        </tr>
+    {% endfor %}
+    </tbody>
+</table>
+
+<p> For specific information about which debits/purchases are an issue, check the "Users" tab.</p>
+
+
+{% if users.pages > 1 %}
+<div class="pagination">
+    <span class="step-links">
+        {% if users.has_previous %}
+            <a id='credit_prev'>previous</a>
+            <script type='text/javascript'>
+                $('#credit_prev').click(function(){
+                    $.get('credit/load_status', {'page': {{users.prev_page_number}}}, function(data){
+                        $('#credit_batch_overview > div').html(data);
+                    })
+                });
+            </script>
+        {% endif %}
+
+        <span class="current">
+            Page {{ users.number }} of {{ users.paginator.num_pages }}.
+        </span>
+
+        {% if users.has_next %}
+            <a id='credit_next'>next</a>
+            <script type='text/javascript'>
+                $('#credit_next').click(function(){
+                    $.get('credit/load_status', {'page': {{users.next_page_number}}}, function(){
+                        $('#credit_batch_overview > div').html(data);
+                    })
+                });
+            </script>
+        {% endif %}
+    </span>
+</div>
+{% endif %}

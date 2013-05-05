@@ -19,26 +19,6 @@
 
 <hr/>
 
-{% for prod,num in credits.items %}
-<div>
-    <label id="{{prod|lower}}_description">{{num.desc}}:</label>
-    <span class='smallfield alignright' id="{{prod|lower}}_inventory">  {{num.val}}      </span>
-    <span  class='numchanged smallcomp aligncenter'>&rArr;</span>
-    <input class='valuefield smallfield alignright product' type="text" min='0' name="{{prod|lower}}_balance" id="{{prod|lower}}_balance"    value="{{num.val}}" /> 
-    <img class='hidden changedalert' src='{{STATIC_URL}}cross.png'/> 
-    <input class='hidden' id="{{prod|lower}}_original" value="{{num.val}}" />
-</div>
-{% endfor %}
-
-<hr/>
-
-{% for prod,num in unknown.items %}
-<div>
-    <label id="{{prod|lower}}_description">{{num.desc}}:</label>
-    <span class='smallfield alignright' id="{{prod|lower}}_inventory">  {{num.val}}      </span>
-    <span  class='numchanged smallcomp aligncenter'>&rArr;</span>
-</div>
-{% endfor %}
 <p>Description:</p>
 <input type='text' id='inventory_balance_note' />
 

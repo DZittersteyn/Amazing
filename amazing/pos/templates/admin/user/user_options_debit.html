@@ -1,0 +1,59 @@
+<table>
+    <thead>
+        <th>Purchase date</th>
+        <th>Sign date</th>
+        <th>Value</th>
+        <th>Batch</th>
+        <th>Key</th>
+        <th>&nbsp;</th>
+    </thead>
+    <tbody>
+    {% for debit in debits reversed %}
+        <tr>
+            <td>{{debit.purcdate}}</td>
+            <td>{{debit.signdate}}</td>
+            <td>{{debit.value}}</td>
+            <td>{{debit.batchnumber}}</td>
+            <td>Placeholder KEY</td>
+            <td><img class='credit_status' title='{{debit.status}}' src='{{STATIC_URL}}{{debit.icon}}.png'/></td>
+
+        </tr>
+    {% endfor %}
+    </tbody>
+</table>
+
+<script type='text/javascript'>
+//$('.credit_status').tooltip(); //TODO: THIS IS BROKEN AS HELL IN 1.7/1.8, fix. (and check what breaks in new jquery versions)
+</script>
+
+{% if debits.pages > 1 %}
+<div class="pagination">
+    <span class="step-links">
+        {% if debits.has_previous %}
+            <a id='credit_prev'>previous</a>
+            <script type='text/javascript'>
+                $('#credit_prev').click(function(){
+                    $.get('credit/load_status', {'page': {{debits.prev_page_number}}}, function(data){
+                        $('#credit_batch_overview > div').html(data);
+                    })
+                });
+            </script>
+        {% endif %}
+
+        <span class="current">
+            Page {{ debits.number }} of {{ debits.paginator.num_pages }}.
+        </span>
+
+        {% if debits.has_next %}
+            <a id='credit_next'>next</a>
+            <script type='text/javascript'>
+                $('#credit_next').click(function(){
+                    $.get('credit/load_status', {'page': {{debits.next_page_number}}}, function(){
+                        $('#credit_batch_overview > div').html(data);
+                    })
+                });
+            </script>
+        {% endif %}
+    </span>
+</div>
+{% endif %}

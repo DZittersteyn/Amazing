@@ -19,8 +19,8 @@
 
 <div id='credit_overviews'>
     <div id='credit_user_overview' > 
-        <div>
         <button id='credit_status_reload'>(Re)load credit status of active users</button>
+        <div>
         </div>
     </div>
     <hr class='half'/><button id="credit_toggle_overview">&uarr; Show batch overview &uarr;</button><hr class='half'/>
@@ -90,20 +90,21 @@
         draw_batch($('#credit_batch_select').val());
     });
     show_user = function(){
-        $('#credit_batch_overview').slideUp();
-        $('#credit_user_overview').slideDown();
-        $('#credit_toggle_overview span').html('&uarr; Show batch overview &uarr;');
+        $.get('credit/load_status',{'page': 1},function(){
+            $('#credit_user_overview')
+            $('#credit_batch_overview').slideUp();
+            $('#credit_user_overview').slideDown();
+            $('#credit_toggle_overview span').html('&uarr; Show batch overview &uarr;');
+        });
     };
     show_batch = function(batch){
         if(typeof batch !== 'undefined'){
-            // Load batch
-            console.log('batch ' + batch);
-            show_batch();
-        }else{
-            $('#credit_user_overview').slideUp();
-            $('#credit_batch_overview').slideDown();
-            $('#credit_toggle_overview span').html('&darr; Show user overview &darr;');
+            draw_batch(batch);
         }
+        $('#credit_user_overview').slideUp();
+        $('#credit_batch_overview').slideDown();
+        $('#credit_toggle_overview span').html('&darr; Show user overview &darr;');
+    
     };
 
     $('#credit_toggle_overview').button().click(function(){
@@ -114,9 +115,6 @@
         }
     });
     $('.exchange_rate').load('exchange');
-    $('#credit_selected_debit_remove').button().click(function(){
-        //TODO
-    })
 
     $('#credit_status_reload').button().click(function(){
         $('#credit_user_overview > div').load('credit/load_status');
@@ -135,8 +133,11 @@
         var reader = new FileReader();
 
         reader.onload = function(e){
-            $.post('credit/commit_batch', {'file': e.target.result}, function(data){
+            jqxhr = $.post('credit/commit_batch', {'file': e.target.result}, function(data){
                 alert(data);
+            });
+            jqxhr.error(function(jqxhr){
+                alert(jqxhr.responseText);
             });
 
         }
