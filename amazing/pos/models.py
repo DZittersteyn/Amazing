@@ -22,17 +22,28 @@ PRODUCTS = {  # price is in CREDITS! always a positive integer
 }
 
 
-CREDITS = { 
+CREDITS = {
     # price is in CREDITS! always a negative integer.
     # editor beware, -2 means a user gets 2 credits per EXCHANGE euro.
     # Don't know why you would want this, but it's in there anyways ;)
     'DIGITAL': {'price': -1, 'desc': 'Kruisje'},
 }
 
+BUY_STATUS = {
+    'SUCCESS': {'desc': 'Success', 'result': True},
+    'CREDITS': {'desc': 'Insufficient credits', 'result': False},
+    'TOTALLIMIT': {'desc': 'Total limit for this event exceeded', 'result': False},
+    'PRODUCTLIMIT': {'desc': 'Limit for this product for this event exceeded', 'result': False},
+    'NOTFREE': {'desc': 'Products aren\'t free, try refreshing.', 'result': False},
+    'NOCREDIT': {'desc': 'Credits are never free.', 'result': False},
+}
+
+
 def unix_time(dt):
     epoch = datetime.datetime.utcfromtimestamp(0)
     delta = dt - epoch
     return delta.total_seconds()
+
 
 def unix_time_millis(dt):
     return unix_time(dt) * 1000.0
@@ -96,12 +107,13 @@ class User(models.Model):
             return True
 
     def buy_item(self, item, amount, activity, admin=False):
-        if item is not None and self.get_credit() >= PRODUCTS[item]['price'] * amount or admin is True:
-            for i in range(amount):
-                Purchase(date=datetime.datetime.now(), user=self, product=item, price=PRODUCTS[item]['price'], activity=activity, admin=admin).save()
-            return True
-        else:
-            return False
+        if item is not None:
+            if self.get_credit() >= PRODUCTS[item]['price'] * amount or admin is True:
+                for i in range(amount):
+                    Purchase(date=datetime.datetime.now(), user=self, product=item, price=PRODUCTS[item]['price'], activity=activity, admin=admin).save()
+                return BUY_STATUS['SUCCESS']
+            else:
+                return BUY_STATUS['CREDITS']
 
     def get_credit(self):
         purchases = Purchase.objects.filter(user=self).filter(valid=True)
@@ -138,7 +150,8 @@ class Activity(models.Model):
 
     @staticmethod
     def get_active():
-        acts = Activity.objects.exclude(end__lt=datetime.datetime.now()).exclude(start=None).order_by('-start')
+        now = datetime.datetime.now()
+        acts = Activity.objects.exclude(end__lt=now).filter(start__lt=now).exclude(end__lt=now).order_by('-start')
         if acts.exists():  # return the running activity that was started last
             return acts[0]
         else:
@@ -154,11 +167,47 @@ class Activity(models.Model):
         normal.end = None
         normal.save()
 
+    def buy_item(self, item):
+        if not self.free:
+            return BUY_STATUS['NOTFREE']
+        if not item in PRODUCTS:
+            return BUY_STATUS['NOCREDIT']
+        try:
+            restrictions = ProductLimit.objects.filter(associated_activity=self).get(product=item)
+            total = sum([purchase.price for purchase in Purchase.objects.filter(activity=self).filter(product=item)])
+            if total + PRODUCTS[item]['price'] > restrictions.limit:
+                return BUY_STATUS['PRODUCTLIMIT']
+        except ProductLimit.DoesNotExist:
+            pass
+
+        try:
+            restrictions = TotalLimit.objects.get(associated_activity=self)
+            total = sum([purchase.price for purchase in Purchase.objects.filter(activity=self)])
+            if total + PRODUCTS[item]['price'] > restrictions.limit:
+                return BUY_STATUS['TOTALLIMIT']
+        except TotalLimit.DoesNotExist:
+            pass
+
+        Purchase(date=datetime.datetime.now(), user=None, product=item, price=PRODUCTS[item]['price'], activity=self).save()
+        return BUY_STATUS['SUCCESS']
+
     name = models.CharField(max_length=255, blank=False)
     responsible = models.CharField(max_length=255, blank=True)
+    free = models.BooleanField(default=False)
     note = models.CharField(max_length=255, blank=True)
     start = models.DateTimeField(null=True, blank=True)
     end = models.DateTimeField(null=True, blank=True)
+
+
+class ProductLimit(models.Model):  # A limit to the sales of a particular product during an activity
+    associated_activity = models.ForeignKey(Activity)
+    product = models.CharField(max_length=255)
+    limit = models.IntegerField()
+
+
+class TotalLimit(models.Model):  # A limit to the total number of sales during an activity
+    associated_activity = models.ForeignKey(Activity)
+    limit = models.IntegerField()
 
 
 class Purchase(models.Model):
@@ -197,7 +246,7 @@ class Purchase(models.Model):
         ])
 
     activity = models.ForeignKey(Activity)
-    user = models.ForeignKey(User)
+    user = models.ForeignKey(User, blank=True, null=True)
     product = models.CharField(max_length=255)
     price = models.IntegerField()
     date = models.DateTimeField()

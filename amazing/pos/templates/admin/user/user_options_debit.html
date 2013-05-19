@@ -1,11 +1,11 @@
-<table>
+<table class="centertable">
     <thead>
         <th>Purchase date</th>
         <th>Sign date</th>
         <th>Value</th>
         <th>Batch</th>
         <th>Key</th>
-        <th>&nbsp;</th>
+        <th>Status</th>
     </thead>
     <tbody>
     {% for debit in debits reversed %}
@@ -14,7 +14,7 @@
             <td>{{debit.signdate}}</td>
             <td>{{debit.value}}</td>
             <td>{{debit.batchnumber}}</td>
-            <td>Placeholder KEY</td>
+            <td>{{debit.key}}</td>
             <td><img class='credit_status' title='{{debit.status}}' src='{{STATIC_URL}}{{debit.icon}}.png'/></td>
 
         </tr>
@@ -23,7 +23,7 @@
 </table>
 
 <script type='text/javascript'>
-//$('.credit_status').tooltip(); //TODO: THIS IS BROKEN AS HELL IN 1.7/1.8, fix. (and check what breaks in new jquery versions)
+    $('.credit_status').tooltip();
 </script>
 
 {% if debits.pages > 1 %}

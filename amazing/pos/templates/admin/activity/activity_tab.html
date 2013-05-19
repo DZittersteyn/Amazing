@@ -4,12 +4,28 @@
         <input type="text" placeholder="Activity name" class="userbuttonstyle" name="new_activity_name" id="new_activity_name" />
         <a href="#" class="userbuttonstyle" id="add_activity">Create</a>
 
+   
+        <hr/>
 
-        <hr />
     </div>
     <div id="activityselect">
     
 
+    </div>
+    <hr />
+    <label id='activity_toggle_help'>Help <div class='plus plusminus' style="background: url({{STATIC_URL}}plusminus.png)"></div></label>
+    <div class='hidden'>
+        <p>If multiple activities are active, the one started the last (and thus at the top of the "active" list) is used.</p>
+        <p>An activity can be in one of four states:</p>
+        <label>Incomplete</label>
+        <p>No start date</p>
+        <label>Pending</label>
+        <p>Start date in the future</p>
+        <label>Active</label>
+        <p>A start date in the past, No end date or end date hasn't passed yet.</p>
+        <label>Done</label>
+        <p>End date has passed.</p>
+        
     </div>
 </div>
 
@@ -18,3 +34,13 @@
     <p>Select an activity</p>
 </div>
 
+
+<script type='text/javascript'>
+    $(function(){
+        $('#activity_tab').on('click', '#activity_toggle_restrictions, #activity_toggle_help, #activity_restriction_toggle_help', function(){
+          $('.plusminus', this).toggleClass('plus');
+          $(this).next().slideToggle();
+        });
+    });
+
+</script>

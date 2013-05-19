@@ -8,7 +8,7 @@
         
     </div>
     <hr/>
-    <h3>Show batch</h3>
+    <h3>Show batch</h3><button class='refreshbutton'>&nbsp;</button>
     <select id='credit_batch_select' size=10>
     </select>
 
@@ -26,7 +26,7 @@
     <hr class='half'/><button id="credit_toggle_overview">&uarr; Show batch overview &uarr;</button><hr class='half'/>
     <div id='credit_batch_overview' class='hidden'>
 
-        <p>Insert batch status here!</p>
+        <p>Select a batch on the left.</p>
 
     </div>
 </div>
@@ -38,7 +38,7 @@
     draw_batch = function(batch){
         $.getJSON('credit/batch/', {'batch': batch}, function(data){
 
-            var table = $('<table/>');
+            var table = $('<table/>').addClass('centertable');
             
             var head = $('<thead/>');
             $('<th/>').html('User').appendTo(head);
@@ -59,7 +59,6 @@
                 $('<td/>').html(debit.debit_id).appendTo(entry);
                 $('<td/>').html(debit.key).appendTo(entry);
                 
-                console.log(debit)
                 var invalid = $('<button/>').html(debit.valid ? 'Make invalid' : 'Make valid');
                 invalid.prop('id', 'credit_toggle_' + debit.pk + '_' + !debit.valid);
 
@@ -84,6 +83,9 @@
         });
     };
 
+    $('#credit_import_left .refreshbutton').button().click(function(){
+        $('#credit_batch_select').load('credit/batch/list');
+    });
 
     $('#credit_batch_select').load('credit/batch/list');
     $('#credit_load_batch').button().click(function(){

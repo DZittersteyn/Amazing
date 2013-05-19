@@ -1,4 +1,10 @@
 
-<div id='noCredit' class='hidden' title='Je hebt niet voldoende kruisjes'>
-	<p> Klik op de knop 'Kruisjes Kopen' om hier wat aan te doen. </p>
+<div id='noCredit' class='hidden' title='Error:'>
+    <p> 
+    {% if text %}
+        {{text}}
+    {% else %}
+        Klik op de knop 'Kruisjes Kopen' om hier wat aan te doen. 
+    {% endif %}
+    </p>
 </div>

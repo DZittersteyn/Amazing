@@ -1,21 +1,37 @@
 <div class="leftpane">
-
-  <p>An activity can be in one of three states:</p>
-  <ul>
-    <li> Incomplete: No start date. </li>
-    <li> Active: No end date or end date hasn't passed yet.</li>
-    <li> Done: end date has passed.</li>
-  </ul>
-  <p>If multiple activities are active, the one started the last is used.</p>
-
-<hr/>
-
   <p><label>Activity:        </label> <input type="text" name="name"  id="activity_name"  value="{{activity.name}}" />          
   <img class='hidden changedalert' src='{{STATIC_URL}}/exclaim.png'/> </p>
   <p><label>Responsible:     </label> <input type="text" name="responsible"  id="activity_resp"  value="{{activity.responsible}}" />   
   <img class='hidden changedalert' src='{{STATIC_URL}}/exclaim.png'/> </p>
   <p><label>Note:            </label> <input type="text" name="note"  id="activity_note"  value="{{activity.note}}" />          
   <img class='hidden changedalert' src='{{STATIC_URL}}/exclaim.png'/> </p>
+  <p><label>Free:            </label> <select id="activity_free"><option {%if not activity.free%}SELECTED{%endif%} value='false'>No</option><option {%if activity.free%}SELECTED{%endif%} value='true'>Yes</option></select>
+
+  <p>A free activity means user selection will be disabled in the front end. Make sure you communicate this with the treasurer, as this needs to be accounted for.</p>
+
+  <hr/>
+  <div id='activity_restrictions'>
+    <label id='activity_toggle_restrictions'>Restrictions <div class='plus plusminus' style="background: url({{STATIC_URL}}plusminus.png)"></div></label>
+
+    <div id='activity_restrictions_details' class='hidden'>
+      <table>
+        <thead>
+          <th>Category</th>
+          <th>Limit</th>
+          <th>More</th>
+        </thead>
+        <tbody>
+         
+        </tbody>
+      </table>
+      <label id='activity_restriction_toggle_help'>Help <div class='plus plusminus' style="background: url({{STATIC_URL}}plusminus.png)"></div></label>
+      <div class='hidden'>
+        <p>Max total determines the total maximum purchases that can be done in credits during this activity. Using the limit for products limits the amount of purchases that can be made in that category (e.g.: max. 10 beers can be bought).</p>
+        <p>If any product isn't limited any amount up to the total maximum (if any).</p>
+        <p>Warning: users can not buy a product that has been sold out, as it is impossible to pay for it. Use with caution.</p>
+      </div>
+    </div>
+  </div>
 
   <hr/>
 
@@ -32,12 +48,12 @@
   <p><label>End Time:        </label> <input type="text" name="end_time"   id="activity_end_time"   value="{{activity.end|date:'H:i'}}" />           
   <img class='hidden changedalert' src='{{STATIC_URL}}/exclaim.png'/> </p>
   <p><label>                 </label> <button id="clear_end" class="halfwidebutton">Clear</button> <button id="now_end" class="halfwidebutton">Now</button>
-  
+
 
   <hr/>
-  
+
   <label>&nbsp;           </label> <button class='widebutton ui-state-error' id="delete_activity">Delete</button> 
-  
+
   <hr/>
   <label>&nbsp;           </label> <button class='halfwidebutton' id="revertchanges_activity">Revert</button> <button class='halfwidebutton' id="submitchanges_activity">Save</button>
 
@@ -61,8 +77,64 @@
 </div>
 
 
+<script type='text/template' id='activity_restrictions_select'>
+  <select class='type'>
+      <option value="">--</option>
+      <option value="TOTAL_RESTRICTION">Max total</option>
+    {% for key, item in products.items%}
+      <option value="{{key}}">{{item.desc}}</option>
+    {% endfor %}
+  </select>
+</script>
+<script type='text/template' id='activity_restrictions_add'>
+  <button class='add'>&#x21B2;</button>
+</script>
+
 <script type='text/javascript'>
   $(function() {
-      activity_tab.activity_options.setup();
+
+    
+    activity_row = $("<tr/>");
+    $('<td/>').html($('#activity_restrictions_select').html()).appendTo(activity_row);
+    $('<td/>').html("<input type='text' />").addClass('val').appendTo(activity_row);
+    $('<td/>').html($('#activity_restrictions_add').html()).appendTo(activity_row);
+
+    {% if totallimit %}
+      preset = activity_row.clone();
+      $('.add', preset).remove();
+      $('.val input', preset).val('{{totallimit.limit}}');
+      $('.type', preset).val('TOTAL_RESTRICTION')
+      preset.appendTo($('#activity_restrictions table tbody'))
+    {% endif %}
+    {% if productlimit %}
+      {% for limit in productlimit %}
+        preset = activity_row.clone();
+        $('.add', preset).remove();
+        $('.val input', preset).val('{{limit.limit}}');
+        $('.type', preset).val('{{limit.product}}')
+        preset.appendTo($('#activity_restrictions table tbody'))
+      {% endfor %}
+    {% endif %}
+
+
+    activity_row.appendTo($('#activity_restrictions table tbody'));
+
+
+    $('#activity_restrictions .val').off('change');
+
+    $('#activity_restrictions table').on('click', '.add', function(){
+      activity_row = activity_row.clone()
+      activity_row.appendTo($('#activity_restrictions table tbody'));
+      $(this).remove();
+    });
+
+    var options = [
+    {% for resp in resp_auto %}
+      "{{resp}}",
+    {% endfor %}
+    ]
+    $('#activity_resp').autocomplete({source:options});
+
+    activity_tab.activity_options.setup();
   });
 </script>

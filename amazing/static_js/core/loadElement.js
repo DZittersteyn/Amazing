@@ -373,8 +373,8 @@ buy_line_dialog = {
 };
 
 no_credit_dialog = {
-	load: function(){
-		$.get('noCredit.html',function (data){
+	load: function(text){
+		$.get('noCredit.html',{'text': text}, function (data){
 			$('body').append(data);
 		})
 		.success(function(){

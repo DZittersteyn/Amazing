@@ -82,7 +82,8 @@ def logout(request):
 @login_required
 def index(request):
     return render_to_response("userselect.html",
-        {'activity': Activity.get_active(), 'mainuser': request.user.username, 'admin': request.user.is_staff}, context_instance=RequestContext(request))
+                              {'activity': Activity.get_active(), 'mainuser': request.user.username, 'admin': request.user.is_staff}, context_instance=RequestContext(request))
+
 
 def spinner(request):
     return render_to_response("spinner.html", context_instance=RequestContext(request))
@@ -90,6 +91,36 @@ def spinner(request):
 
 def exchange_rate(request):
     return HttpResponse(status=200, content=EXCHANGE)
+
+
+def activity(request):
+    act = Activity.get_active()
+    return HttpResponse(status=200, content=json.dumps({'act_id': act.pk, 'act_name': act.name}))
+
+
+@login_required
+def activity_purchase_free(request):
+    result = Activity.get_active().buy_item(request.POST['productID'])
+
+    if result['result']:
+        return HttpResponse(status=200, content=json.dumps({'result': result['desc'], 'status': activity_restrictions()}))
+    else:
+        return HttpResponse(status=409, content=json.dumps({'result': result['desc'], 'status': activity_restrictions()}))
+
+
+def activity_restrictions():
+    activity = Activity.get_active()
+    result = []
+    try:
+        total = TotalLimit.objects.get(associated_activity=activity)
+        result.append({'desc': 'Aantal gratis kruisjes', 'left': total.limit - sum([purchase.price for purchase in Purchase.objects.filter(activity=activity)])})
+    except:
+        pass
+    indiv = ProductLimit.objects.filter(associated_activity=activity)
+    for limit in indiv:
+        result.append({'desc': 'Max gratis ' + PRODUCTS[limit.product]['desc'], 'left': limit.limit - sum([purchase.price for purchase in Purchase.objects.filter(activity=activity).filter(product=limit.product)])})
+    return json.dumps(result)
+
 
 
 @login_required
@@ -101,7 +132,7 @@ def passcode(request):
 @login_required
 @ajax_required
 def noCredit(request):
-    return render_to_response("noCredit.html", context_instance=RequestContext(request))
+    return render_to_response("noCredit.html", {'text': request.GET['text']}, context_instance=RequestContext(request))
 
 
 @login_required
@@ -339,10 +370,11 @@ def user(request):
                     return HttpResponse(status=404, content='This barcode is not known. Please contact an admin.')
                 except Product.MultipleObjectsReturned:
                     return HttpResponse(status=409, content='This barcode is associated with more than one product. Please contact an admin.')
-            if user.buy_item(category, amount, activity, request.user.is_staff):
-                return HttpResponse(status=200)
+            result = user.buy_item(category, amount, activity, request.user.is_staff)
+            if result['result']:
+                return HttpResponse(status=200, content=result['desc'])
             else:
-                return HttpResponse(status=409, content='Insufficient credit')
+                return HttpResponse(status=409, content=result['desc'])
 
 
 def admin(request):
@@ -376,6 +408,7 @@ def admin_user_options(request):
     signed_purcs = [debit.purchase for debit in debits]
     # valid purchases without corresponding signed debit (paying too little)
     unsigned_purcs = [p for p in purcs if p not in signed_purcs and p.valid]
+    unsigned_purcs_correct = [p for p in purcs if p not in signed_purcs and not p.valid]
 
     invalid_debit = debits.filter(valid=False).filter(purchase__valid=True)
 
@@ -387,15 +420,17 @@ def admin_user_options(request):
 
     debit_dict = []
     for debit in correct_qset:
-        debit_dict.append({'batchnumber': debit.batchnumber, 'purcdate': debit.purchase.date, 'signdate': debit.date, 'value': debit.purchase.price, 'status': 'Valid purchase and signed debit', 'icon': 'check'})
+        debit_dict.append({'key': debit.purchase.credit_key, 'batchnumber': debit.batchnumber, 'purcdate': debit.purchase.date, 'signdate': debit.date, 'value': debit.purchase.price, 'status': 'Valid purchase and signed debit', 'icon': 'check_t'})
     for debit in invalid_debit:
-        debit_dict.append({'batchnumber': debit.batchnumber, 'purcdate': debit.purchase.date, 'signdate': debit.date, 'value': debit.purchase.price, 'status': 'Debit is invalid!', 'icon': 'cross'})
+        debit_dict.append({'key': debit.purchase.credit_key, 'batchnumber': debit.batchnumber, 'purcdate': debit.purchase.date, 'signdate': debit.date, 'value': debit.purchase.price, 'status': 'Debit is invalid!', 'icon': 'cross_t'})
     for purchase in unsigned_purcs:
-        debit_dict.append({'batchnumber': 'N/A', 'purcdate': purchase.date, 'signdate': 'N/A', 'value': purchase.price, 'status': 'No signed debit available! Might not yet have been imported.', 'icon': 'cross'})
+        debit_dict.append({'key': purchase.credit_key, 'batchnumber': 'N/A', 'purcdate': purchase.date, 'signdate': 'N/A', 'value': purchase.price, 'status': 'No signed debit available! Might not yet have been imported.', 'icon': 'cross_t'})
+    for purchase in unsigned_purcs_correct:
+        debit_dict.append({'key': purchase.credit_key, 'batchnumber': 'N/A', 'purcdate': purchase.date, 'signdate': 'N/A', 'value': purchase.price, 'status': 'No signed debit available, but the debit has been undone.', 'icon': 'info_t'})
     for debit in unsigned_correct:
-        debit_dict.append({'batchnumber': debit.batchnumber, 'purcdate': debit.purchase.date, 'signdate': debit.date, 'value': debit.purchase.price, 'status': 'Both purchase and debit are invalid, no problem.', 'icon': 'check'})
+        debit_dict.append({'key': debit.purchase.credit_key, 'batchnumber': debit.batchnumber, 'purcdate': debit.purchase.date, 'signdate': debit.date, 'value': debit.purchase.price, 'status': 'Both purchase and debit are invalid, no problem.', 'icon': 'info_t'})
     for debit in wrongly_signed:
-        debit_dict.append({'batchnumber': debit.batchnumber, 'purcdate': debit.purchase.date, 'signdate': debit.date, 'value': debit.purchase.price, 'status': 'Debit was signed, but purchase is invalid. User is paying too much!', 'icon': 'exclaim'})
+        debit_dict.append({'key': debit.purchase.credit_key, 'batchnumber': debit.batchnumber, 'purcdate': debit.purchase.date, 'signdate': debit.date, 'value': debit.purchase.price, 'status': 'Debit was signed, but purchase is invalid. User is paying too much!', 'icon': 'exclaim_t'})
 
     debit_dict = sorted(debit_dict, key=lambda instance: instance['purcdate'])
 
@@ -476,10 +511,12 @@ def admin_purchase_qset_to_dict(purchase_qset):
 @staff_member_required
 @ajax_required
 def admin_activity_list(request):
-    invalid = Activity.objects.filter(end=None).filter(start=None).exclude(pk=Activity.get_normal_sale().pk)
-    active = list(chain(Activity.objects.filter(end=None).exclude(start=None).order_by('-start').exclude(pk=Activity.get_normal_sale().pk), [Activity.get_normal_sale()]))
-    done = Activity.objects.exclude(end=None).order_by('-end')
-    return render_to_response('admin/activity/activity_list.html', {'invalid': invalid, 'active': active, 'done': done}, context_instance=RequestContext(request))
+    now = datetime.datetime.now()
+    invalid = Activity.objects.filter(start=None).exclude(pk=Activity.get_normal_sale().pk)
+    pending = Activity.objects.filter(start__gt=now)
+    active = list(chain(Activity.objects.filter(start__lt=now).exclude(end__lt=now).order_by('-start').exclude(pk=Activity.get_normal_sale().pk), [Activity.get_normal_sale()]))
+    done = Activity.objects.filter(end__lt=now).order_by('-end')
+    return render_to_response('admin/activity/activity_list.html', {'invalid': invalid, 'pending': pending, 'active': active, 'done': done}, context_instance=RequestContext(request))
 
 
 @staff_member_required
@@ -494,6 +531,17 @@ def admin_activity_edit(request):
     act.name = request.POST['name']
     act.responsible = request.POST['responsible']
     act.note = request.POST['note']
+    act.free = request.POST['free'] == 'true'
+
+    TotalLimit.objects.filter(associated_activity=act).delete()
+    ProductLimit.objects.filter(associated_activity=act).delete()
+    for key in [key for key in request.POST.keys() if re.match('_restriction_', key)]:
+        cat = key.replace('_restriction_', '')
+        if cat == 'TOTAL_RESTRICTION':
+            TotalLimit(associated_activity=act, limit=request.POST[key]).save()
+        else:
+            ProductLimit(associated_activity=act, product=cat, limit=request.POST[key]).save()
+
     if request.POST['start'] != ' ':
         act.start = datetime.datetime.strptime(request.POST['start'], '%d/%m/%Y %H:%M')
     else:
@@ -535,7 +583,15 @@ def admin_activity_options(request):
     activity = Activity.objects.get(pk=request.GET['activity'])
     purchases = Purchase.objects.filter(activity=activity).filter(valid=True)
     p = admin_purchase_qset_to_dict(purchases)
-    return render_to_response('admin/activity/activity_content.html', {'activity': activity, 'products': p}, context_instance=RequestContext(request))
+    resp_autocomplete = [resp['responsible'] for resp in Activity.objects.all().values('responsible').distinct()]
+    totallimit = None
+    try:
+        totallimit = TotalLimit.objects.get(associated_activity=activity)
+    except:
+        pass
+    productlimit = ProductLimit.objects.filter(associated_activity=activity)
+
+    return render_to_response('admin/activity/activity_content.html', {'activity': activity, 'products': p, 'resp_auto': resp_autocomplete, 'totallimit': totallimit, 'productlimit': productlimit}, context_instance=RequestContext(request))
 
 
 @staff_member_required
@@ -724,7 +780,6 @@ def admin_totals_result(request):
     # split purchases and losses in two different graphs, and create the .csv we need for the graph.
     # TODO: Implement this as actual request with JSON response, as the library supports it.
     product_graph = ['"Date,Inventory,Loss\\n"']
-    credit_graph = ['"Date,Credits,Unsigned\\n"']
 
     graph_dates = absolutes.keys() + loss.keys()
     graph_dates = sorted(set(graph_dates))
@@ -733,35 +788,23 @@ def admin_totals_result(request):
 
         product_val = {'val': 0, 'edited': False}
         product_loss = {'val': 0, 'edited': False}
-        credit_val = {'val': 0, 'edited': False}
-        credit_loss = {'val': 0, 'edited': False}
         if date in absolutes:
             for category in set(absolutes[date].keys()) & set(PRODUCTS.keys()):
                 product_val['val'] += absolutes[date][category]
             product_val['edited'] = True
-            for category in set(absolutes[date].keys()) & set(CREDITS.keys()):
-                credit_val['val'] += absolutes[date][category]
-            credit_val['edited'] = True
         if date in loss:
             for category in set(loss[date].keys()) & set(PRODUCTS.keys()):
                 product_loss['val'] -= loss[date][category]
             product_loss['edited'] = True
-            for category in set(loss[date].keys()) & set(CREDITS.keys()):
-                credit_loss['val'] -= loss[date][category]
-            credit_loss['edited'] = True
 
         product_val = str(product_val['val']) if product_val['edited'] else ''
         product_loss = str(product_loss['val']) if product_loss['edited'] else ''
         product_graph += ['"' + (', '.join([date.strftime("%Y-%m-%d %H:%M:%S"), product_val, product_loss])) + '\\n"']
-        credit_val = str(credit_val['val']) if credit_val['edited'] else ''
-        credit_loss = str(credit_loss['val']) if credit_loss['edited'] else ''
-        credit_graph += ['"' + (', '.join([date.strftime("%Y-%m-%d %H:%M:%S"), credit_val, credit_loss])) + '\\n"']
 
     return render_to_response('admin/totals/totals_detail.html', {
         'startdate': int(unix_time_millis(start.date - datetime.timedelta(days=1))),
         'enddate': int(unix_time_millis(end.date + datetime.timedelta(days=1))),
         'purchase_graph': '+ \n'.join(product_graph),
-        'credit_graph': '+\n'.join(credit_graph),
         'loss': loss[end.date],
     }, context_instance=RequestContext(request))
 
@@ -942,7 +985,7 @@ def admin_inventory_balance(request):
             mod = int(request.POST[product]) - prods[product]['val']
             if mod != 0:
                 Inventory_balance_product(inventory=inv, category=product, modification=mod).save()
-    
+
     return HttpResponse(status=200, content='New balance created')
 
 
@@ -1027,7 +1070,7 @@ def generate_export(export):
         try:
             f.write(Purchase.csvheader() + "\n")
             for user in User.objects.all():
-                purchases = Purchase.objects.filter(user=user).filter(date__gte=export.start).filter(date__lt=export.end)
+                purchases = Purchase.objects.filter(user=user).filter(product__in=PRODUCTS).filter(date__gte=export.start).filter(date__lt=export.end)
                 merged = {}
                 for purchase in purchases:
                     num_done += 1

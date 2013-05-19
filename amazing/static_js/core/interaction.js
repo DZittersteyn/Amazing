@@ -1,5 +1,25 @@
 function button_click(productID){
-	if (site_user.selected_user_id() !== ""){
+
+	if (purchases_free){
+		$.post('activity/purchase_free', {
+			'type': 'product',
+			'productID': productID
+		})
+		.error(function(jqXHR){
+			no_credit_dialog.load($.parseJSON(jqXHR.responseText).result);
+		})
+		.complete(function(jqXHR){
+			resp = $.parseJSON(jqXHR.responseText);
+			var content = $('#free_left');
+			content.html('');
+			stat = $.parseJSON(resp.status);
+
+			$.each(stat, function(){
+				$('<li/>').html(this.desc + ": " + this.left).appendTo(content);
+			});
+
+		});
+	} else if (site_user.selected_user_id() !== ""){
 		$.post('user/', {
 			'user'     : site_user.selected_user_id(),
 			'passcode' : site_user.selected_user_pc(),
@@ -18,10 +38,10 @@ function button_click(productID){
 					reset();
 				});
 			});
-			
+
 		})
-		.error(function(){
-			no_credit_dialog.load();
+		.error(function(jqXHR){
+			no_credit_dialog.load(jqXHR.responseText);
 		})
 		.complete(function(){
 			site_user.update_user();

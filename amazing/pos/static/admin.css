@@ -14,7 +14,7 @@ label{
 
 .rightdetail input[type=text], .rightdetail input[type=number], .rightdetail input[type=password], .rightdetail select{
 	margin: 1px;
-	width: 200px;
+	width: 195px;
     height: 18px;
 }
 
@@ -114,7 +114,7 @@ HR{
 }
 
 .rightdetail{
-    width: 950px;
+    width: 920px;
     float:right;
     height: 100%;
 	
@@ -141,6 +141,11 @@ HR{
 #activity_tab ul{
     margin-bottom: 0;
 }
+
+#activity_restrictions_details select, #activity_restrictions_details input{
+    width: 140px;
+}
+
 
 label[for="activate"], label[for="deactivate"]{
 	width: 100px !important; 
@@ -357,8 +362,13 @@ label[for="activate"], label[for="deactivate"]{
     height: 300px;
 }
 
-#credit_import_left  button{
+#credit_import_left button:not(.refreshbutton){
     width: 100%;
+}
+
+#credit_import_left h3{
+    display:inline-block;
+    padding-right: 20px;
 }
 
 #credit_import_left{
@@ -388,4 +398,22 @@ hr.half{
     margin-bottom: 5px;
     clear: none;
     display: inline-block;
+}
+.centertable th, .centertable td{
+    text-align: center;
+}
+
+.text-center{
+    text-align: center;
+}
+
+.plus{
+    background-position: 0 -13px !important;
+}
+
+.plusminus{
+    display:inline-block;
+    width:13px;
+    height:13px;
+    margin-bottom: -2px;
 }

@@ -47,7 +47,8 @@
 
 <script type='text/javascript'>
 	$(function() {
-		site_gui.setup();
+		var free = {% if activity.free %} true; {% else %} false; {% endif %}
+		site_gui.setup(free);
 		$('#add').button('enable'); 
 		// workaround for a firefox bug, which would disable the new user button
 		// see http://stackoverflow.com/questions/2719044/jquery-ui-button-gets-disabled-on-refresh
@@ -58,6 +59,14 @@
 
 <!-- End jQuery -->
 
+
+{% if activity.free %}
+<link rel='stylesheet' href='{{STATIC_URL}}freepos.css' type='text/css' media='screen'>
+<script type='text/javascript'> 
+	$(function(){$('#mainbar .content').prepend('<p id="paidby">Deze activiteit wordt betaald door de {{activity.responsible}}!</p>');	});
+</script>
+
+{% endif %}
 <link rel='stylesheet' href='{{STATIC_URL}}pos.css' type='text/css' media='screen'>
 <link rel='stylesheet' href='{{STATIC_URL}}content.css' type='text/css' media='screen'>
 <link rel='stylesheet' href='{{STATIC_URL}}undodialog.css' type='text/css' media='screen'>
@@ -73,7 +82,10 @@
 
 <div id='topbar'>
 
-	<p class='content'>{{admin|yesno:'LOGGED IN AS ADMIN,K.A.S.T.'}} - <span id='activity'>{{activity}}</span></p>
+	<p class='content'>{{admin|yesno:'LOGGED IN AS ADMIN,K.A.S.T.'}} - <span id='activity'>{{activity.name}}</span></p>
+	<script type='text/javascript'>
+		activity_id = {{activity.id}}
+	</script>
 </div>
 
 <div id='mainbar'>
@@ -82,7 +94,11 @@
 		<div id='usertabs'>
 
 		</div>
-
+		
+			{% if activity.free %}
+			<ul id='free_left'>
+			</ul>
+			{% endif %}
 		<div id='userinfo'>
 			<div id='userbuttons' class='span-12 last'>
 				<p class='hidden' id='passcode'></p>
@@ -111,7 +127,8 @@
 				<button id='BAPAO' class='productbutton span-4 last'>Broodje<br />Bapao</button>
 
 			</div>
-			
+
+
 			<div id='purchases' class='span-12 last'>
 			</div>
 		</div>

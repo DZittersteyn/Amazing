@@ -10,6 +10,18 @@
 
 <hr/>
 
+<p>&dArr; Pending &dArr;</p>
+{%if pending%}
+{%for activity in pending%}       
+    <input class="activitybutton-input" type="radio" id="activity-{{activity.pk}}" name="activitybutton" />
+    <label class="userbuttonstyle activitybutton" for="activity-{{activity.pk}}">{{activity.name}}</label>
+{%endfor%}
+{%else%}
+<p> { none } </p>
+{%endif%}
+
+<hr/>
+
 <p>&dArr; Active &dArr;</p>
 {%if active%}
 {%for activity in active%}       

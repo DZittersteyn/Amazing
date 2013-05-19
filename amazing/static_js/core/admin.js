@@ -307,7 +307,7 @@ activity_tab = {
 
 
 
-		$('#activity_tab').on('keyup', '.leftpane input[type=text]', function(){
+		$('#activity_tab').on('keyup', '.leftpane input[type=text]:not(#activity_restrictions input)', function(){
 			var field = $(this);
 
 			activity = {'activity' : activity_tab.selected_activity()};
@@ -332,6 +332,7 @@ activity_tab = {
 	activity_options: {
 
 		setup: function(){
+			console.log('hai');
 
 
 			$('#clear_start').button().click(function(){
@@ -384,6 +385,17 @@ activity_tab = {
 				activity['note'] = $('#activity_note').val();
 				activity['start'] = $('#activity_start_date').val() + " " +$('#activity_start_time').val();
 				activity['end'] = $('#activity_end_date').val() + " " +$('#activity_end_time').val();
+				activity['free'] = $('#activity_free').val();
+
+
+				var rests = $('#activity_restrictions_details table tbody');
+
+				$('tr', rests).each(function(){
+					if($('.type', this).val()){
+						activity['_restriction_' + $('.type', this).val()] = $('.val input', this).val();
+					}
+				});
+
 				$.post('activity/edit', activity, function(){
 					activity_tab.reload_activitylist(true);
 					activity_tab.activity_options.load(activity_tab.selected_activity());
@@ -417,7 +429,6 @@ activity_tab = {
 			var date = '';
 			var time = '';
 			if(datetime){
-				console.log('datetime');
 				date = $.datepicker.formatDate('dd/mm/yy',datetime);
 				var hr = (datetime.getHours() < 10 ? '0' : '') + datetime.getHours();
 				var mn = (datetime.getMinutes() < 10 ? '0' : '') + datetime.getMinutes();
@@ -599,7 +610,6 @@ inventory_tab = {
 				}
 				purchases[purchase.category] += purchase.num;
 			});
-			console.log(purchases);
 			$.post('inventory/purchase', purchases, function(){
 				inventory_tab.new_inventory = [];
 				inventory_tab.redraw_current_scan();
@@ -622,7 +632,6 @@ inventory_tab = {
 				diff = "&rArr;";
 			}else if (diff>0){
 				diff = "+" + diff;
-				console.log(diff);
 			}
 			field.siblings('.numchanged').html(diff);
 
@@ -863,7 +872,6 @@ export_tab = {
 			$('.refreshbutton').button().click();
 
 			$('#exports').on('click', '.exportbutton', function(){
-				console.log($(this));
 				$(this).button('disable');
 				$.get('adminmanageexport', {'export': $(this).prop('id').split('-')[1], 'start':'True'});
 			});

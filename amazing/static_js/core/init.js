@@ -34,7 +34,6 @@ site_user = {
 site_gui = {
 
 	clear_selected: function(){
-		console.log("clear");
 		$('#user_id').html("");
 		$('#passcode').html("");
 		$('#username').html("");
@@ -42,7 +41,9 @@ site_gui = {
 		$('#credit').html("");
 		$('#barcode').html("");
 		$('#purchases').html("");
-		site_gui.set_user_spec_buttons(false);
+		if(!purchases_free){
+			site_gui.set_user_spec_buttons(false);
+		}
 		$('.ui-selected').removeClass('ui-selected');
 	},
 
@@ -54,14 +55,7 @@ site_gui = {
 		$('#buyline').button(enableString);
 		$('#undo').button(enableString);
 		$('#edituser').button(enableString);
-		$('#CANDYBIG').button(enableString);
-		$('#CANDYSMALL').button(enableString);
-		$('#BEER').button(enableString);
-		$('#CAN').button(enableString);
-		$('#SOUP').button(enableString);
-		$('#BREAD').button(enableString);
-		$('#SAUSAGE').button(enableString);
-		$('#BAPAO').button(enableString);
+		$('.productbutton').button(enableString);
 	},
 
 	set_gui_user: function(user, settab){
@@ -96,7 +90,6 @@ site_gui = {
 			'passcode' : passcode,
 			'barcode'  : barcode
 		}, function(user){
-			console.log('here');
 			site_gui.set_gui_user(user);
 		})
 		.error(function(jqxhr){
@@ -121,7 +114,6 @@ site_gui = {
 				success: function(data, textstatus, jqxhr){
 					var cp =  $("#usertabs").tabs('option','selected');
 					var up = Math.floor(($("#username").html().toLowerCase().charCodeAt(0)-'a'.charCodeAt(0))/2) +1;
-					console.log('succ' + cp + " " + up );
 					site_gui.init_selectables();
 					if(cp != up){
 						site_gui.clear_selected();
@@ -185,7 +177,10 @@ site_gui = {
 	},
 
 	init_product_buttons: function(){
-		$(".productbutton").button().button('disable');
+		$(".productbutton").button().button('enable');
+		if(!purchases_free){
+			$(".productbutton").button('disable');
+		}
 
 		$(".productbutton").each(function(index){
 			$(this).bind('click', function(){
@@ -344,8 +339,6 @@ site_gui = {
 
 		$(window).keydown(function(e){
 			if(!$('input').is(':focus')){
-				console.log($('input').is(':focus'));
-				console.log('test');
 				$('#productselect').focus();
 				$('#barcodeselect').focus();
 			}
@@ -416,14 +409,28 @@ site_gui = {
 
 
 	},
-	
-	setup: function(){
+
+	init_activity_check: function(){
+		window.setInterval(function(){
+			$.getJSON('activity', function(data){
+				if(activity_id != data.act_id){
+					window.location.reload(true);
+				}
+			});
+		}, 10000); // Every 10 seconds we check if the activity changed. If it did, reload.
+	},
+
+
+
+	setup: function(free){
+		purchases_free = free;
 
 		site_gui.init_product_buttons();
 		site_gui.init_user_buttons();
 		site_gui.init_userlist();
 		site_gui.init_timer();
 		site_gui.init_csrf_token();
+		site_gui.init_activity_check();
 	}
 
 };

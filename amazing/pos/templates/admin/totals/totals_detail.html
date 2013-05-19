@@ -2,9 +2,6 @@
 </div>
 
 
-<div id='credits_chart'>
-</div>
-
 <p>Note: Any product that has not been bought between the selected balances will be omitted.</p>
 <button onclick='resetzoom()' id='resetzoom'>Reset Zoom</button>
 <script type="text/javascript" src="{{STATIC_URL}}dygraph/dygraph-combined.js"></script>
@@ -31,17 +28,6 @@
     );
 
 
-
-    var credits = new Dygraph(
-        document.getElementById("credits_chart"),
-        {{credit_graph|safe}},
-        {'connectSeparatedPoints': true,
-        'dateWindow': [{{startdate}},{{enddate}}],
-        'zoomCallback' : synczoom, 
-        'includeZero': true,
-        'drawAxesAtZero': true}          
-    );
-
     var list = $('#total_summary_list');
 
     {% for key,value in loss.items%}
@@ -50,7 +36,6 @@
             $('<p/>').html('{{value}}').appendTo(list);
         {% endif %}
     {%endfor%}
-    console.log(list);
     // Yes, a nasty hack.
 
 

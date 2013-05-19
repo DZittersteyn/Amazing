@@ -6,7 +6,7 @@ urlpatterns = patterns('pos.views',
 
     url(r'^$', 'index'),
     url(r'^index.html$',         'index'),
-    url(r'login.html$',         'login'),
+    url(r'login.html$',          'login'),
     url(r'^logout.html$',        'logout'),
     url(r'^filtereduserlist$',   'filtereduserlist'),
     url(r'^userlist.html$',      'userlist'),
@@ -14,7 +14,10 @@ urlpatterns = patterns('pos.views',
     url(r'^buyLine.html$',       'buyLine'),
     url(r'^noCredit.html$',      'noCredit'),
     url(r'^spinner$',            'spinner'),
-    url(r'^exchange$',            'exchange_rate'),
+    url(r'^exchange$',           'exchange_rate'),
+    url(r'^activity$',           'activity'),
+    url(r'^activity/purchase_free$',           'activity_purchase_free'),
+    url(r'^activity/restrictions$',            'activity_restrictions'),
 
     # functions that require user authentication
 
