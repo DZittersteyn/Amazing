@@ -7,7 +7,7 @@
 
 	<div id="usertabs-0">
 		<p >Welkom bij K.A.S.T., Het web-based kruissysteem van Cover!</p>
-		<p >Als je je coverpas aan je account hebt gekoppeld kun je met de barcodescanner inloggen, selecteer anders je naam via de tabbladen.</p>
+		<p >Als je een barcode aan je account hebt gekoppeld kun je met de barcodescanner inloggen, selecteer anders je naam via de tabbladen.</p>
 		<input id="barcodeselect" type="text" name="barcode"/>	
 		<button id="reset">Reset</button>
 
@@ -15,7 +15,47 @@
 			<hr/>
 			<p> Now scan the product </p>
 			<input id="productselect" type="text" name="product"/>
+			<br/>
+			<hr class='center'/>
+			{% if admin %}
+			<div id="add_product" class='hidden'>
+		        <p>This barcode is unknown. Please enter the details below.</p>
+		        <label>Barcode:</label><input type="text" id="inventory_newprod_barcode" value=""/></br>
+		        <label>Product name:</label><input type="text" id="inventory_newprod_name" value="" placeholder="Product name"/></br>
+		        <label>Amount of credits:</label><input type="text" id="inventory_newprod_amount" value="" placeholder="Amount of credits"/></br>
+		        <label>Prouct Type:</label><select id="inventory_newprod_type"></br>
+	        		{% for key,product in products.items %}
+	        		<option value="{{key}}">{{product.desc}}</option>
+	        		{% endfor %}
+		        </select><br/>
+		        <button class="fullwidebutton" id="inventory_create_new_prod">Create new</button> <button id="inventory_hide_new_prod">Cancel</button>
+		        <script type='text/javascript'>
+		        	$('#inventory_hide_new_prod').button().click(function(){
+							$('#inventory_newprod_amount').val('');
+							$('#inventory_newprod_name').val('');
+							$('#inventory_barcode').focus();
+							$('#add_product').slideUp();
+		        	});
+		        	$('#inventory_create_new_prod').button().click(function(){
+						$.post('inventory/product', {
+							'mode': 'add',
+							'barcode': $('#inventory_newprod_barcode').val(),
+							'amount': $('#inventory_newprod_amount').val(),
+							'description': $('#inventory_newprod_name').val(),
+							'category': $('#inventory_newprod_type').val()
+						}).error(function(jqXHR, textStatus, errorThrown){
+							alert(jqXHR.responseText);
+						}).complete(function(){
+							$('#inventory_newprod_amount').val('');
+							$('#inventory_newprod_name').val('');
+							$('#inventory_barcode').focus();
+							$('#add_product').slideUp();
 
+						});
+		        	});
+		        </script>
+			</div>
+			{% endif %}
 		</div>
 		
 	</div>

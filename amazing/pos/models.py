@@ -123,7 +123,10 @@ class User(models.Model):
         return credit
 
     def get_latest_purchase_date(self):
-        return Purchase.objects.filter(user=self).order_by('-date')[:1]
+        try:
+            return Purchase.objects.filter(user=self).latest('date').date
+        except:
+            return None
 
     name = models.CharField(max_length=255)
     address = models.CharField(max_length=255)
@@ -157,38 +160,36 @@ class Activity(models.Model):
         else:
             return Activity.get_normal_sale()
 
-    @staticmethod
-    def finish():
-        running = Activity.objects.filter(end=None)
-        for act in running:
-            act.end = datetime.datetime.now()
-            act.save()
-        normal = Activity.get_normal_sale()
-        normal.end = None
-        normal.save()
+    def finish(self):
+        self.end = datetime.datetime.now()
+        self.save()
 
     def buy_item(self, item):
         if not self.free:
             return BUY_STATUS['NOTFREE']
         if not item in PRODUCTS:
             return BUY_STATUS['NOCREDIT']
+        total_limit = None
         try:
-            restrictions = ProductLimit.objects.filter(associated_activity=self).get(product=item)
+            total_limit = TotalLimit.objects.get(associated_activity=self)
+            total = sum([purchase.price for purchase in Purchase.objects.filter(activity=self)])
+            if total + PRODUCTS[item]['price'] > total_limit.limit:
+                self.finish()
+                return BUY_STATUS['TOTALLIMIT']
+        except TotalLimit.DoesNotExist:
+            pass
+        try:
+            restriction = ProductLimit.objects.filter(associated_activity=self).get(product=item)
             total = sum([purchase.price for purchase in Purchase.objects.filter(activity=self).filter(product=item)])
-            if total + PRODUCTS[item]['price'] > restrictions.limit:
+            if total + PRODUCTS[item]['price'] > restriction.limit:
                 return BUY_STATUS['PRODUCTLIMIT']
         except ProductLimit.DoesNotExist:
             pass
 
-        try:
-            restrictions = TotalLimit.objects.get(associated_activity=self)
-            total = sum([purchase.price for purchase in Purchase.objects.filter(activity=self)])
-            if total + PRODUCTS[item]['price'] > restrictions.limit:
-                return BUY_STATUS['TOTALLIMIT']
-        except TotalLimit.DoesNotExist:
-            pass
-
         Purchase(date=datetime.datetime.now(), user=None, product=item, price=PRODUCTS[item]['price'], activity=self).save()
+        if total_limit.limit - sum([purchase.price for purchase in Purchase.objects.filter(activity=self)]) <= 0:
+            self.finish()
+
         return BUY_STATUS['SUCCESS']
 
     name = models.CharField(max_length=255, blank=False)

@@ -85,6 +85,8 @@
 	<p class='content'>{{admin|yesno:'LOGGED IN AS ADMIN,K.A.S.T.'}} - <span id='activity'>{{activity.name}}</span></p>
 	<script type='text/javascript'>
 		activity_id = {{activity.id}}
+		activity_free = {% if activity.free %} true; {% else %} false; {% endif %}
+		system_admin = {% if admin %} true; {% else %} false; {% endif %}
 	</script>
 </div>
 

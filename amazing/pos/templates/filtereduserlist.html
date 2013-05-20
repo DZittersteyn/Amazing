@@ -1,6 +1,7 @@
 <div id="usertabs-{{filter}}">
 
     <form id="filteredlist-{{filter}}" class="filteredlist">
+        <p> Kun je je account niet vinden? Misschien staat hij onderaan! </p>
         {% for user in users %}
             <input type="radio" name='userbutton' id="user-{{user.pk}}" class="checkboxwlabel"/> 
 
@@ -9,6 +10,17 @@
             </label>
 
         {% endfor %}
+        <hr class='half'/>&darr; Users without recent activity &darr;<hr class='half'/>
+        {% for user in old_users %}
+            <input type="radio" name='userbutton' id="user-{{user.pk}}" class="checkboxwlabel"/> 
+
+            <label for="user-{{user.pk}}">
+                    {{user.name}}
+            </label>
+
+        {% endfor %}
+
+        
     </form>
 
 

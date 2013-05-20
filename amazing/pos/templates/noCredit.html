@@ -1,5 +1,5 @@
 
-<div id='noCredit' class='hidden' title='Error:'>
+<div id='noCredit' class='hidden' title='{% if text %}Error:{% else %}Je hebt niet voldoende kruisjes{% endif %}'>
     <p> 
     {% if text %}
         {{text}}

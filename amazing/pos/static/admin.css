@@ -417,3 +417,7 @@ hr.half{
     height:13px;
     margin-bottom: -2px;
 }
+
+.help > p{
+    margin-bottom: 10px;
+}

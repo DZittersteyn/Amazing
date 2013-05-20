@@ -2,7 +2,7 @@
 {%if invalid%}
 {%for activity in invalid%}       
     <input class="activitybutton-input" type="radio" id="activity-{{activity.pk}}" name="activitybutton" />
-    <label class="userbuttonstyle activitybutton" for="activity-{{activity.pk}}">{{activity.name}}</label>
+    <label class="{% if activity.free %}ui-state-highlight {% endif %}userbuttonstyle activitybutton" for="activity-{{activity.pk}}">{{activity.name}}</label>
 {%endfor%}
 {%else%}
 <p> { none } </p>
@@ -14,7 +14,7 @@
 {%if pending%}
 {%for activity in pending%}       
     <input class="activitybutton-input" type="radio" id="activity-{{activity.pk}}" name="activitybutton" />
-    <label class="userbuttonstyle activitybutton" for="activity-{{activity.pk}}">{{activity.name}}</label>
+    <label class="{% if activity.free %}ui-state-highlight {% endif %}userbuttonstyle activitybutton" for="activity-{{activity.pk}}">{{activity.name}}</label>
 {%endfor%}
 {%else%}
 <p> { none } </p>
@@ -26,7 +26,7 @@
 {%if active%}
 {%for activity in active%}       
     <input class="activitybutton-input" type="radio" id="activity-{{activity.pk}}" name="activitybutton" />
-    <label class="userbuttonstyle activitybutton" for="activity-{{activity.pk}}">{{activity.name}}</label>
+    <label class="{% if activity.free %}ui-state-highlight {% endif %}userbuttonstyle activitybutton" for="activity-{{activity.pk}}">{{activity.name}}</label>
 {%endfor%}
 {%else%}
 <p> { none } </p>
@@ -39,7 +39,7 @@
 {%if done%}
 {%for activity in done%}       
     <input class="activitybutton-input" type="radio" id="activity-{{activity.pk}}" name="activitybutton" />
-    <label class="userbuttonstyle activitybutton" for="activity-{{activity.pk}}">{{activity.name}}</label>
+    <label class="{% if activity.free %}ui-state-highlight {% endif %}userbuttonstyle activitybutton" for="activity-{{activity.pk}}">{{activity.name}}</label>
 {%endfor%}
 {%else%}
 <p> { none } </p>

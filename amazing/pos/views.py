@@ -1,4 +1,5 @@
-from django.shortcuts import render_to_response
+from django.shortcuts import render_to_response 
+from django.template.loader import render_to_string
 
 from django.template import RequestContext
 
@@ -8,14 +9,13 @@ from django.http import HttpResponseRedirect
 
 from django.contrib import auth
 from django.contrib.auth.decorators import login_required
-from django.contrib.auth.decorators import permission_required
 from django.contrib.admin.views.decorators import staff_member_required
 
 from django.core.paginator import Paginator, EmptyPage, PageNotAnInteger
 from django.core.servers.basehttp import FileWrapper
 
 from itertools import chain
-from operator import itemgetter
+
 import datetime
 import json
 import threading
@@ -25,6 +25,7 @@ import re
 from pos.models import *
 
 # ugh, longfile is looooooooong. To my successor: sorry. It didn't make sense at the time either.
+
 
 def ajax_required(f):
     def wrap(request, *args, **kwargs):
@@ -95,17 +96,23 @@ def exchange_rate(request):
 
 def activity(request):
     act = Activity.get_active()
-    return HttpResponse(status=200, content=json.dumps({'act_id': act.pk, 'act_name': act.name}))
+    return HttpResponse(status=200, content=json.dumps({'act_id': act.pk, 'act_name': act.name, 'act_free': act.free}))
 
 
 @login_required
 def activity_purchase_free(request):
-    result = Activity.get_active().buy_item(request.POST['productID'])
+    act = Activity.get_active()
+    result = act.buy_item(request.POST['productID'])
+
+    print activity_restrictions()
+
+    purchases = render_to_string('userdetails.html', {'purchases': Purchase.objects.filter(activity=act).order_by('-date'), 'activity': act}, context_instance=RequestContext(request))
+    restrictions = render_to_string('free_content.html', {'restrictions': activity_restrictions()})
 
     if result['result']:
-        return HttpResponse(status=200, content=json.dumps({'result': result['desc'], 'status': activity_restrictions()}))
+        return HttpResponse(status=200, content=json.dumps({'result': result['desc'], 'purchases': purchases, 'restrictions': restrictions}))
     else:
-        return HttpResponse(status=409, content=json.dumps({'result': result['desc'], 'status': activity_restrictions()}))
+        return HttpResponse(status=409, content=json.dumps({'result': result['desc'], 'purchases': purchases, 'restrictions': restrictions}))
 
 
 def activity_restrictions():
@@ -119,7 +126,7 @@ def activity_restrictions():
     indiv = ProductLimit.objects.filter(associated_activity=activity)
     for limit in indiv:
         result.append({'desc': 'Max gratis ' + PRODUCTS[limit.product]['desc'], 'left': limit.limit - sum([purchase.price for purchase in Purchase.objects.filter(activity=activity).filter(product=limit.product)])})
-    return json.dumps(result)
+    return result
 
 
 
@@ -132,7 +139,11 @@ def passcode(request):
 @login_required
 @ajax_required
 def noCredit(request):
-    return render_to_response("noCredit.html", {'text': request.GET['text']}, context_instance=RequestContext(request))
+    text = None
+    if 'text' in request.GET:
+        text = request.GET['text']
+
+    return render_to_response("noCredit.html", {'text': text}, context_instance=RequestContext(request))
 
 
 @login_required
@@ -253,7 +264,17 @@ def filtereduserlist(request):
     for char in beginswith:
         users.extend(User.objects.filter(name__startswith=char).extra(select={'lower_name': 'lower(name)'}).order_by('lower_name').filter(active=True))
 
-    return render_to_response("filtereduserlist.html", {'filter': beginswith, 'users': users})
+    recent_users = []
+    old_users = []
+    for user in users:
+        latest = user.get_latest_purchase_date()
+        print latest
+        if not latest or latest < datetime.datetime.now() - datetime.timedelta(days=90):
+            old_users.append(user)
+        else:
+            recent_users.append(user)
+
+    return render_to_response("filtereduserlist.html", {'filter': beginswith, 'users': recent_users, 'old_users': old_users})
 
 
 @login_required
@@ -265,7 +286,7 @@ def userlist(request):
     for l in range(0, 25, 2):
         filters.append("".join((chr(l + a), chr(l + a + 1))))
 
-    return render_to_response("userlist.html", {'filters': filters}, context_instance=RequestContext(request))
+    return render_to_response("userlist.html", {'filters': filters, 'admin': request.user.is_staff, 'products': PRODUCTS}, context_instance=RequestContext(request))
 
 
 @login_required
@@ -381,7 +402,7 @@ def admin(request):
     if request.user.is_staff:
         return render_to_response('admin.html', context_instance=RequestContext(request))
     else:
-        return HttpResponse(status=401, content="You are not admin. Log in via /pos/login.html")
+        return HttpResponse(status=401, content="You are not admin. Log in via /pos/login.html or go <a href='javascript:history.back()'>back</a>.  ")
 
 
 @ajax_required

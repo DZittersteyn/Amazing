@@ -193,7 +193,6 @@ site_gui = {
 		$("#usertabs").load("userlist.html", function(){
 			site_gui.init_selectables();
 			site_gui.init_tabs();
-			
 		});
 	},
 
@@ -256,7 +255,7 @@ site_gui = {
 								' 4 5 6 ',
 					'{sp:2} 7 8 9 {accept}',
 					'  {sp:1} 0 {sp:1}'
-					
+
 				],
 				'shift': []
 			}
@@ -280,7 +279,7 @@ site_gui = {
 								' 4 5 6 ',
 					'{sp:2} 7 8 9 {accept}',
 					'  {sp:1} 0 {sp:1}'
-					
+
 				],
 				'shift': []
 			}
@@ -352,6 +351,7 @@ site_gui = {
 		$('#productselect').keypress(function(e){
 			if(e.which == 13){
 				var code = $('#productselect').val();
+				$('#inventory_newprod_barcode').val(code);
 				$('#productselect').val('');
 				e.preventDefault();
 				$.post('user/', {
@@ -373,8 +373,10 @@ site_gui = {
 				}).error(function(jqxhr, txtstatus, error){
 					if(jqxhr.status==409){
 						no_credit_dialog.load();
+					}else if(jqxhr.status==404 && system_admin){
+						$('#add_product').slideDown();
 					}else{
-						alert(jqxhr.textStatus);
+						alert(jqxhr.responseText);
 					}
 
 				});
@@ -413,7 +415,7 @@ site_gui = {
 	init_activity_check: function(){
 		window.setInterval(function(){
 			$.getJSON('activity', function(data){
-				if(activity_id != data.act_id){
+				if(activity_id != data.act_id || activity_free != data.act_free){
 					window.location.reload(true);
 				}
 			});
@@ -428,7 +430,9 @@ site_gui = {
 		site_gui.init_product_buttons();
 		site_gui.init_user_buttons();
 		site_gui.init_userlist();
-		site_gui.init_timer();
+		if(!purchases_free){
+			site_gui.init_timer();
+		}
 		site_gui.init_csrf_token();
 		site_gui.init_activity_check();
 	}

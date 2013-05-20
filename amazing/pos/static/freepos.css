@@ -11,6 +11,10 @@
     position:relative !important;
 }
 
+#userinfo > #purchases{
+    top: 210px !important;
+}
+
 #paidby{
     text-align: center;
     width: 100%;

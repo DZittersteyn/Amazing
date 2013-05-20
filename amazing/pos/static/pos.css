@@ -27,9 +27,13 @@ span{
 	margin:auto;
 	padding:10px;
 	border-radius: 5px 5px 5px 5px;
-	overflow-y: hidden;
-	
-	
+	overflow-y: hidden;	
+}
+
+#usertabs hr{
+	margin-bottom: 4px; 
+	display: inline-block; 
+	width: 90px
 }
 
 .textcenter{
@@ -106,3 +110,11 @@ div.ui-tabs-panel{
 	background: url("./notice-stripe.png") repeat scroll 50% 50% #ffd897;
 }
 
+#add_product{
+	margin-left: 20px;
+	text-align: left;
+}
+#add_product label{
+	display: inline-block;
+	width: 130px;
+}
