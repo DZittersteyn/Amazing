@@ -1,10 +1,10 @@
 # Django settings for amazing project.
 
-DEBUG = True
+DEBUG = False
 TEMPLATE_DEBUG = DEBUG
 
 ADMINS = (
-# ('Your Name', 'your_email@domain.com'),
+    ('Dirk Zittersteyn', 'zittersteyn+kast@gmail.com'),
 )
 
 MANAGERS = ADMINS
@@ -63,7 +63,6 @@ SECRET_KEY = 'dtd=w6l^12%e6$=#3qqf1!z$r3eqv3zij-ayhmum#ddflw2-qk'
 
 # List of callables that know how to import templates from various sources.
 TEMPLATE_LOADERS = (
-#'django.template.loaders.filesystem.Loader',
     'django.template.loaders.app_directories.Loader',
 )
 
