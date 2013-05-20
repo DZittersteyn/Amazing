@@ -14,7 +14,7 @@ framework.
 
 """
 import os, sys
-sys.path.append('/home/kast/Amazing')
+sys.path.append('/home/cover/overig/kast/Amazing')
 os.environ["DJANGO_SETTINGS_MODULE"] = "amazing.settings"
 
 from django.core.wsgi import get_wsgi_application
